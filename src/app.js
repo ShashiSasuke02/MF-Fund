@@ -12,6 +12,7 @@ import fundRoutes from './routes/fund.routes.js';
 import healthRoutes from './routes/health.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import demoRoutes from './routes/demo.routes.js';
+import calculatorRoutes from './routes/calculator.routes.js';
 
 // Middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -73,6 +74,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/demo', demoRoutes);
 app.use('/api/amcs', amcRoutes);
 app.use('/api/funds', fundRoutes);
+app.use('/api/calculator', calculatorRoutes);
 app.use('/api/health', healthRoutes);
 
 // Root route - API info
