@@ -38,12 +38,19 @@ export function AuthProvider({ children }) {
 
   const register = async (userData) => {
     try {
+      // Clear any existing auth state before registration
+      logout();
+      
       const response = await authApi.register(userData);
       if (response.success) {
+        // Set token first to ensure it's available for subsequent API calls
         setAuthToken(response.data.token);
+        
+        // Then update state
         setUser(response.data.user);
         setDemoAccount(response.data.demoAccount);
         setIsAuthenticated(true);
+        
         return { success: true };
       }
     } catch (error) {
@@ -53,12 +60,19 @@ export function AuthProvider({ children }) {
 
   const login = async (credentials) => {
     try {
+      // Clear any existing auth state before login
+      logout();
+      
       const response = await authApi.login(credentials);
       if (response.success) {
+        // Set token first to ensure it's available for subsequent API calls
         setAuthToken(response.data.token);
+        
+        // Then update state
         setUser(response.data.user);
         setDemoAccount(response.data.demoAccount);
         setIsAuthenticated(true);
+        
         return { success: true };
       }
     } catch (error) {

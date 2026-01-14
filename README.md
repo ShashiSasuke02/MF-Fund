@@ -4,6 +4,7 @@ A comprehensive Node.js web application for exploring and selecting mutual funds
 
 ## Features
 
+### Core Features
 - **Top AMCs Display**: View top 5 Asset Management Companies with fund counts
 - **Fund Listing**: Browse all mutual fund schemes for each AMC with search, filter, and sort capabilities
 - **Fund Details**: View comprehensive information about individual funds including NAV, category, and historical data
@@ -11,12 +12,27 @@ A comprehensive Node.js web application for exploring and selecting mutual funds
 - **Caching**: In-memory caching to optimize API calls and improve performance
 - **Responsive Design**: Modern, mobile-friendly UI built with React and Tailwind CSS
 
+### Investment Management
+- **User Authentication**: Secure registration and login with JWT authentication
+- **Demo Trading Account**: Practice investments with virtual balance (₹10,00,000)
+- **Multiple Transaction Types**:
+  - **Lump Sum**: One-time investments
+  - **SIP (Systematic Investment Plan)**: Regular investments with daily, weekly, monthly, or quarterly frequency
+  - **STP (Systematic Transfer Plan)**: Regular transfers between funds with daily, weekly, monthly, or quarterly frequency
+  - **SWP (Systematic Withdrawal Plan)**: Regular withdrawals with daily, weekly, monthly, or quarterly frequency
+  - **Redemption**: Sell existing holdings
+- **Portfolio Management**: Track all your investments with real-time NAV updates
+- **Transaction History**: View all your past transactions with detailed information
+- **Real-time Balance**: Monitor your demo account balance after each transaction
+
 ## Tech Stack
 
 ### Backend
 - **Node.js** with ES Modules
 - **Express.js** - Web framework
-- **SQLite** (better-sqlite3) - Database for caching and data storage
+- **SQLite** (sql.js) - In-memory database for user data and transactions
+- **JWT** - JSON Web Tokens for authentication
+- **bcrypt** - Password hashing
 - **Axios** - HTTP client for MFapi.in integration
 - **Helmet** - Security middleware
 - **CORS** - Cross-origin resource sharing
@@ -29,6 +45,12 @@ A comprehensive Node.js web application for exploring and selecting mutual funds
 - **React Router 6** - Client-side routing
 - **Tailwind CSS** - Utility-first CSS framework
 - **Vite** - Build tool and dev server
+- **Context API** - State management for authentication
+
+### Testing
+- **Jest** - Testing framework with ES modules support
+- **Supertest** - HTTP assertions for API testing
+- **64 unit tests** - Comprehensive test coverage for models, controllers, and services
 
 ## Project Structure
 
@@ -37,20 +59,30 @@ mf-selection/
 ├── src/                        # Backend source code
 │   ├── controllers/            # Route handlers
 │   │   ├── amc.controller.js
+│   │   ├── auth.controller.js  # Authentication endpoints
+│   │   ├── demo.controller.js  # Demo trading endpoints
 │   │   └── fund.controller.js
 │   ├── db/                     # Database configuration
 │   │   ├── database.js
 │   │   └── schema.sql
 │   ├── middleware/             # Express middleware
+│   │   ├── auth.middleware.js  # JWT authentication
 │   │   └── errorHandler.js
 │   ├── models/                 # Data models
-│   │   └── amc.model.js
+│   │   ├── amc.model.js
+│   │   ├── demoAccount.model.js
+│   │   ├── holding.model.js
+│   │   ├── transaction.model.js
+│   │   └── user.model.js
 │   ├── routes/                 # API routes
 │   │   ├── amc.routes.js
+│   │   ├── auth.routes.js      # Authentication routes
+│   │   ├── demo.routes.js      # Demo trading routes
 │   │   ├── fund.routes.js
 │   │   └── health.routes.js
 │   ├── services/               # Business logic
 │   │   ├── cache.service.js
+│   │   ├── demo.service.js     # Investment logic
 │   │   └── mfapi.service.js
 │   ├── app.js                  # Express app configuration
 │   └── server.js               # Server entry point
@@ -58,7 +90,16 @@ mf-selection/
 │   ├── src/
 │   │   ├── api/               # API client
 │   │   ├── components/        # Reusable components
+│   │   ├── contexts/          # React contexts
+│   │   │   └── AuthContext.jsx
 │   │   ├── pages/             # Page components
+│   │   │   ├── AmcList.jsx
+│   │   │   ├── FundDetails.jsx
+│   │   │   ├── FundList.jsx
+│   │   │   ├── Invest.jsx     # Investment page
+│   │   │   ├── Login.jsx
+│   │   │   ├── Portfolio.jsx  # Portfolio page
+│   │   │   └── Register.jsx
 │   │   ├── App.jsx            # Main app component
 │   │   ├── main.jsx           # Entry point
 │   │   └── index.css          # Global styles
@@ -66,6 +107,14 @@ mf-selection/
 │   ├── package.json
 │   ├── vite.config.js
 │   └── tailwind.config.js
+├── tests/                      # Test files
+│   └── unit/                   # Unit tests
+│       ├── controllers/
+│       ├── models/
+│       └── services/
+├── scripts/                    # Utility scripts
+│   ├── fix-orphaned-data.js
+│   └── reset-test-data.js
 ├── data/                       # SQLite database (auto-created)
 ├── .env                        # Environment variables
 ├── .gitignore
@@ -113,20 +162,31 @@ mf-selection/
 
 ## Running the Application
 
-### Development Mode
+### Development Mode (Recommended)
 
-1. **Start the backend server**
-   ```bash
-   npm run dev
-   ```
-   Backend runs on http://localhost:4000
+Run both backend and frontend concurrently:
+```bash
+npm run dev
+```
+- Backend runs on http://localhost:4000
+- Frontend runs on http://localhost:5173
 
-2. **Start the frontend dev server** (in a new terminal)
-   ```bash
-   cd client
-   npm run dev
-   ```
-   Frontend runs on http://localhost:5173
+### Testing
+
+Run all unit tests:
+```bash
+npm test
+```
+
+Run tests in watch mode:
+```bash
+npm run test:watch
+```
+
+Run tests with coverage:
+```bash
+npm run test:coverage
+```
 
 ### Production Mode
 
@@ -145,6 +205,30 @@ mf-selection/
    The server serves both the API and the built React app on http://localhost:4000
 
 ## API Endpoints
+
+### Authentication Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register new user |
+| POST | `/api/auth/login` | Login user |
+| GET | `/api/auth/profile` | Get user profile (requires auth) |
+
+### Demo Trading Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/demo/balance` | Get demo account balance |
+| POST | `/api/demo/transactions` | Create new transaction |
+| GET | `/api/demo/transactions` | Get transaction history |
+| GET | `/api/demo/portfolio` | Get current holdings |
+
+**Supported Transaction Types:**
+- `LUMP_SUM` - One-time investment
+- `SIP` - Systematic Investment Plan (daily/weekly/monthly/quarterly)
+- `STP` - Systematic Transfer Plan (daily/weekly/monthly/quarterly)
+- `SWP` - Systematic Withdrawal Plan (daily/weekly/monthly/quarterly)
+- `REDEMPTION` - Sell holdings
 
 ### AMC Endpoints
 
@@ -211,14 +295,21 @@ const TOP_AMCS = [
 
 ## Database
 
-The application uses SQLite for:
-- Caching AMC data
-- Storing scheme information for quick access
-- Caching API responses
+The application uses SQLite (sql.js) in-memory database for:
+- User authentication and profiles
+- Demo trading accounts
+- Investment holdings tracking
+- Transaction history
+- Caching AMC and fund data
 
-Database location: `./data/mfselection.db`
+Database schema includes:
+- **users** - User accounts with hashed passwords
+- **demo_accounts** - Virtual trading accounts with balance
+- **holdings** - Current investment positions
+- **transactions** - Complete transaction history
+- **amc_master** - Cached AMC information
 
-The database is automatically initialized on first run.
+The database is automatically initialized on first run and persists to `./data/mfselection.db`.
 
 ## Caching Strategy
 

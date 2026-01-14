@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS users (
 -- Demo accounts table (one per user, fixed starting balance)
 CREATE TABLE IF NOT EXISTS demo_accounts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL UNIQUE,
-    balance REAL NOT NULL DEFAULT 1000000.00,
+    user_id INTEGER NOT NULL UNIQUE CHECK (user_id > 0),
+    balance REAL NOT NULL DEFAULT 1000000.00 CHECK (balance >= 0),
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000),
     updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -48,18 +48,18 @@ CREATE TABLE IF NOT EXISTS demo_accounts (
 -- Transactions table for SIP, STP, Lump Sum, SWP
 CREATE TABLE IF NOT EXISTS transactions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL CHECK (user_id > 0),
     scheme_code INTEGER NOT NULL,
     scheme_name TEXT NOT NULL,
-    transaction_type TEXT NOT NULL, -- 'SIP', 'STP', 'LUMP_SUM', 'SWP'
-    amount REAL NOT NULL,
+    transaction_type TEXT NOT NULL CHECK (transaction_type IN ('SIP', 'STP', 'LUMP_SUM', 'SWP')),
+    amount REAL NOT NULL CHECK (amount > 0),
     units REAL,
-    nav REAL,
-    frequency TEXT, -- 'MONTHLY', 'QUARTERLY', 'WEEKLY' for SIP/STP/SWP
+    nav REAL CHECK (nav > 0),
+    frequency TEXT CHECK (frequency IS NULL OR frequency IN ('MONTHLY', 'QUARTERLY', 'WEEKLY')),
     start_date TEXT, -- ISO date for scheduled transactions
     end_date TEXT, -- ISO date for scheduled transactions (optional)
-    installments INTEGER, -- Number of installments for SIP/STP
-    status TEXT NOT NULL DEFAULT 'SUCCESS', -- 'PENDING', 'SUCCESS', 'FAILED', 'CANCELLED'
+    installments INTEGER CHECK (installments IS NULL OR installments > 0),
+    status TEXT NOT NULL DEFAULT 'SUCCESS' CHECK (status IN ('PENDING', 'SUCCESS', 'FAILED', 'CANCELLED')),
     executed_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000),
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -68,13 +68,13 @@ CREATE TABLE IF NOT EXISTS transactions (
 -- Holdings table for user's mutual fund portfolio
 CREATE TABLE IF NOT EXISTS holdings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL CHECK (user_id > 0),
     scheme_code INTEGER NOT NULL,
     scheme_name TEXT NOT NULL,
-    total_units REAL NOT NULL DEFAULT 0,
-    invested_amount REAL NOT NULL DEFAULT 0,
-    current_value REAL,
-    last_nav REAL,
+    total_units REAL NOT NULL DEFAULT 0 CHECK (total_units >= 0),
+    invested_amount REAL NOT NULL DEFAULT 0 CHECK (invested_amount >= 0),
+    current_value REAL CHECK (current_value IS NULL OR current_value >= 0),
+    last_nav REAL CHECK (last_nav IS NULL OR last_nav > 0),
     last_nav_date TEXT,
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000),
     updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000),

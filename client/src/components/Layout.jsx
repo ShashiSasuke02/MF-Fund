@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
+import Footer from './Footer';
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -158,11 +159,7 @@ export default function Layout({ children }) {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-600">
-          <p>Practice investing without risk. © 2026 TryMutualFunds. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
