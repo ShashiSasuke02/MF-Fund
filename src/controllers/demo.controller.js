@@ -98,7 +98,6 @@ export const demoController = {
   async getPortfolio(req, res, next) {
     try {
       const userId = req.user.userId;
-      console.log('[Demo Controller] getPortfolio - userId:', userId, 'user:', req.user);
       
       // Validate userId
       if (!userId || userId <= 0) {
@@ -109,7 +108,6 @@ export const demoController = {
       }
       
       const portfolio = await demoService.getPortfolio(userId);
-      console.log('[Demo Controller] Found holdings:', portfolio.holdings?.length, 'for userId:', userId);
 
       res.json({
         success: true,
@@ -129,9 +127,7 @@ export const demoController = {
       const limit = parseInt(req.query.limit) || 50;
       const offset = parseInt(req.query.offset) || 0;
 
-      console.log('[Demo Controller] getTransactions - userId:', userId, 'user:', req.user);
       const transactions = demoService.getTransactions(userId, limit, offset);
-      console.log('[Demo Controller] Found transactions:', transactions.length, 'for userId:', userId);
 
       res.json({
         success: true,

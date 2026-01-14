@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { amcApi } from '../api';
 import { PageLoader, TableRowSkeleton } from '../components/LoadingSpinner';
 import ErrorMessage, { EmptyState } from '../components/ErrorMessage';
-import { InFeedAd } from '../components/AdSense';
+import { InFeedAd, BannerAd, DisplayAd } from '../components/AdSense';
 
 /**
  * Fund List page - displays all funds for a specific AMC
@@ -66,6 +66,11 @@ export default function FundList() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
       {/* Back Button */}
       <BackButton />
+
+      {/* Banner Ad */}
+      <div className="mb-6 bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-200 overflow-hidden">
+        <BannerAd />
+      </div>
 
       {/* Header with gradient */}
       <div className="mb-10">
@@ -244,6 +249,11 @@ export default function FundList() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Display Ad */}
+      <div className="mt-8 bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-200 overflow-hidden">
+        <DisplayAd />
       </div>
       </div>
     </div>
