@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { amcApi } from '../api';
 import { PageLoader, CardSkeleton } from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import { BannerAd, DisplayAd } from '../components/AdSense';
 
 /**
  * AMC List page - displays top AMCs as cards
@@ -59,6 +60,11 @@ export default function AmcList() {
       <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-cyan-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+      {/* Top Banner Ad */}
+      <div className="mb-8 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-4 border border-gray-200">
+        <BannerAd />
+      </div>
+
       {/* Header with gradient */}
       <div className="mb-12 text-center">
         <div className="inline-flex items-center px-5 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-emerald-200 mb-6">
@@ -80,6 +86,11 @@ export default function AmcList() {
         {amcs.map((amc) => (
           <AmcCard key={amc.fundHouse} amc={amc} />
         ))}
+      </div>
+
+      {/* Bottom Display Ad */}
+      <div className="mt-12 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-gray-200">
+        <DisplayAd />
       </div>
       </div>
     </div>

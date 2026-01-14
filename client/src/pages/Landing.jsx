@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
+import { BannerAd, DisplayAd, RectangleAd } from '../components/AdSense';
 
 export default function Landing() {
   const { isAuthenticated } = useAuth();
@@ -229,6 +230,13 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-teal-50/30">
+      {/* Top Banner Ad */}
+      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <BannerAd />
+        </div>
+      </div>
+
       {/* Animated Carousel Section */}
       <section className="relative pt-20 pb-24 md:pt-32 md:pb-40 overflow-hidden min-h-[650px] md:min-h-[700px]">
         {/* Animated decorative blobs */}
@@ -274,6 +282,13 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {/* Mid-page Display Ad */}
+      <div className="bg-white/60 backdrop-blur-sm border-y border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <DisplayAd />
+        </div>
+      </div>
 
       {/* FAQ Section */}
       <section id="faq" className="py-16 md:py-20 bg-gradient-to-br from-gray-50 to-emerald-50/30 relative overflow-hidden">
@@ -410,6 +425,15 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {/* Bottom Rectangle Ad */}
+      <div className="bg-white/80 backdrop-blur-sm border-t border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-4xl mx-auto">
+            <RectangleAd />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
