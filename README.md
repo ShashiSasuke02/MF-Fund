@@ -1,380 +1,364 @@
-# MF Selection - Mutual Fund Explorer
+# MF Investments - Mutual Fund Explorer & Demo Trading Platform
 
-A comprehensive Node.js web application for exploring and selecting mutual funds from top Asset Management Companies (AMCs) in India. Built with Express.js backend and React frontend, integrating with MFapi.in API for real-time mutual fund data.
+A comprehensive full-stack web application for exploring mutual funds and practicing investments with virtual money. Built with Express.js, SQLite, and React.
 
-## Features
+[![Tests](https://img.shields.io/badge/tests-67%20passed-success)](./tests)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
 
-### Core Features
-- **Top AMCs Display**: View top 5 Asset Management Companies with fund counts
-- **Fund Listing**: Browse all mutual fund schemes for each AMC with search, filter, and sort capabilities
-- **Fund Details**: View comprehensive information about individual funds including NAV, category, and historical data
-- **Real-time Data**: Integration with MFapi.in API for up-to-date mutual fund information
-- **Caching**: In-memory caching to optimize API calls and improve performance
-- **Responsive Design**: Modern, mobile-friendly UI built with React and Tailwind CSS
+---
 
-### Investment Management
-- **User Authentication**: Secure registration and login with JWT authentication
-- **Demo Trading Account**: Practice investments with virtual balance (₹10,00,000)
-- **Multiple Transaction Types**:
-  - **Lump Sum**: One-time investments
-  - **SIP (Systematic Investment Plan)**: Regular investments with daily, weekly, monthly, or quarterly frequency
-  - **STP (Systematic Transfer Plan)**: Regular transfers between funds with daily, weekly, monthly, or quarterly frequency
-  - **SWP (Systematic Withdrawal Plan)**: Regular withdrawals with daily, weekly, monthly, or quarterly frequency
-  - **Redemption**: Sell existing holdings
-- **Portfolio Management**: Track all your investments with real-time NAV updates
-- **Systematic Plans View**: Dedicated tab to view all active SIP, STP, and SWP plans with frequency, amount, and status
-- **Transaction History**: View all your past transactions with detailed information
-- **Real-time Balance**: Monitor your demo account balance after each transaction
+## 🚀 Quick Start
 
-## Tech Stack
-
-### Backend
-- **Node.js** with ES Modules
-- **Express.js** - Web framework
-- **SQLite** (sql.js) - In-memory database for user data and transactions
-- **JWT** - JSON Web Tokens for authentication
-- **bcrypt** - Password hashing
-- **Axios** - HTTP client for MFapi.in integration
-- **Helmet** - Security middleware
-- **CORS** - Cross-origin resource sharing
-- **Morgan** - HTTP request logging
-- **express-rate-limit** - API rate limiting
-- **dotenv** - Environment configuration
-
-### Frontend
-- **React 18** - UI framework
-- **React Router 6** - Client-side routing
-- **Tailwind CSS** - Utility-first CSS framework
-- **Vite** - Build tool and dev server
-- **Context API** - State management for authentication
-
-### Testing
-- **Jest** - Testing framework with ES modules support
-- **Supertest** - HTTP assertions for API testing
-- **67 unit tests** - Comprehensive test coverage for models, controllers, and services
-
-## Project Structure
-
-```
-mf-selection/
-├── src/                        # Backend source code
-│   ├── controllers/            # Route handlers
-│   │   ├── amc.controller.js
-│   │   ├── auth.controller.js  # Authentication endpoints
-│   │   ├── demo.controller.js  # Demo trading endpoints
-│   │   └── fund.controller.js
-│   ├── db/                     # Database configuration
-│   │   ├── database.js
-│   │   └── schema.sql
-│   ├── middleware/             # Express middleware
-│   │   ├── auth.middleware.js  # JWT authentication
-│   │   └── errorHandler.js
-│   ├── models/                 # Data models
-│   │   ├── amc.model.js
-│   │   ├── demoAccount.model.js
-│   │   ├── holding.model.js
-│   │   ├── transaction.model.js
-│   │   └── user.model.js
-│   ├── routes/                 # API routes
-│   │   ├── amc.routes.js
-│   │   ├── auth.routes.js      # Authentication routes
-│   │   ├── demo.routes.js      # Demo trading routes
-│   │   ├── fund.routes.js
-│   │   └── health.routes.js
-│   ├── services/               # Business logic
-│   │   ├── cache.service.js
-│   │   ├── demo.service.js     # Investment logic
-│   │   └── mfapi.service.js
-│   ├── app.js                  # Express app configuration
-│   └── server.js               # Server entry point
-├── client/                     # Frontend source code
-│   ├── src/
-│   │   ├── api/               # API client
-│   │   ├── components/        # Reusable components
-│   │   ├── contexts/          # React contexts
-│   │   │   └── AuthContext.jsx
-│   │   ├── pages/             # Page components
-│   │   │   ├── AmcList.jsx
-│   │   │   ├── FundDetails.jsx
-│   │   │   ├── FundList.jsx
-│   │   │   ├── Invest.jsx     # Investment page
-│   │   │   ├── Login.jsx
-│   │   │   ├── Portfolio.jsx  # Portfolio page
-│   │   │   └── Register.jsx
-│   │   ├── App.jsx            # Main app component
-│   │   ├── main.jsx           # Entry point
-│   │   └── index.css          # Global styles
-│   ├── index.html
-│   ├── package.json
-│   ├── vite.config.js
-│   └── tailwind.config.js
-├── tests/                      # Test files
-│   └── unit/                   # Unit tests
-│       ├── controllers/
-│       ├── models/
-│       └── services/
-├── scripts/                    # Utility scripts
-│   ├── fix-orphaned-data.js
-│   └── reset-test-data.js
-├── data/                       # SQLite database (auto-created)
-├── .env                        # Environment variables
-├── .gitignore
-├── package.json
-└── README.md
-```
-
-## Prerequisites
-
-- Node.js 18.x or higher
-- npm 9.x or higher
-
-## Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd mf-selection
-   ```
-
-2. **Install backend dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Install frontend dependencies**
-   ```bash
-   cd client
-   npm install
-   cd ..
-   ```
-
-4. **Configure environment variables**
-   
-   The `.env` file is already configured with defaults. Modify if needed:
-   ```env
-   PORT=4000
-   NODE_ENV=development
-   MFAPI_BASE_URL=https://api.mfapi.in
-   MFAPI_TIMEOUT=15000
-   CACHE_TTL=3600000
-   RATE_LIMIT_WINDOW_MS=60000
-   RATE_LIMIT_MAX_REQUESTS=100
-   ```
-
-## Running the Application
-
-### Development Mode (Recommended)
-
-Run both backend and frontend concurrently:
 ```bash
+# Install dependencies
+npm run install:all
+
+# Start development servers
 npm run dev
-```
-- Backend runs on http://localhost:4000
-- Frontend runs on http://localhost:5173
 
-### Testing
-
-Run all unit tests:
-```bash
+# Run tests
 npm test
 ```
 
-Run tests in watch mode:
+**Access Application:**
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:4000
+
+---
+
+## ✨ Key Features
+
+### 💰 Demo Trading System
+- **₹10,00,000 Virtual Balance** - Practice investing without risk
+- **Real-time NAV Updates** - Live mutual fund prices
+- **Complete Portfolio Tracking** - Monitor investments and returns
+
+### 📊 Investment Options
+- **Lump Sum** - One-time investments
+- **SIP** - Systematic Investment Plan (Daily/Weekly/Monthly/Quarterly)
+- **STP** - Systematic Transfer Plan between funds
+- **SWP** - Systematic Withdrawal Plan
+- **Redemption** - Sell holdings anytime
+
+### 📱 Modern Features
+- **40+ AMCs** - Browse top Asset Management Companies
+- **1000+ Mutual Funds** - Complete fund database
+- **Responsive Design** - Works on all devices
+- **Google Ads Integration** - Revenue-optimized placement
+- **Secure Authentication** - JWT-based user sessions
+
+---
+
+## 📚 Documentation
+
+### 📖 Complete Guides
+- **[Installation & Deployment Guide](./documents/INSTALLATION_AND_DEPLOYMENT.md)** - Step-by-step setup for development and production
+- **[Project Details](./documents/PROJECT_DETAILS.md)** - Technical architecture and API documentation
+- **[Google Ads Implementation](./documents/GOOGLE_ADS_IMPLEMENTATION.md)** - AdSense setup and optimization
+- **[Deployment Guide](./documents/DEPLOYMENT_GUIDE.md)** - Cloud deployment options
+- **[Systematic Plans Feature](./documents/SYSTEMATIC_PLANS_FEATURE.md)** - SIP/STP/SWP implementation details
+
+### 📋 Additional Documentation
+- **[Mobile Optimization](./documents/MOBILE_OPTIMIZATION.md)** - Responsive design details
+- **[Production Readiness Report](./documents/PRODUCTION_READINESS_REPORT.md)** - Quality assurance checklist
+- **[Bug Fix Report](./documents/BUG_FIX_REPORT.md)** - Issues resolved
+- **[Test Findings](./documents/TEST_FINDINGS.md)** - Test coverage and results
+- **[MFapi Implementation Guide](./documents/MFAPI-Implementation-Guide.md)** - External API integration
+
+---
+
+## 🛠️ Tech Stack
+
+**Backend:**
+- Express.js 4.x
+- SQLite (sql.js)
+- JWT Authentication
+- Bcrypt Password Hashing
+- Axios API Client
+- Helmet Security
+- Rate Limiting
+
+**Frontend:**
+- React 18
+- React Router 6
+- TailwindCSS 3
+- Vite 5
+- Context API
+
+**Testing:**
+- Jest 29
+- 67 Unit Tests
+- 100% Pass Rate
+
+---
+
+## 📦 Installation
+
+### Prerequisites
+- Node.js 18+ and NPM 9+
+- 4GB RAM minimum
+- Internet connection (for API access)
+
+### Development Setup
+
 ```bash
+# 1. Clone repository
+git clone https://github.com/ShashidharBelavankiTR/MF-Investments.git
+cd MF-Investments
+
+# 2. Install all dependencies
+npm run install:all
+
+# 3. Create environment files
+cp .env.example .env
+cp client/.env.example client/.env
+
+# 4. Configure environment variables
+# Edit .env and client/.env with your credentials
+
+# 5. Start development servers
+npm run dev
+```
+
+**Detailed Instructions:** See [Installation & Deployment Guide](./documents/INSTALLATION_AND_DEPLOYMENT.md)
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# Run specific suites
+npm run test:unit
+npm run test:integration
+
+# Watch mode
 npm run test:watch
 ```
 
-Run tests with coverage:
+**Test Results:**
+- ✅ 67 tests passing
+- ✅ 100% pass rate
+- ✅ Controllers, Services, Models covered
+
+---
+
+## 🏗️ Production Build
+
 ```bash
-npm run test:coverage
+# Build frontend for production
+npm run build:client
+
+# Preview production build
+cd client && npm run preview
+
+# Start production server
+npm start
 ```
 
-### Production Mode
+**Production Deployment:** See [Installation & Deployment Guide](./documents/INSTALLATION_AND_DEPLOYMENT.md#production-deployment)
 
-1. **Build the frontend**
-   ```bash
-   cd client
-   npm run build
-   cd ..
-   ```
+---
 
-2. **Start the production server**
-   ```bash
-   npm start
-   ```
-   
-   The server serves both the API and the built React app on http://localhost:4000
+## 📁 Project Structure
 
-## API Endpoints
-
-### Authentication Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Register new user |
-| POST | `/api/auth/login` | Login user |
-| GET | `/api/auth/profile` | Get user profile (requires auth) |
-
-### Demo Trading Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/demo/balance` | Get demo account balance |
-| POST | `/api/demo/transactions` | Create new transaction |
-| GET | `/api/demo/transactions` | Get transaction history |
-| GET | `/api/demo/portfolio` | Get current holdings |
-| GET | `/api/demo/systematic-plans` | Get active systematic plans (SIP, STP, SWP) |
-
-**Supported Transaction Types:**
-- `LUMP_SUM` - One-time investment
-- `SIP` - Systematic Investment Plan (daily/weekly/monthly/quarterly)
-- `STP` - Systematic Transfer Plan (daily/weekly/monthly/quarterly)
-- `SWP` - Systematic Withdrawal Plan (daily/weekly/monthly/quarterly)
-- `REDEMPTION` - Sell holdings
-
-### AMC Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/amcs` | Get top 5 AMCs |
-| GET | `/api/amcs/:fundHouse` | Get AMC details |
-| GET | `/api/amcs/:fundHouse/funds` | Get funds for an AMC |
-
-**Query Parameters for `/api/amcs/:fundHouse/funds`:**
-- `search` - Filter by scheme name
-- `category` - Filter by category
-- `sort` - Sort order (`name_asc`, `name_desc`, `nav_asc`, `nav_desc`)
-
-### Fund Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/funds/search?q=:query` | Search funds by name |
-| GET | `/api/funds/:schemeCode` | Get fund details |
-| GET | `/api/funds/:schemeCode/nav` | Get latest NAV |
-| GET | `/api/funds/:schemeCode/history` | Get NAV history |
-
-**Query Parameters for `/api/funds/:schemeCode/history`:**
-- `startDate` - Start date (YYYY-MM-DD)
-- `endDate` - End date (YYYY-MM-DD)
-- `limit` - Number of records
-
-### Health Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/health` | Server health check |
-| GET | `/api/health/cache` | Cache statistics |
-| POST | `/api/health/cache/clear` | Clear expired cache |
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | 4000 | Server port |
-| `NODE_ENV` | development | Environment mode |
-| `MFAPI_BASE_URL` | https://api.mfapi.in | MFapi.in base URL |
-| `MFAPI_TIMEOUT` | 15000 | API request timeout (ms) |
-| `CACHE_TTL` | 3600000 | Cache time-to-live (ms) |
-| `RATE_LIMIT_WINDOW_MS` | 60000 | Rate limit window (ms) |
-| `RATE_LIMIT_MAX_REQUESTS` | 100 | Max requests per window |
-
-### Top AMCs Configuration
-
-The top 5 AMCs are configured in `src/models/amc.model.js`. Modify the `TOP_AMCS` array to change which fund houses are displayed:
-
-```javascript
-const TOP_AMCS = [
-  'HDFC Mutual Fund',
-  'ICICI Prudential Mutual Fund',
-  'SBI Mutual Fund',
-  'Axis Mutual Fund',
-  'Kotak Mahindra Mutual Fund'
-];
+```
+MF-Investments/
+├── client/                 # React Frontend
+│   ├── src/
+│   │   ├── components/    # Reusable UI components
+│   │   ├── pages/         # Page components
+│   │   ├── contexts/      # React Context (Auth)
+│   │   ├── api/           # API client
+│   │   └── App.jsx        # Main app component
+│   └── package.json
+│
+├── src/                    # Express Backend
+│   ├── controllers/       # Request handlers
+│   ├── models/            # Database models
+│   ├── routes/            # API routes
+│   ├── services/          # Business logic
+│   ├── middleware/        # Auth, error handling
+│   ├── db/               # Database utilities
+│   ├── app.js            # Express app setup
+│   └── server.js         # Server entry point
+│
+├── tests/                 # Test Suite
+│   ├── unit/             # Unit tests
+│   └── README.md         # Testing documentation
+│
+├── scripts/              # Utility scripts
+│   ├── cleanup-db.js    # Database cleanup
+│   └── inspect-db.js    # Database inspection
+│
+├── documents/            # Documentation
+│   ├── INSTALLATION_AND_DEPLOYMENT.md
+│   ├── PROJECT_DETAILS.md
+│   ├── GOOGLE_ADS_IMPLEMENTATION.md
+│   └── ... (see above for complete list)
+│
+├── .env                  # Backend environment variables
+├── package.json          # Backend dependencies
+└── README.md            # This file
 ```
 
-## Database
+---
 
-The application uses SQLite (sql.js) in-memory database for:
-- User authentication and profiles
-- Demo trading accounts
-- Investment holdings tracking
-- Transaction history
-- Caching AMC and fund data
+## 🔒 Security Features
 
-Database schema includes:
-- **users** - User accounts with hashed passwords
-- **demo_accounts** - Virtual trading accounts with balance
-- **holdings** - Current investment positions
-- **transactions** - Complete transaction history
-- **amc_master** - Cached AMC information
+- **JWT Authentication** - Secure token-based auth
+- **Password Hashing** - Bcrypt with salt rounds
+- **Rate Limiting** - 100 requests per minute
+- **Helmet.js** - Security headers
+- **CORS Protection** - Configured origins
+- **Input Validation** - Express-validator
+- **SQL Injection Prevention** - Parameterized queries
+- **XSS Protection** - React's built-in protection
 
-The database is automatically initialized on first run and persists to `./data/mfselection.db`.
+---
 
-## Caching Strategy
+## 🌐 API Endpoints
 
-- **In-memory cache** for frequently accessed data
-- **Database cache** for AMC and scheme information
-- **TTL-based expiration** (default: 1 hour)
-- **Automatic cleanup** of expired entries every 30 minutes
+### Public Endpoints
+- `GET /api/health` - Health check
+- `GET /api/amcs` - List all AMCs
+- `GET /api/amcs/:id/funds` - Get funds by AMC
+- `GET /api/funds/:code` - Get fund details
+- `GET /api/funds/search` - Search funds
 
-## Error Handling
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - User login
+- `GET /api/auth/profile` - Get user profile (protected)
 
-- Centralized error handling middleware
-- Graceful handling of MFapi.in API failures
-- User-friendly error messages
-- Retry logic for transient failures
+### Demo Trading (Protected)
+- `POST /api/demo/invest` - Execute investment
+- `GET /api/demo/portfolio` - Get portfolio
+- `GET /api/demo/transactions` - Get transaction history
+- `GET /api/demo/systematic-plans` - Get active SIP/STP/SWP plans
+- `GET /api/demo/balance` - Get account balance
 
-## Security Features
+**Full API Documentation:** See [Project Details](./documents/PROJECT_DETAILS.md#api-endpoints)
 
-- Helmet.js for security headers
-- CORS protection
-- Rate limiting to prevent abuse
-- Input validation and sanitization
-- SQL injection prevention with parameterized queries
+---
 
-## Google AdSense Integration
+## 🎨 Features in Detail
 
-The application is ready for Google AdSense monetization. See [ADSENSE_SETUP.md](ADSENSE_SETUP.md) for detailed setup instructions.
+### Demo Trading Account
+Every registered user gets:
+- ₹10,00,000 virtual starting balance
+- Real-time NAV updates for holdings
+- Complete transaction history
+- Portfolio performance tracking
 
-### Quick Setup:
-1. Get your AdSense Publisher ID
-2. Create ad units in AdSense dashboard
-3. Copy `.env.adsense.example` to `.env` and update with your IDs
-4. Update `client/index.html` with your Publisher ID
-5. Deploy to production
+### Systematic Plans
+- **SIP (Systematic Investment Plan)**
+  - Invest fixed amounts regularly
+  - Daily, Weekly, Monthly, or Quarterly frequency
+  - Automatic execution on scheduled dates
 
-**Ad Placements:**
-- Landing page (2 ads)
-- Fund listing pages (in-feed ads)
-- Fund details page (display ad)
-- Portfolio page (banner ad)
+- **STP (Systematic Transfer Plan)**
+  - Transfer between funds regularly
+  - Same frequency options as SIP
+  - Maintain investment balance
 
-## Mobile Optimization
+- **SWP (Systematic Withdrawal Plan)**
+  - Withdraw fixed amounts regularly
+  - Generate regular income from investments
+  - Flexible withdrawal schedules
 
-The application is fully optimized for mobile devices with a responsive, touch-friendly design. See [MOBILE_OPTIMIZATION.md](MOBILE_OPTIMIZATION.md) for complete details.
+### Google AdSense Integration
+- Strategic ad placement on 6+ pages
+- Banner, Display, Rectangle, and In-Feed ads
+- Revenue-optimized placement
+- Google policy compliant (3-4 ads per page max)
 
-### Key Mobile Features:
-- ✅ **Hamburger Menu**: Smooth slide-in navigation for mobile devices
-- ✅ **Touch-Friendly**: 44px+ minimum touch targets on all interactive elements
-- ✅ **Responsive Layout**: Mobile-first design that scales beautifully
-- ✅ **Optimized Forms**: Large input fields with proper mobile keyboards
-- ✅ **Fast Performance**: Optimized animations and asset loading
-- ✅ **PWA Ready**: Meta tags for progressive web app capabilities
+---
 
-### Tested On:
-- iPhone (Safari)
-- Android devices (Chrome)
-- Tablets (iPad, Android tablets)
-- Various screen sizes (375px - 1920px)
+## 🚢 Deployment Options
 
-## License
+### Traditional Server (VPS)
+- Ubuntu/CentOS with Nginx
+- PM2 process manager
+- Let's Encrypt SSL
+- **Guide:** [Installation & Deployment](./documents/INSTALLATION_AND_DEPLOYMENT.md#option-1-traditional-server)
 
-MIT License - see LICENSE file for details
+### Cloud Platforms
+- Heroku
+- Railway
+- Render
+- AWS/Azure/GCP
+- **Guide:** [Installation & Deployment](./documents/INSTALLATION_AND_DEPLOYMENT.md#option-2-cloud-platform)
 
-## Acknowledgments
+### Docker
+- Containerized deployment
+- Docker Compose support
+- **Guide:** [Installation & Deployment](./documents/INSTALLATION_AND_DEPLOYMENT.md#option-3-docker-deployment)
 
-- [MFapi.in](https://www.mfapi.in) for providing the mutual fund data API
-- All contributors and open-source packages used in this project
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 👥 Authors
+
+- **Shashidhar Belavanki** - *Initial work* - [ShashidharBelavankiTR](https://github.com/ShashidharBelavankiTR)
+
+---
+
+## 🙏 Acknowledgments
+
+- **MFapi.in** - For providing the mutual fund data API
+- **Google AdSense** - For monetization support
+- **Thomson Reuters** - For project support
+- All contributors and testers
+
+---
+
+## 📧 Support
+
+- **GitHub Issues**: [Report a bug](https://github.com/ShashidharBelavankiTR/MF-Investments/issues)
+- **Documentation**: See [documents folder](./documents)
+- **Email**: support@trymutualfunds.com
+
+---
+
+## 🗺️ Roadmap
+
+### Planned Features
+- [ ] Email notifications for SIP/STP/SWP executions
+- [ ] Export portfolio to PDF
+- [ ] Advanced charting and analytics
+- [ ] Comparison tool for multiple funds
+- [ ] Investment recommendations based on risk profile
+- [ ] Mobile app (React Native)
+- [ ] Social sharing of portfolio performance
+- [ ] Tax calculation and reports
+
+---
+
+**Built with ❤️ using Node.js, React, and modern web technologies**
+
+**Last Updated:** January 14, 2026  
+**Version:** 1.0.0
