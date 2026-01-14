@@ -108,14 +108,30 @@ export function queryOne(sql, params = []) {
 export function run(sql, params = []) {
   const database = getDatabase();
   try {
-    database.run(sql, params);
+    // Prepare and bind parameters
+    const stmt = database.prepare(sql);
+    stmt.bind(params);
+    
+    // Execute the statement
+    stmt.step();
+    stmt.free();
+    
+    // Get number of changes and last insert row id
+    const changes = database.getRowsModified();
+    const lastIdResult = database.exec("SELECT last_insert_rowid()");
+    const lastInsertRowid = lastIdResult[0]?.values[0]?.[0] || 0;
+    
+    // Save database after successful execution
     saveDatabase();
+    
     return {
-      changes: database.getRowsModified(),
-      lastInsertRowid: database.exec("SELECT last_insert_rowid()")[0]?.values[0]?.[0] || 0
+      changes,
+      lastInsertRowid
     };
   } catch (error) {
     console.error('Run error:', error);
+    console.error('SQL:', sql);
+    console.error('Params:', params);
     throw error;
   }
 }

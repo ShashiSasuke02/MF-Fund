@@ -41,6 +41,17 @@ export const demoService = {
 
     // Validate transaction based on type
     if (transactionType === 'LUMP_SUM' || transactionType === 'SIP' || transactionType === 'STP') {
+      // Validate SIP/STP frequency
+      if (transactionType === 'SIP' || transactionType === 'STP') {
+        if (!frequency) {
+          throw new Error('Frequency is required for SIP/STP transactions');
+        }
+        const validFrequencies = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY'];
+        if (!validFrequencies.includes(frequency)) {
+          throw new Error('Invalid frequency. Must be DAILY, WEEKLY, MONTHLY, or QUARTERLY');
+        }
+      }
+
       // Purchase transactions - check sufficient balance
       if (amount <= 0) {
         throw new Error('Amount must be greater than zero');
@@ -160,7 +171,9 @@ export const demoService = {
    * Get portfolio summary
    */
   async getPortfolio(userId) {
+    console.log('[Demo Service] getPortfolio - userId:', userId);
     const holdings = holdingModel.findByUserId(userId);
+    console.log('[Demo Service] Retrieved', holdings.length, 'holdings for userId:', userId);
     const balance = demoAccountModel.getBalance(userId);
     
     // Update current values with latest NAV
@@ -222,6 +235,9 @@ export const demoService = {
    * Get transaction history
    */
   getTransactions(userId, limit = 50, offset = 0) {
-    return transactionModel.findByUserId(userId, limit, offset);
+    console.log('[Demo Service] getTransactions - userId:', userId, 'limit:', limit, 'offset:', offset);
+    const transactions = transactionModel.findByUserId(userId, limit, offset);
+    console.log('[Demo Service] Retrieved', transactions.length, 'transactions for userId:', userId);
+    return transactions;
   }
 };

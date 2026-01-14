@@ -38,12 +38,18 @@ export const holdingModel = {
    * Get all holdings for a user
    */
   findByUserId(userId) {
-    return query(
+    console.log('[Holding Model] findByUserId - userId:', userId);
+    const results = query(
       `SELECT * FROM holdings 
        WHERE user_id = ? 
        ORDER BY invested_amount DESC`,
       [userId]
     );
+    console.log('[Holding Model] Query returned', results.length, 'holdings for userId:', userId);
+    if (results.length > 0) {
+      console.log('[Holding Model] First holding user_id:', results[0].user_id);
+    }
+    return results;
   },
 
   /**

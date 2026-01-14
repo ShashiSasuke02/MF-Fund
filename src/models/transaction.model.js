@@ -51,13 +51,19 @@ export const transactionModel = {
    * Get all transactions for a user
    */
   findByUserId(userId, limit = 50, offset = 0) {
-    return query(
+    console.log('[Transaction Model] findByUserId - userId:', userId, 'limit:', limit, 'offset:', offset);
+    const results = query(
       `SELECT * FROM transactions 
        WHERE user_id = ? 
        ORDER BY executed_at DESC 
        LIMIT ? OFFSET ?`,
       [userId, limit, offset]
     );
+    console.log('[Transaction Model] Query returned', results.length, 'transactions for userId:', userId);
+    if (results.length > 0) {
+      console.log('[Transaction Model] First transaction user_id:', results[0].user_id);
+    }
+    return results;
   },
 
   /**
