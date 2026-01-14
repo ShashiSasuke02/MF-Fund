@@ -7,34 +7,33 @@ body {
   @apply antialiased;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
 }
 
 /* Custom utility classes */
 @layer components {
   .btn {
-    @apply px-6 py-3 rounded-xl font-semibold transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5;
+    @apply px-6 py-3 rounded-md font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
 
   .btn-primary {
-    @apply btn bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 focus:ring-purple-400;
+    @apply btn bg-emerald-500 text-white hover:bg-emerald-600 focus:ring-emerald-500;
   }
 
   .btn-secondary {
-    @apply btn bg-white text-gray-700 hover:bg-gray-50 focus:ring-gray-300 shadow-md;
+    @apply btn bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-gray-300;
   }
 
   .card {
-    @apply bg-white rounded-2xl shadow-xl border-0 overflow-hidden backdrop-blur-sm;
+    @apply bg-white rounded-lg shadow border border-gray-200 overflow-hidden;
   }
 
   .card-hover {
-    @apply card transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] cursor-pointer;
+    @apply card transition-all duration-200 hover:shadow-lg cursor-pointer;
   }
 
   .input {
-    @apply w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-400 focus:border-purple-500 transition-all duration-300 bg-white shadow-sm;
+    @apply w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 bg-white;
   }
 
   .select {
@@ -42,11 +41,11 @@ body {
   }
 
   .badge {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow-sm;
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
   }
 
   .badge-green {
-    @apply badge bg-gradient-to-r from-green-400 to-emerald-500 text-white;
+    @apply badge bg-emerald-100 text-emerald-800;
   }
 
   .badge-red {
