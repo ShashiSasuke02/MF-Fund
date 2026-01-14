@@ -11,6 +11,9 @@ router.use(authenticateToken);
 router.post('/transactions', demoController.createTransaction);
 router.get('/transactions', demoController.getTransactions);
 
+// Systematic plans routes
+router.get('/systematic-plans', demoController.getSystematicPlans);
+
 // Portfolio routes
 router.get('/portfolio', demoController.getPortfolio);
 

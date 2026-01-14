@@ -108,5 +108,22 @@ export const transactionModel = {
       [status, id]
     );
     saveDatabase();
+  },
+
+  /**
+   * Get active systematic plans (SIP, STP, SWP) for a user
+   */
+  findActiveSystematicPlans(userId) {
+    console.log('[Transaction Model] findActiveSystematicPlans - userId:', userId);
+    const results = query(
+      `SELECT * FROM transactions 
+       WHERE user_id = ? 
+       AND transaction_type IN ('SIP', 'STP', 'SWP')
+       AND status = 'SUCCESS'
+       ORDER BY transaction_type, executed_at DESC`,
+      [userId]
+    );
+    console.log('[Transaction Model] Found', results.length, 'active systematic plans for userId:', userId);
+    return results;
   }
 };

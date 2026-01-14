@@ -205,7 +205,12 @@ export const demoApi = {
     
     const queryString = searchParams.toString();
     return fetchApi(`/demo/transactions${queryString ? `?${queryString}` : ''}`);
-  }
+  },
+
+  /**
+   * Get active systematic plans (SIP, STP, SWP)
+   */
+  getSystematicPlans: () => fetchApi('/demo/systematic-plans')
 };
 
 export default { amcApi, fundApi, healthApi, authApi, demoApi };

@@ -563,4 +563,92 @@ describe('Demo Service', () => {
       );
     });
   });
+
+  describe('getSystematicPlans', () => {
+    it('should retrieve active systematic plans for user', () => {
+      const userId = 1;
+      const mockPlans = [
+        {
+          id: 1,
+          user_id: userId,
+          scheme_code: 119551,
+          scheme_name: 'HDFC Balanced Advantage Fund',
+          transaction_type: 'SIP',
+          amount: 5000,
+          units: 123.4567,
+          nav: 40.5,
+          frequency: 'MONTHLY',
+          start_date: '2024-01-01',
+          end_date: null,
+          installments: 12,
+          status: 'SUCCESS'
+        },
+        {
+          id: 2,
+          user_id: userId,
+          scheme_code: 119552,
+          scheme_name: 'HDFC Equity Fund',
+          transaction_type: 'STP',
+          amount: 3000,
+          units: 89.1234,
+          nav: 33.67,
+          frequency: 'WEEKLY',
+          start_date: '2024-02-01',
+          end_date: '2024-12-31',
+          installments: 48,
+          status: 'SUCCESS'
+        }
+      ];
+
+      mockTransactionModel.findActiveSystematicPlans = jest.fn().mockReturnValue(mockPlans);
+
+      const plans = demoService.getSystematicPlans(userId);
+
+      expect(mockTransactionModel.findActiveSystematicPlans).toHaveBeenCalledWith(userId);
+      expect(plans).toEqual(mockPlans);
+      expect(plans).toHaveLength(2);
+      expect(plans[0].transaction_type).toBe('SIP');
+      expect(plans[1].transaction_type).toBe('STP');
+    });
+
+    it('should return empty array when no systematic plans exist', () => {
+      const userId = 1;
+      mockTransactionModel.findActiveSystematicPlans = jest.fn().mockReturnValue([]);
+
+      const plans = demoService.getSystematicPlans(userId);
+
+      expect(mockTransactionModel.findActiveSystematicPlans).toHaveBeenCalledWith(userId);
+      expect(plans).toEqual([]);
+      expect(plans).toHaveLength(0);
+    });
+
+    it('should only return SIP, STP, and SWP transactions', () => {
+      const userId = 1;
+      const mockPlans = [
+        {
+          id: 1,
+          user_id: userId,
+          transaction_type: 'SIP',
+          frequency: 'DAILY',
+          status: 'SUCCESS'
+        },
+        {
+          id: 2,
+          user_id: userId,
+          transaction_type: 'SWP',
+          frequency: 'MONTHLY',
+          status: 'SUCCESS'
+        }
+      ];
+
+      mockTransactionModel.findActiveSystematicPlans = jest.fn().mockReturnValue(mockPlans);
+
+      const plans = demoService.getSystematicPlans(userId);
+
+      expect(plans).toHaveLength(2);
+      plans.forEach(plan => {
+        expect(['SIP', 'STP', 'SWP']).toContain(plan.transaction_type);
+      });
+    });
+  });
 });

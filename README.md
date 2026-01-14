@@ -22,6 +22,7 @@ A comprehensive Node.js web application for exploring and selecting mutual funds
   - **SWP (Systematic Withdrawal Plan)**: Regular withdrawals with daily, weekly, monthly, or quarterly frequency
   - **Redemption**: Sell existing holdings
 - **Portfolio Management**: Track all your investments with real-time NAV updates
+- **Systematic Plans View**: Dedicated tab to view all active SIP, STP, and SWP plans with frequency, amount, and status
 - **Transaction History**: View all your past transactions with detailed information
 - **Real-time Balance**: Monitor your demo account balance after each transaction
 
@@ -50,7 +51,7 @@ A comprehensive Node.js web application for exploring and selecting mutual funds
 ### Testing
 - **Jest** - Testing framework with ES modules support
 - **Supertest** - HTTP assertions for API testing
-- **64 unit tests** - Comprehensive test coverage for models, controllers, and services
+- **67 unit tests** - Comprehensive test coverage for models, controllers, and services
 
 ## Project Structure
 
@@ -222,6 +223,7 @@ npm run test:coverage
 | POST | `/api/demo/transactions` | Create new transaction |
 | GET | `/api/demo/transactions` | Get transaction history |
 | GET | `/api/demo/portfolio` | Get current holdings |
+| GET | `/api/demo/systematic-plans` | Get active systematic plans (SIP, STP, SWP) |
 
 **Supported Transaction Types:**
 - `LUMP_SUM` - One-time investment

@@ -173,5 +173,25 @@ export const demoController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  /**
+   * Get active systematic plans (SIP, STP, SWP)
+   */
+  async getSystematicPlans(req, res, next) {
+    try {
+      const userId = req.user.userId;
+      
+      const plans = demoService.getSystematicPlans(userId);
+      
+      res.json({
+        success: true,
+        data: {
+          plans
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 };
