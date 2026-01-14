@@ -239,5 +239,15 @@ export const demoService = {
     const transactions = transactionModel.findByUserId(userId, limit, offset);
     console.log('[Demo Service] Retrieved', transactions.length, 'transactions for userId:', userId);
     return transactions;
+  },
+
+  /**
+   * Get active systematic plans (SIP, STP, SWP)
+   */
+  getSystematicPlans(userId) {
+    console.log('[Demo Service] getSystematicPlans - userId:', userId);
+    const plans = transactionModel.findActiveSystematicPlans(userId);
+    console.log('[Demo Service] Retrieved', plans.length, 'systematic plans for userId:', userId);
+    return plans;
   }
 };

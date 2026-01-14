@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { demoApi, fundApi } from '../api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { DisplayAd, RectangleAd } from '../components/AdSense';
 
 export default function Invest() {
   const navigate = useNavigate();
@@ -153,6 +154,11 @@ export default function Invest() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto">
+        {/* Top Rectangle Ad */}
+        <div className="mb-8 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-4 border border-gray-200">
+          <RectangleAd />
+        </div>
+
         {/* Header with decorative elements */}
         <div className="relative mb-8">
           <div className="absolute -top-4 -left-4 w-64 h-64 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
@@ -481,6 +487,11 @@ export default function Invest() {
             </div>
           </div>
         </form>
+
+        {/* Bottom Display Ad */}
+        <div className="mt-8 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-4 border border-gray-200">
+          <DisplayAd />
+        </div>
       </div>
     </div>
   );

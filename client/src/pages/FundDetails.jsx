@@ -4,7 +4,7 @@ import { fundApi } from '../api';
 import { PageLoader } from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import { useAuth } from '../contexts/AuthContext';
-import { DisplayAd, RectangleAd } from '../components/AdSense';
+import { DisplayAd, RectangleAd, BannerAd } from '../components/AdSense';
 
 /**
  * Fund Details page - shows detailed information about a specific fund
@@ -82,6 +82,11 @@ export default function FundDetails() {
         </svg>
         Go Back
       </button>
+
+      {/* Banner Ad */}
+      <div className="mb-6 bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-200 overflow-hidden">
+        <BannerAd />
+      </div>
 
       {/* Fund Header with modern card */}
       <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200 mb-8 overflow-hidden">
@@ -222,6 +227,13 @@ export default function FundDetails() {
               />
             </dl>
           </div>
+        </div>
+      </div>
+
+      {/* Rectangle Ad before NAV History */}
+      <div className="mb-8 flex justify-center">
+        <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-200 overflow-hidden">
+          <RectangleAd />
         </div>
       </div>
 

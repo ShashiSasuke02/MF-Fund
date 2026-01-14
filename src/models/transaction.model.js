@@ -51,7 +51,6 @@ export const transactionModel = {
    * Get all transactions for a user
    */
   findByUserId(userId, limit = 50, offset = 0) {
-    console.log('[Transaction Model] findByUserId - userId:', userId, 'limit:', limit, 'offset:', offset);
     const results = query(
       `SELECT * FROM transactions 
        WHERE user_id = ? 
@@ -59,10 +58,6 @@ export const transactionModel = {
        LIMIT ? OFFSET ?`,
       [userId, limit, offset]
     );
-    console.log('[Transaction Model] Query returned', results.length, 'transactions for userId:', userId);
-    if (results.length > 0) {
-      console.log('[Transaction Model] First transaction user_id:', results[0].user_id);
-    }
     return results;
   },
 
@@ -108,5 +103,22 @@ export const transactionModel = {
       [status, id]
     );
     saveDatabase();
+  },
+
+  /**
+   * Get active systematic plans (SIP, STP, SWP) for a user
+   */
+  findActiveSystematicPlans(userId) {
+    console.log('[Transaction Model] findActiveSystematicPlans - userId:', userId);
+    const results = query(
+      `SELECT * FROM transactions 
+       WHERE user_id = ? 
+       AND transaction_type IN ('SIP', 'STP', 'SWP')
+       AND status = 'SUCCESS'
+       ORDER BY transaction_type, executed_at DESC`,
+      [userId]
+    );
+    console.log('[Transaction Model] Found', results.length, 'active systematic plans for userId:', userId);
+    return results;
   }
 };

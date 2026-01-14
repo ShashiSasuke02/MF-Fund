@@ -428,11 +428,8 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="relative z-10 border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-center md:text-left">
-            <p className="text-sm text-gray-400">
-              © 2026 TryMutualFunds.com. All Rights Reserved.
-            </p>
-            <p className="text-sm text-gray-400 flex items-center justify-center md:justify-end">
+          <div className="flex items-center justify-center">
+            <p className="text-sm text-gray-400 flex items-center">
               Made with <span className="text-red-500 mx-1">❤️</span> in India
             </p>
           </div>

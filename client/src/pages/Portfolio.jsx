@@ -10,9 +10,10 @@ export default function Portfolio() {
   const { user, demoAccount, refreshBalance } = useAuth();
   const [portfolio, setPortfolio] = useState(null);
   const [transactions, setTransactions] = useState([]);
+  const [systematicPlans, setSystematicPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('holdings'); // 'holdings' or 'transactions'
+  const [activeTab, setActiveTab] = useState('holdings'); // 'holdings', 'transactions', or 'systematic-plans'
 
   useEffect(() => {
     if (user) {
@@ -25,9 +26,10 @@ export default function Portfolio() {
       setLoading(true);
       setError(null);
       
-      const [portfolioRes, transactionsRes] = await Promise.all([
+      const [portfolioRes, transactionsRes, systematicPlansRes] = await Promise.all([
         demoApi.getPortfolio(),
-        demoApi.getTransactions({ limit: 20 })
+        demoApi.getTransactions({ limit: 20 }),
+        demoApi.getSystematicPlans()
       ]);
 
       if (portfolioRes.success) {
@@ -36,6 +38,10 @@ export default function Portfolio() {
 
       if (transactionsRes.success) {
         setTransactions(transactionsRes.data.transactions);
+      }
+
+      if (systematicPlansRes.success) {
+        setSystematicPlans(systematicPlansRes.data.plans);
       }
 
       await refreshBalance();
@@ -221,6 +227,19 @@ export default function Portfolio() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
             Holdings ({portfolio?.holdings?.length || 0})
+          </button>
+          <button
+            onClick={() => setActiveTab('systematic-plans')}
+            className={`flex items-center px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${
+              activeTab === 'systematic-plans'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Systematic Plans ({systematicPlans?.length || 0})
           </button>
           <button
             onClick={() => setActiveTab('transactions')}
@@ -491,6 +510,149 @@ export default function Portfolio() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">No Transactions Yet</h3>
               <p className="text-gray-600">Your transaction history will appear here</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Systematic Plans Tab */}
+      {activeTab === 'systematic-plans' && (
+        <div className="space-y-4">
+          {systematicPlans && systematicPlans.length > 0 ? (
+            systematicPlans.map((plan) => (
+              <div
+                key={plan.id}
+                className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 overflow-hidden"
+              >
+                <div className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center mb-2">
+                        <span className={`inline-flex items-center px-3 py-1 text-xs font-bold rounded-lg mr-3 ${
+                          plan.transaction_type === 'SIP'
+                            ? 'bg-blue-100 text-blue-800'
+                            : plan.transaction_type === 'STP'
+                            ? 'bg-purple-100 text-purple-800'
+                            : 'bg-orange-100 text-orange-800'
+                        }`}>
+                          {plan.transaction_type}
+                        </span>
+                        <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg ${
+                          plan.frequency === 'DAILY'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : plan.frequency === 'WEEKLY'
+                            ? 'bg-teal-100 text-teal-800'
+                            : plan.frequency === 'MONTHLY'
+                            ? 'bg-indigo-100 text-indigo-800'
+                            : plan.frequency === 'QUARTERLY'
+                            ? 'bg-violet-100 text-violet-800'
+                            : 'bg-pink-100 text-pink-800'
+                        }`}>
+                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {plan.frequency}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-1">
+                        {plan.scheme_name}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Scheme Code: {plan.scheme_code}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg ${
+                        plan.status === 'SUCCESS'
+                          ? 'bg-green-100 text-green-800'
+                          : plan.status === 'PENDING'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {plan.status === 'SUCCESS' && (
+                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                        {plan.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-200">
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1 flex items-center">
+                        <svg className="w-4 h-4 mr-1 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                        </svg>
+                        Amount
+                      </p>
+                      <p className="text-lg font-bold text-gray-900">{formatCurrency(plan.amount)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1 flex items-center">
+                        <svg className="w-4 h-4 mr-1 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        Units
+                      </p>
+                      <p className="text-lg font-bold text-gray-900">{(plan.units || 0).toFixed(4)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1 flex items-center">
+                        <svg className="w-4 h-4 mr-1 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Start Date
+                      </p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {plan.start_date ? formatDate(plan.start_date) : 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1 flex items-center">
+                        <svg className="w-4 h-4 mr-1 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Installments
+                      </p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {plan.installments ? `${plan.installments} times` : 'Ongoing'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {plan.end_date && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <p className="text-xs text-gray-600 flex items-center">
+                        <svg className="w-4 h-4 mr-1 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        End Date: <span className="font-semibold ml-1">{formatDate(plan.end_date)}</span>
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-16 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full mb-6">
+                <svg className="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">No Systematic Plans Yet</h3>
+              <p className="text-gray-600 mb-6">Start a SIP, STP, or SWP to see them here</p>
+              <Link
+                to="/invest"
+                className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Start a Plan
+              </Link>
             </div>
           )}
         </div>
