@@ -19,6 +19,20 @@ Complete step-by-step guide for installing and deploying the MF Investments Appl
 
 ---
 
+## Quick Start (Plain Language)
+
+If you just need the app running locally on Windows and are not technical, follow these five steps:
+
+1) Install Node.js 18+: download from https://nodejs.org, install with defaults. After install, open PowerShell and run `node -v` (should show 18.x or higher).
+2) Get the code: open PowerShell, run `git clone https://github.com/ShashidharBelavankiTR/MF-Investments.git` and then `cd MF-Investments`.
+3) Install everything: run `npm run install:all`. Wait until it finishes (may take a few minutes).
+4) Start in development: run `npm run dev`. Backend will be at http://localhost:4000 and frontend will open at http://localhost:5173 (or 5174 if 5173 is busy). Leave the window open while you use the app.
+5) Stop it: press `Ctrl + C` in the PowerShell window to stop both servers.
+
+For production deployment (server), see the detailed steps later in this guide.
+
+---
+
 ## Prerequisites
 
 ### System Requirements
@@ -155,6 +169,12 @@ NODE_ENV=production
 
 # JWT Secret (IMPORTANT: Change in production)
 JWT_SECRET=your-super-secure-jwt-secret-key-change-this-in-production-min-32-chars
+
+# If your `.env` is missing `JWT_SECRET`, add it manually:
+# 1) Create or edit .env in the project root
+# 2) Add a strong 32+ character value, e.g.
+# JWT_SECRET=1f3d6b0c9e7a4d2b8c5f1a3e6d8c9b7a
+# 3) Restart the server after saving
 
 # MFapi.in Configuration
 MFAPI_BASE_URL=https://api.mfapi.in

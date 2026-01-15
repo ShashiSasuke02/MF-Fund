@@ -78,3 +78,10 @@
 - Trust proxy enabled for rate limiting behind reverse proxies.
 - Body limit 1 MB; CORS credentials enabled for dev origins only; production assumes same-origin serving of client.
 - Graceful shutdown handles SIGINT/SIGTERM, closes cache interval and DB pool; hard exit after 10s fallback.
+
+## Recent Implementations (Jan 2026)
+- All calculator UIs completed: loan basic/advanced, FD payout/cumulative, RD, PPF, SSA, SCSS, POMIS, PORD, POTD, NSC, SIP, SWP, STP, NPS, EPF, APY, Compound/Simple Interest. Each includes validation, defaults from interestRates, loading/error states, reset, and result cards.
+- Calculator API wiring verified: frontend components call calculatorApi endpoints matching backend routes (loan-basic/advanced, fd variants, rd, ppf, ssa, scss, post office schemes, nsc, sip/swp/stp, nps/epf/apy).
+- UI fix: decorative blobs on Calculator page set to pointer-events-none to restore category tab clicks (Banking Schemes, etc.); Back to Calculators button marked type="button" to ensure navigation works.
+- Interest rate defaults sourced from src/services/interestRate.service.js (loanHomeLoan, fd/rd, ppf, ssa, scss, po schemes, epf, nps, mutual fund return assumptions).
+- Tests: last recorded npm test run succeeded;

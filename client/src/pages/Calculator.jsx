@@ -115,8 +115,8 @@ export default function Calculator() {
       {/* Header with decorative elements */}
       <div className="relative mb-8">
         {/* Decorative blob */}
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob pointer-events-none"></div>
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000 pointer-events-none"></div>
         
         <div className="relative">
           <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center">
@@ -192,6 +192,7 @@ export default function Calculator() {
         <>
           {/* Back Button */}
           <button
+            type="button"
             onClick={handleBackToList}
             className="mb-6 flex items-center text-emerald-600 hover:text-emerald-700 font-semibold"
           >
