@@ -1,45 +1,42 @@
 /**
- * Database Inspection Script
+ * Database Inspection Script - MySQL Version
  * Run this to see all users, demo accounts, transactions, and holdings
  */
 
-import initSqlJs from 'sql.js';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+dotenv.config();
 
-const DB_PATH = path.join(__dirname, '../data/mfselection.db');
+async function connectDatabase() {
+  return await mysql.createConnection({
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '3306'),
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'mfselection'
+  });
+}
 
 async function inspectDatabase() {
+  let connection = null;
+  
   try {
-    if (!fs.existsSync(DB_PATH)) {
-      console.log('❌ Database file not found at:', DB_PATH);
-      return;
-    }
-
-    const SQL = await initSqlJs();
-    const buffer = fs.readFileSync(DB_PATH);
-    const db = new SQL.Database(buffer);
+    connection = await connectDatabase();
 
     console.log('='.repeat(80));
     console.log('DATABASE INSPECTION REPORT');
     console.log('='.repeat(80));
-    console.log('Database file:', DB_PATH);
-    console.log('File size:', (fs.statSync(DB_PATH).size / 1024).toFixed(2), 'KB');
+    console.log('Database:', process.env.DB_NAME || 'mfselection');
+    console.log('Host:', process.env.DB_HOST || 'localhost');
     console.log('');
 
     // Users
     console.log('📊 USERS');
     console.log('-'.repeat(80));
-    const usersStmt = db.prepare('SELECT id, username, full_name, email_id, created_at FROM users ORDER BY id');
-    const users = [];
-    while (usersStmt.step()) {
-      users.push(usersStmt.getAsObject());
-    }
-    usersStmt.free();
+    const [users] = await connection.query(
+      'SELECT id, username, full_name, email_id, created_at FROM users ORDER BY id'
+    );
     
     if (users.length === 0) {
       console.log('No users found.');
@@ -58,12 +55,9 @@ async function inspectDatabase() {
     // Demo Accounts
     console.log('💰 DEMO ACCOUNTS');
     console.log('-'.repeat(80));
-    const accountsStmt = db.prepare('SELECT user_id, balance, created_at FROM demo_accounts ORDER BY user_id');
-    const accounts = [];
-    while (accountsStmt.step()) {
-      accounts.push(accountsStmt.getAsObject());
-    }
-    accountsStmt.free();
+    const [accounts] = await connection.query(
+      'SELECT user_id, balance, created_at FROM demo_accounts ORDER BY user_id'
+    );
     
     if (accounts.length === 0) {
       console.log('No demo accounts found.');
@@ -81,12 +75,9 @@ async function inspectDatabase() {
     // Transactions
     console.log('📈 TRANSACTIONS');
     console.log('-'.repeat(80));
-    const transactionsStmt = db.prepare('SELECT user_id, scheme_code, scheme_name, transaction_type, amount, status, executed_at FROM transactions ORDER BY user_id, executed_at DESC');
-    const transactions = [];
-    while (transactionsStmt.step()) {
-      transactions.push(transactionsStmt.getAsObject());
-    }
-    transactionsStmt.free();
+    const [transactions] = await connection.query(
+      'SELECT user_id, scheme_code, scheme_name, transaction_type, amount, status, executed_at FROM transactions ORDER BY user_id, executed_at DESC'
+    );
     
     if (transactions.length === 0) {
       console.log('No transactions found.');
@@ -103,9 +94,7 @@ async function inspectDatabase() {
         const userTxs = txByUser[userId];
         console.log(`  User ID: ${userId} (${user?.username || 'Unknown'}) - ${userTxs.length} transaction(s)`);
         userTxs.slice(0, 5).forEach(tx => {
-          console.log(`    • ${tx.transaction_type} - ${tx.scheme_name.substring(0, 40)}...`);
-          console.log(`      Amount: ₹${Number(tx.amount).toLocaleString('en-IN')} | Status: ${tx.status}`);
-          console.log(`      Date: ${new Date(tx.executed_at).toLocaleString()}`);
+          console.log(`    • ${tx.transaction_type} | ${tx.scheme_name.substring(0, 30)}... | ₹${Number(tx.amount).toLocaleString('en-IN')} | ${tx.status}`);
         });
         if (userTxs.length > 5) {
           console.log(`    ... and ${userTxs.length - 5} more`);
@@ -118,12 +107,9 @@ async function inspectDatabase() {
     // Holdings
     console.log('📁 HOLDINGS');
     console.log('-'.repeat(80));
-    const holdingsStmt = db.prepare('SELECT user_id, scheme_code, scheme_name, total_units, invested_amount, current_value FROM holdings ORDER BY user_id, invested_amount DESC');
-    const holdings = [];
-    while (holdingsStmt.step()) {
-      holdings.push(holdingsStmt.getAsObject());
-    }
-    holdingsStmt.free();
+    const [holdings] = await connection.query(
+      'SELECT user_id, scheme_code, scheme_name, total_units, invested_amount, current_value FROM holdings ORDER BY user_id, invested_amount DESC'
+    );
     
     if (holdings.length === 0) {
       console.log('No holdings found.');
@@ -190,9 +176,12 @@ async function inspectDatabase() {
 
     console.log('='.repeat(80));
 
-    db.close();
   } catch (error) {
     console.error('❌ Error inspecting database:', error);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
   }
 }
 

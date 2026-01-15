@@ -480,7 +480,7 @@ describe('Demo Service', () => {
       ];
       mockTransactionModel.findByUserId.mockReturnValueOnce(mockTransactions);
 
-      const result = demoService.getTransactions(1, 20, 0);
+      const result = await demoService.getTransactions(1, 20, 0);
 
       expect(result).toEqual(mockTransactions);
       expect(result.length).toBe(2);
@@ -489,7 +489,7 @@ describe('Demo Service', () => {
     it('should handle empty transaction history', async () => {
       mockTransactionModel.findByUserId.mockReturnValueOnce([]);
 
-      const result = demoService.getTransactions(1, 20, 0);
+      const result = await demoService.getTransactions(1, 20, 0);
 
       expect(result).toEqual([]);
       expect(result.length).toBe(0);
@@ -565,7 +565,7 @@ describe('Demo Service', () => {
   });
 
   describe('getSystematicPlans', () => {
-    it('should retrieve active systematic plans for user', () => {
+    it('should retrieve active systematic plans for user', async () => {
       const userId = 1;
       const mockPlans = [
         {
@@ -602,7 +602,7 @@ describe('Demo Service', () => {
 
       mockTransactionModel.findActiveSystematicPlans = jest.fn().mockReturnValue(mockPlans);
 
-      const plans = demoService.getSystematicPlans(userId);
+      const plans = await demoService.getSystematicPlans(userId);
 
       expect(mockTransactionModel.findActiveSystematicPlans).toHaveBeenCalledWith(userId);
       expect(plans).toEqual(mockPlans);
@@ -611,18 +611,18 @@ describe('Demo Service', () => {
       expect(plans[1].transaction_type).toBe('STP');
     });
 
-    it('should return empty array when no systematic plans exist', () => {
+    it('should return empty array when no systematic plans exist', async () => {
       const userId = 1;
       mockTransactionModel.findActiveSystematicPlans = jest.fn().mockReturnValue([]);
 
-      const plans = demoService.getSystematicPlans(userId);
+      const plans = await demoService.getSystematicPlans(userId);
 
       expect(mockTransactionModel.findActiveSystematicPlans).toHaveBeenCalledWith(userId);
       expect(plans).toEqual([]);
       expect(plans).toHaveLength(0);
     });
 
-    it('should only return SIP, STP, and SWP transactions', () => {
+    it('should only return SIP, STP, and SWP transactions', async () => {
       const userId = 1;
       const mockPlans = [
         {
@@ -643,7 +643,7 @@ describe('Demo Service', () => {
 
       mockTransactionModel.findActiveSystematicPlans = jest.fn().mockReturnValue(mockPlans);
 
-      const plans = demoService.getSystematicPlans(userId);
+      const plans = await demoService.getSystematicPlans(userId);
 
       expect(plans).toHaveLength(2);
       plans.forEach(plan => {

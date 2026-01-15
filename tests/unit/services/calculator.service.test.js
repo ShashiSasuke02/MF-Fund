@@ -50,13 +50,13 @@ describe('Banking Scheme Calculators', () => {
   describe('calculateCompoundInterest', () => {
     test('should calculate compound interest with quarterly compounding', () => {
       const result = calculateCompoundInterest(100000, 7.5, 5, 4);
-      expect(result.interest).toBeCloseTo(43744.29, 1);
-      expect(result.totalAmount).toBeCloseTo(143744.29, 1);
+      expect(result.interest).toBeCloseTo(44994.80, 1);
+      expect(result.totalAmount).toBeCloseTo(144994.80, 1);
     });
 
     test('should calculate compound interest with monthly compounding', () => {
       const result = calculateCompoundInterest(100000, 7.5, 5, 12);
-      expect(result.interest).toBeCloseTo(45334.90, 1);
+      expect(result.interest).toBeCloseTo(45329.44, 1);
     });
 
     test('should throw error for invalid inputs', () => {
@@ -69,7 +69,7 @@ describe('Banking Scheme Calculators', () => {
     test('should calculate EMI correctly for home loan', () => {
       const result = calculateBasicLoanEMI(5000000, 8.5, 240); // 50L for 20 years
       expect(result.emi).toBeCloseTo(43391.20, 0);
-      expect(result.totalInterest).toBeCloseTo(5413888, 0);
+      expect(result.totalInterest).toBeCloseTo(5413878.80, 0);
     });
 
     test('should handle zero interest rate', () => {
@@ -233,7 +233,7 @@ describe('Post Office Scheme Calculators', () => {
       const result = calculateNSC(100000, 7.7);
       expect(result.tenureYears).toBe(5);
       expect(result.totalInterest).toBeGreaterThan(0);
-      expect(result.maturityAmount).toBeCloseTo(145046.62, 0);
+      expect(result.maturityAmount).toBeCloseTo(144903.38, 0);
     });
   });
 });
@@ -290,8 +290,8 @@ describe('Retirement Planning Calculators', () => {
       const result = calculateNPS(5000, 30, 60, 10);
       expect(result.tenureYears).toBe(30);
       expect(result.retirementCorpus).toBeGreaterThan(1000000);
-      expect(result.lumpSumWithdrawal).toBe(result.retirementCorpus * 0.6);
-      expect(result.annuityAmount).toBe(result.retirementCorpus * 0.4);
+      expect(result.lumpSumWithdrawal).toBeCloseTo(result.retirementCorpus * 0.6, 2);
+      expect(result.annuityAmount).toBeCloseTo(result.retirementCorpus * 0.4, 2);
       expect(result.estimatedMonthlyPension).toBeGreaterThan(0);
     });
 

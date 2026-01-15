@@ -1,7 +1,7 @@
 import { query, queryOne, run } from '../db/database.js';
 
 /**
- * Cache Service - manages API response caching in SQLite
+ * Cache Service - manages API response caching in MySQL
  */
 class CacheService {
   /**
@@ -9,10 +9,10 @@ class CacheService {
    * @param {string} key - Cache key
    * @returns {object|null} - Cached data or null if expired/missing
    */
-  get(key) {
+  async get(key) {
     const now = Date.now();
     
-    const row = queryOne(`
+    const row = await queryOne(`
       SELECT response_json, expires_at 
       FROM api_cache 
       WHERE cache_key = ? AND expires_at > ?
@@ -36,13 +36,17 @@ class CacheService {
    * @param {object} data - Data to cache
    * @param {number} ttlMs - Time to live in milliseconds
    */
-  set(key, data, ttlMs) {
+  async set(key, data, ttlMs) {
     const now = Date.now();
     const expiresAt = now + ttlMs;
     
-    run(`
-      INSERT OR REPLACE INTO api_cache (cache_key, response_json, fetched_at, expires_at)
+    await run(`
+      INSERT INTO api_cache (cache_key, response_json, fetched_at, expires_at)
       VALUES (?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE 
+        response_json = VALUES(response_json),
+        fetched_at = VALUES(fetched_at),
+        expires_at = VALUES(expires_at)
     `, [key, JSON.stringify(data), now, expiresAt]);
   }
 
@@ -50,17 +54,17 @@ class CacheService {
    * Delete specific cache entry
    * @param {string} key - Cache key
    */
-  delete(key) {
-    run('DELETE FROM api_cache WHERE cache_key = ?', [key]);
+  async delete(key) {
+    await run('DELETE FROM api_cache WHERE cache_key = ?', [key]);
   }
 
   /**
    * Clear all expired cache entries
    * @returns {number} - Number of entries cleared
    */
-  clearExpired() {
+  async clearExpired() {
     const now = Date.now();
-    const result = run('DELETE FROM api_cache WHERE expires_at <= ?', [now]);
+    const result = await run('DELETE FROM api_cache WHERE expires_at <= ?', [now]);
     return result.changes;
   }
 
@@ -68,8 +72,8 @@ class CacheService {
    * Clear all cache entries
    * @returns {number} - Number of entries cleared
    */
-  clearAll() {
-    const result = run('DELETE FROM api_cache');
+  async clearAll() {
+    const result = await run('DELETE FROM api_cache');
     return result.changes;
   }
 
@@ -77,12 +81,12 @@ class CacheService {
    * Get cache statistics
    * @returns {object} - Cache stats
    */
-  getStats() {
+  async getStats() {
     const now = Date.now();
     
-    const total = queryOne('SELECT COUNT(*) as count FROM api_cache');
-    const valid = queryOne('SELECT COUNT(*) as count FROM api_cache WHERE expires_at > ?', [now]);
-    const expired = queryOne('SELECT COUNT(*) as count FROM api_cache WHERE expires_at <= ?', [now]);
+    const total = await queryOne('SELECT COUNT(*) as count FROM api_cache');
+    const valid = await queryOne('SELECT COUNT(*) as count FROM api_cache WHERE expires_at > ?', [now]);
+    const expired = await queryOne('SELECT COUNT(*) as count FROM api_cache WHERE expires_at <= ?', [now]);
     
     return {
       total: total?.count || 0,

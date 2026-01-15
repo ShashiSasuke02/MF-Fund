@@ -58,11 +58,12 @@ describe('User Model', () => {
       expect(result).toEqual({
         id: 1,
         fullName: 'John Doe',
+        full_name: 'John Doe',
         emailId: 'john@example.com',
+        email_id: 'john@example.com',
         username: 'johndoe'
       });
       expect(mockRun).toHaveBeenCalledTimes(2); // User insert + demo account insert
-      expect(mockSaveDatabase).toHaveBeenCalled();
     });
 
     it('should create demo account with ₹10,00,000 balance', async () => {
@@ -132,7 +133,7 @@ describe('User Model', () => {
   });
 
   describe('findByUsername', () => {
-    it('should find existing user by username', () => {
+    it('should find existing user by username', async () => {
       const mockUser = {
         id: 1,
         username: 'johndoe',
@@ -142,7 +143,7 @@ describe('User Model', () => {
       };
       mockQueryOne.mockReturnValueOnce(mockUser);
 
-      const result = userModel.findByUsername('johndoe');
+      const result = await userModel.findByUsername('johndoe');
 
       expect(result).toEqual(mockUser);
       expect(mockQueryOne).toHaveBeenCalledWith(
@@ -151,18 +152,18 @@ describe('User Model', () => {
       );
     });
 
-    it('should return null for non-existent user', () => {
+    it('should return null for non-existent user', async () => {
       mockQueryOne.mockReturnValueOnce(null);
 
-      const result = userModel.findByUsername('nonexistent');
+      const result = await userModel.findByUsername('nonexistent');
 
       expect(result).toBeNull();
     });
 
-    it('should handle case-sensitive username lookup', () => {
+    it('should handle case-sensitive username lookup', async () => {
       mockQueryOne.mockReturnValueOnce(null);
 
-      userModel.findByUsername('JohnDoe');
+      await userModel.findByUsername('JohnDoe');
 
       expect(mockQueryOne).toHaveBeenCalledWith(
         expect.any(String),
@@ -172,33 +173,33 @@ describe('User Model', () => {
   });
 
   describe('findByEmail', () => {
-    it('should find user by email', () => {
+    it('should find user by email', async () => {
       const mockUser = {
         id: 1,
         email_id: 'john@example.com'
       };
       mockQueryOne.mockReturnValueOnce(mockUser);
 
-      const result = userModel.findByEmail('john@example.com');
+      const result = await userModel.findByEmail('john@example.com');
 
       expect(result).toEqual(mockUser);
     });
 
-    it('should handle email lookup case-insensitively', () => {
+    it('should handle email lookup case-insensitively', async () => {
       mockQueryOne.mockReturnValueOnce({ id: 1 });
 
-      userModel.findByEmail('JOHN@EXAMPLE.COM');
+      await userModel.findByEmail('JOHN@EXAMPLE.COM');
 
       expect(mockQueryOne).toHaveBeenCalled();
     });
   });
 
   describe('findById', () => {
-    it('should find user by valid ID', () => {
+    it('should find user by valid ID', async () => {
       const mockUser = { id: 1, username: 'johndoe' };
       mockQueryOne.mockReturnValueOnce(mockUser);
 
-      const result = userModel.findById(1);
+      const result = await userModel.findById(1);
 
       expect(result).toEqual(mockUser);
       expect(mockQueryOne).toHaveBeenCalledWith(
@@ -207,17 +208,17 @@ describe('User Model', () => {
       );
     });
 
-    it('should return null for invalid ID', () => {
+    it('should return null for invalid ID', async () => {
       mockQueryOne.mockReturnValueOnce(null);
 
-      const result = userModel.findById(999);
+      const result = await userModel.findById(999);
 
       expect(result).toBeNull();
     });
 
-    it('should reject userId <= 0', () => {
-      const result1 = userModel.findById(0);
-      const result2 = userModel.findById(-1);
+    it('should reject userId <= 0', async () => {
+      const result1 = await userModel.findById(0);
+      const result2 = await userModel.findById(-1);
 
       expect(result1).toBeNull();
       expect(result2).toBeNull();
@@ -225,44 +226,44 @@ describe('User Model', () => {
   });
 
   describe('usernameExists', () => {
-    it('should return true for existing username', () => {
+    it('should return true for existing username', async () => {
       mockQueryOne.mockReturnValueOnce({ count: 1 });
 
-      const result = userModel.usernameExists('johndoe');
+      const result = await userModel.usernameExists('johndoe');
 
       expect(result).toBe(true);
     });
 
-    it('should return false for non-existent username', () => {
+    it('should return false for non-existent username', async () => {
       mockQueryOne.mockReturnValueOnce({ count: 0 });
 
-      const result = userModel.usernameExists('newuser');
+      const result = await userModel.usernameExists('newuser');
 
       expect(result).toBe(false);
     });
 
-    it('should handle null query result', () => {
+    it('should handle null query result', async () => {
       mockQueryOne.mockReturnValueOnce(null);
 
-      const result = userModel.usernameExists('test');
+      const result = await userModel.usernameExists('test');
 
       expect(result).toBe(false);
     });
   });
 
   describe('emailExists', () => {
-    it('should return true for existing email', () => {
+    it('should return true for existing email', async () => {
       mockQueryOne.mockReturnValueOnce({ count: 1 });
 
-      const result = userModel.emailExists('existing@example.com');
+      const result = await userModel.emailExists('existing@example.com');
 
       expect(result).toBe(true);
     });
 
-    it('should return false for new email', () => {
+    it('should return false for new email', async () => {
       mockQueryOne.mockReturnValueOnce({ count: 0 });
 
-      const result = userModel.emailExists('new@example.com');
+      const result = await userModel.emailExists('new@example.com');
 
       expect(result).toBe(false);
     });

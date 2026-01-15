@@ -17,8 +17,12 @@ export const demoService = {
     endDate,
     installments
   }) {
-    // Get current balance
-    const currentBalance = demoAccountModel.getBalance(userId);
+    // Get current balance and ensure it's a number
+    const currentBalance = parseFloat(await demoAccountModel.getBalance(userId));
+    
+    // Ensure numeric values are numbers
+    amount = parseFloat(amount);
+    schemeCode = parseInt(schemeCode);
     
     console.log('[Demo Service] executeTransaction - userId:', userId, 'currentBalance:', currentBalance, 'amount:', amount);
     
@@ -83,10 +87,10 @@ export const demoService = {
       // Update demo balance
       const newBalance = currentBalance - amount;
       console.log('[Demo Service] Updating balance - old:', currentBalance, 'new:', newBalance, 'deducted:', amount);
-      demoAccountModel.updateBalance(userId, newBalance);
+      await demoAccountModel.updateBalance(userId, newBalance);
 
       // Update or create holding
-      const existingHolding = holdingModel.findByScheme(userId, schemeCode);
+      const existingHolding = await holdingModel.findByScheme(userId, schemeCode);
       
       if (existingHolding) {
         await holdingModel.upsert({
@@ -123,7 +127,7 @@ export const demoService = {
         throw new Error('Amount must be greater than zero');
       }
 
-      const holding = holdingModel.findByScheme(userId, schemeCode);
+      const holding = await holdingModel.findByScheme(userId, schemeCode);
       if (!holding) {
         throw new Error('No holdings found for this scheme');
       }
@@ -152,15 +156,15 @@ export const demoService = {
 
       // Update demo balance (credit)
       const newBalance = currentBalance + amount;
-      demoAccountModel.updateBalance(userId, newBalance);
+      await demoAccountModel.updateBalance(userId, newBalance);
 
       // Update holding (remove units)
-      holdingModel.removeUnits(userId, schemeCode, requiredUnits, amount);
+      await holdingModel.removeUnits(userId, schemeCode, requiredUnits, amount);
 
       return {
         transaction,
         newBalance,
-        holding: holdingModel.findByScheme(userId, schemeCode)
+        holding: await holdingModel.findByScheme(userId, schemeCode)
       };
     } else {
       throw new Error('Invalid transaction type');
@@ -172,20 +176,25 @@ export const demoService = {
    */
   async getPortfolio(userId) {
     console.log('[Demo Service] getPortfolio - userId:', userId);
-    const holdings = holdingModel.findByUserId(userId);
+    const holdings = await holdingModel.findByUserId(userId);
     console.log('[Demo Service] Retrieved', holdings.length, 'holdings for userId:', userId);
-    const balance = demoAccountModel.getBalance(userId);
+    const balance = await demoAccountModel.getBalance(userId);
     
     // Update current values with latest NAV
     const updatedHoldings = await Promise.all(
       holdings.map(async (holding) => {
+        // Convert string values to numbers
+        const totalUnits = parseFloat(holding.total_units);
+        const investedAmount = parseFloat(holding.invested_amount);
+        const currentValueFromDb = parseFloat(holding.current_value || 0);
+        
         try {
           const latestData = await mfApiService.getLatestNAV(holding.scheme_code);
           if (latestData && latestData.data && latestData.data[0]) {
             const latestNav = parseFloat(latestData.data[0].nav);
-            const currentValue = holding.total_units * latestNav;
+            const currentValue = totalUnits * latestNav;
             
-            holdingModel.updateCurrentValue(
+            await holdingModel.updateCurrentValue(
               userId, 
               holding.scheme_code, 
               latestNav, 
@@ -194,11 +203,13 @@ export const demoService = {
             
             return {
               ...holding,
+              total_units: totalUnits,
+              invested_amount: investedAmount,
               last_nav: latestNav,
               last_nav_date: latestData.data[0].date,
               current_value: currentValue,
-              returns: currentValue - holding.invested_amount,
-              returns_percentage: ((currentValue - holding.invested_amount) / holding.invested_amount) * 100
+              returns: currentValue - investedAmount,
+              returns_percentage: ((currentValue - investedAmount) / investedAmount) * 100
             };
           }
         } catch (error) {
@@ -207,16 +218,19 @@ export const demoService = {
         
         return {
           ...holding,
-          returns: holding.current_value - holding.invested_amount,
-          returns_percentage: holding.invested_amount > 0 
-            ? ((holding.current_value - holding.invested_amount) / holding.invested_amount) * 100 
+          total_units: totalUnits,
+          invested_amount: investedAmount,
+          current_value: currentValueFromDb,
+          returns: currentValueFromDb - investedAmount,
+          returns_percentage: investedAmount > 0 
+            ? ((currentValueFromDb - investedAmount) / investedAmount) * 100 
             : 0
         };
       })
     );
 
-    const totalInvested = updatedHoldings.reduce((sum, h) => sum + h.invested_amount, 0);
-    const totalCurrent = updatedHoldings.reduce((sum, h) => sum + (h.current_value || 0), 0);
+    const totalInvested = updatedHoldings.reduce((sum, h) => sum + parseFloat(h.invested_amount || 0), 0);
+    const totalCurrent = updatedHoldings.reduce((sum, h) => sum + parseFloat(h.current_value || 0), 0);
     const totalReturns = totalCurrent - totalInvested;
 
     return {
@@ -234,9 +248,9 @@ export const demoService = {
   /**
    * Get transaction history
    */
-  getTransactions(userId, limit = 50, offset = 0) {
+  async getTransactions(userId, limit = 50, offset = 0) {
     console.log('[Demo Service] getTransactions - userId:', userId, 'limit:', limit, 'offset:', offset);
-    const transactions = transactionModel.findByUserId(userId, limit, offset);
+    const transactions = await transactionModel.findByUserId(userId, limit, offset);
     console.log('[Demo Service] Retrieved', transactions.length, 'transactions for userId:', userId);
     return transactions;
   },
@@ -244,9 +258,9 @@ export const demoService = {
   /**
    * Get active systematic plans (SIP, STP, SWP)
    */
-  getSystematicPlans(userId) {
+  async getSystematicPlans(userId) {
     console.log('[Demo Service] getSystematicPlans - userId:', userId);
-    const plans = transactionModel.findActiveSystematicPlans(userId);
+    const plans = await transactionModel.findActiveSystematicPlans(userId);
     console.log('[Demo Service] Retrieved', plans.length, 'systematic plans for userId:', userId);
     return plans;
   }

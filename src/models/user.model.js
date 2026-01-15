@@ -11,7 +11,7 @@ export const userModel = {
       const trimmedEmailId = emailId.trim();
       const trimmedUsername = username.trim();
             // Insert user
-      const userResult = run(
+      const userResult = await run(
         `INSERT INTO users (full_name, email_id, username, password_hash) 
          VALUES (?, ?, ?, ?)`,
         [trimmedFullName, trimmedEmailId, trimmedUsername, passwordHash]
@@ -40,21 +40,22 @@ export const userModel = {
       console.log('[User Model] Created user with ID:', userIdNum);
       
       // Create demo account with ₹10,00,000 starting balance
-      const demoResult = run(
+      const demoResult = await run(
         `INSERT INTO demo_accounts (user_id, balance) VALUES (?, ?)`,
         [userIdNum, 1000000.00]
       );
       
       console.log('[User Model] Created demo account for user:', userIdNum, 'result:', demoResult);
       
-      // Save database
-      saveDatabase();
-      
+      // Return with consistent camelCase property names
       return {
         id: userIdNum,
-        fullName,
-        emailId,
-        username
+        full_name: trimmedFullName,
+        email_id: trimmedEmailId,
+        username: trimmedUsername,
+        // Also include camelCase versions for convenience
+        fullName: trimmedFullName,
+        emailId: trimmedEmailId
       };
     } catch (error) {
       console.error('Error creating user:', error);
@@ -65,8 +66,8 @@ export const userModel = {
   /**
    * Find user by username
    */
-  findByUsername(username) {
-    return queryOne(
+  async findByUsername(username) {
+    return await queryOne(
       `SELECT id, full_name, email_id, username, password_hash, created_at 
        FROM users WHERE username = ?`,
       [username]
@@ -76,8 +77,8 @@ export const userModel = {
   /**
    * Find user by email
    */
-  findByEmail(emailId) {
-    return queryOne(
+  async findByEmail(emailId) {
+    return await queryOne(
       `SELECT id, full_name, email_id, username, password_hash, created_at 
        FROM users WHERE email_id = ?`,
       [emailId]
@@ -87,11 +88,11 @@ export const userModel = {
   /**
    * Find user by ID
    */
-  findById(id) {
+  async findById(id) {
     if (!id || id <= 0) {
       return null;
     }
-    return queryOne(
+    return await queryOne(
       `SELECT id, full_name, email_id, username, created_at 
        FROM users WHERE id = ?`,
       [id]
@@ -101,8 +102,8 @@ export const userModel = {
   /**
    * Check if username exists
    */
-  usernameExists(username) {
-    const result = queryOne(
+  async usernameExists(username) {
+    const result = await queryOne(
       `SELECT COUNT(*) as count FROM users WHERE username = ?`,
       [username]
     );
@@ -112,8 +113,8 @@ export const userModel = {
   /**
    * Check if email exists
    */
-  emailExists(emailId) {
-    const result = queryOne(
+  async emailExists(emailId) {
+    const result = await queryOne(
       `SELECT COUNT(*) as count FROM users WHERE email_id = ?`,
       [emailId]
     );

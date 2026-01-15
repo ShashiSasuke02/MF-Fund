@@ -127,7 +127,7 @@ export const demoController = {
       const limit = parseInt(req.query.limit) || 50;
       const offset = parseInt(req.query.offset) || 0;
 
-      const transactions = demoService.getTransactions(userId, limit, offset);
+      const transactions = await demoService.getTransactions(userId, limit, offset);
 
       res.json({
         success: true,
@@ -149,7 +149,7 @@ export const demoController = {
     try {
       const userId = req.user.userId;
       
-      const account = demoAccountModel.findByUserId(userId);
+      const account = await demoAccountModel.findByUserId(userId);
       
       if (!account) {
         return res.status(404).json({
@@ -178,7 +178,7 @@ export const demoController = {
     try {
       const userId = req.user.userId;
       
-      const plans = demoService.getSystematicPlans(userId);
+      const plans = await demoService.getSystematicPlans(userId);
       
       res.json({
         success: true,

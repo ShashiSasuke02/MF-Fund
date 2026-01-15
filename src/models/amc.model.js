@@ -8,8 +8,8 @@ class AmcModel {
    * Get all AMCs ordered by display_order
    * @returns {Array} - List of AMC records
    */
-  getAll() {
-    return query(`
+  async getAll() {
+    return await query(`
       SELECT fund_house, display_name, display_order, logo_url, created_at
       FROM amc_master
       ORDER BY display_order ASC
@@ -21,8 +21,8 @@ class AmcModel {
    * @param {string} fundHouse - Fund house identifier
    * @returns {object|null} - AMC record or null
    */
-  getByFundHouse(fundHouse) {
-    return queryOne(`
+  async getByFundHouse(fundHouse) {
+    return await queryOne(`
       SELECT fund_house, display_name, display_order, logo_url, created_at
       FROM amc_master
       WHERE fund_house = ?
@@ -34,8 +34,8 @@ class AmcModel {
    * @param {string} fundHouse - Fund house identifier
    * @returns {boolean}
    */
-  exists(fundHouse) {
-    const result = queryOne('SELECT 1 as found FROM amc_master WHERE fund_house = ?', [fundHouse]);
+  async exists(fundHouse) {
+    const result = await queryOne('SELECT 1 as found FROM amc_master WHERE fund_house = ?', [fundHouse]);
     return !!result;
   }
 
@@ -44,8 +44,8 @@ class AmcModel {
    * @param {object} amc - AMC data
    * @returns {object} - Result info
    */
-  create(amc) {
-    return run(`
+  async create(amc) {
+    return await run(`
       INSERT INTO amc_master (fund_house, display_name, display_order, logo_url)
       VALUES (?, ?, ?, ?)
     `, [
@@ -62,7 +62,7 @@ class AmcModel {
    * @param {object} updates - Fields to update
    * @returns {object} - Result info
    */
-  update(fundHouse, updates) {
+  async update(fundHouse, updates) {
     const fields = [];
     const values = [];
 
@@ -84,7 +84,7 @@ class AmcModel {
     }
 
     values.push(fundHouse);
-    return run(`
+    return await run(`
       UPDATE amc_master
       SET ${fields.join(', ')}
       WHERE fund_house = ?
@@ -96,8 +96,8 @@ class AmcModel {
    * @param {string} fundHouse - Fund house identifier
    * @returns {object} - Result info
    */
-  delete(fundHouse) {
-    return run('DELETE FROM amc_master WHERE fund_house = ?', [fundHouse]);
+  async delete(fundHouse) {
+    return await run('DELETE FROM amc_master WHERE fund_house = ?', [fundHouse]);
   }
 }
 

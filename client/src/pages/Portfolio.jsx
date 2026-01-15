@@ -7,24 +7,39 @@ import ErrorMessage from '../components/ErrorMessage';
 import { RectangleAd, BannerAd } from '../components/AdSense';
 
 export default function Portfolio() {
-  const { user, demoAccount, refreshBalance } = useAuth();
-  const [portfolio, setPortfolio] = useState(null);
+  const { user, demoAccount, refreshBalance, loading: authLoading } = useAuth();
+  const [portfolio, setPortfolio] = useState({
+    balance: 0,
+    holdings: [],
+    summary: { totalInvested: 0, totalCurrent: 0, totalReturns: 0, returnsPercentage: 0 }
+  });
   const [transactions, setTransactions] = useState([]);
   const [systematicPlans, setSystematicPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('holdings'); // 'holdings', 'transactions', or 'systematic-plans'
 
+  console.log('[Portfolio] Render - authLoading:', authLoading, 'user:', user, 'loading:', loading, 'error:', error);
+  console.log('[Portfolio] Portfolio state:', portfolio);
+  console.log('[Portfolio] Transactions:', transactions?.length, 'Plans:', systematicPlans?.length);
+
   useEffect(() => {
-    if (user) {
+    console.log('[Portfolio] useEffect triggered - authLoading:', authLoading, 'user:', user);
+    if (!authLoading && user) {
+      console.log('[Portfolio] Loading portfolio data...');
       loadPortfolioData();
+    } else if (!authLoading && !user) {
+      console.log('[Portfolio] No user, setting loading to false');
+      setLoading(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   const loadPortfolioData = async () => {
     try {
       setLoading(true);
       setError(null);
+      
+      console.log('[Portfolio] Starting data load...');
       
       const [portfolioRes, transactionsRes, systematicPlansRes] = await Promise.all([
         demoApi.getPortfolio(),
@@ -32,21 +47,54 @@ export default function Portfolio() {
         demoApi.getSystematicPlans()
       ]);
 
-      if (portfolioRes.success) {
+      console.log('[Portfolio] API responses:', { 
+        portfolio: portfolioRes, 
+        transactions: transactionsRes, 
+        plans: systematicPlansRes 
+      });
+
+      // Set portfolio with fallback
+      if (portfolioRes && portfolioRes.success && portfolioRes.data) {
+        console.log('[Portfolio] Setting portfolio data:', portfolioRes.data);
         setPortfolio(portfolioRes.data);
+      } else {
+        console.log('[Portfolio] Using fallback portfolio data');
+        setPortfolio({ holdings: [], summary: { totalInvested: 0, totalCurrent: 0, totalReturns: 0, returnsPercentage: 0 } });
       }
 
-      if (transactionsRes.success) {
-        setTransactions(transactionsRes.data.transactions);
+      // Set transactions with fallback
+      if (transactionsRes && transactionsRes.success && transactionsRes.data) {
+        console.log('[Portfolio] Setting transactions:', transactionsRes.data.transactions);
+        setTransactions(transactionsRes.data.transactions || []);
+      } else {
+        console.log('[Portfolio] Using fallback transactions');
+        setTransactions([]);
       }
 
-      if (systematicPlansRes.success) {
-        setSystematicPlans(systematicPlansRes.data.plans);
+      // Set systematic plans with fallback
+      if (systematicPlansRes && systematicPlansRes.success && systematicPlansRes.data) {
+        console.log('[Portfolio] Setting systematic plans:', systematicPlansRes.data.plans);
+        setSystematicPlans(systematicPlansRes.data.plans || []);
+      } else {
+        console.log('[Portfolio] Using fallback systematic plans');
+        setSystematicPlans([]);
       }
 
-      await refreshBalance();
+      // Refresh balance but don't block on errors
+      try {
+        await refreshBalance();
+      } catch (balanceErr) {
+        console.error('[Portfolio] Failed to refresh balance:', balanceErr);
+      }
+      
+      console.log('[Portfolio] Data load complete');
     } catch (err) {
+      console.error('[Portfolio] Portfolio load error:', err);
       setError(err.message);
+      // Set empty data on error
+      setPortfolio({ holdings: [], summary: { totalInvested: 0, totalCurrent: 0, totalReturns: 0, returnsPercentage: 0 } });
+      setTransactions([]);
+      setSystematicPlans([]);
     } finally {
       setLoading(false);
     }
@@ -74,6 +122,17 @@ export default function Portfolio() {
 
   if (error) {
     return <ErrorMessage message={error} onRetry={loadPortfolioData} />;
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <p className="text-gray-600 mb-4">Please log in to view your portfolio</p>
+        <Link to="/login" className="btn-primary">
+          Go to Login
+        </Link>
+      </div>
+    );
   }
 
   return (
@@ -187,7 +246,7 @@ export default function Portfolio() {
                         {formatCurrency(portfolio?.summary?.totalReturns || 0)}
                       </p>
                       <span className="text-lg font-semibold">
-                        ({(portfolio?.summary?.returnsPercentage || 0).toFixed(2)}%)
+                        ({parseFloat(portfolio?.summary?.returnsPercentage || 0).toFixed(2)}%)
                       </span>
                     </div>
                   </div>
@@ -308,7 +367,7 @@ export default function Portfolio() {
                     <div className={`mt-1 text-sm font-semibold ${
                       (holding.returns || 0) >= 0 ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      ({(holding.returns_percentage || 0).toFixed(2)}%)
+                      ({parseFloat(holding.returns_percentage || 0).toFixed(2)}%)
                     </div>
                   </div>
                 </div>
@@ -321,7 +380,7 @@ export default function Portfolio() {
                       </svg>
                       <p className="text-xs text-gray-600 font-medium">Units</p>
                     </div>
-                    <p className="font-bold text-gray-900">{(holding.total_units || 0).toFixed(4)}</p>
+                    <p className="font-bold text-gray-900">{parseFloat(holding.total_units || 0).toFixed(4)}</p>
                   </div>
                   <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-3">
                     <div className="flex items-center mb-1">
@@ -348,7 +407,7 @@ export default function Portfolio() {
                       </svg>
                       <p className="text-xs text-teal-700 font-medium">Last NAV</p>
                     </div>
-                    <p className="font-bold text-teal-900">₹{(holding.last_nav || 0).toFixed(4)}</p>
+                    <p className="font-bold text-teal-900">₹{parseFloat(holding.last_nav || 0).toFixed(4)}</p>
                     {holding.last_nav_date && (
                       <p className="text-xs text-teal-600 mt-0.5">{holding.last_nav_date}</p>
                     )}
@@ -475,10 +534,10 @@ export default function Portfolio() {
                         {formatCurrency(txn.amount)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700 font-medium">
-                        {(txn.units || 0).toFixed(4)}
+                        {parseFloat(txn.units || 0).toFixed(4)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700 font-medium">
-                        ₹{(txn.nav || 0).toFixed(4)}
+                        ₹{parseFloat(txn.nav || 0).toFixed(4)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg ${
@@ -596,7 +655,7 @@ export default function Portfolio() {
                         </svg>
                         Units
                       </p>
-                      <p className="text-lg font-bold text-gray-900">{(plan.units || 0).toFixed(4)}</p>
+                      <p className="text-lg font-bold text-gray-900">{parseFloat(plan.units || 0).toFixed(4)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-600 mb-1 flex items-center">

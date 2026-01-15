@@ -22,8 +22,8 @@ router.get('/', (req, res) => {
  * @route GET /api/health/cache
  * @desc Get cache statistics
  */
-router.get('/cache', (req, res) => {
-  const stats = cacheService.getStats();
+router.get('/cache', async (req, res) => {
+  const stats = await cacheService.getStats();
   res.json({
     success: true,
     data: {
@@ -37,8 +37,8 @@ router.get('/cache', (req, res) => {
  * @route POST /api/health/cache/clear
  * @desc Clear expired cache entries
  */
-router.post('/cache/clear', (req, res) => {
-  const cleared = cacheService.clearExpired();
+router.post('/cache/clear', async (req, res) => {
+  const cleared = await cacheService.clearExpired();
   res.json({
     success: true,
     data: {

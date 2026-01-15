@@ -67,7 +67,7 @@ export const authController = {
       }
 
       // Check if username already exists
-      if (userModel.usernameExists(username)) {
+      if (await userModel.usernameExists(username)) {
         return res.status(409).json({
           success: false,
           message: 'Username already exists',
@@ -76,7 +76,7 @@ export const authController = {
       }
 
       // Check if email already exists (optional but recommended)
-      if (userModel.emailExists(emailId)) {
+      if (await userModel.emailExists(emailId)) {
         return res.status(409).json({
           success: false,
           message: 'Email already registered',
@@ -97,7 +97,7 @@ export const authController = {
       });
 
       // Get demo account
-      const demoAccount = demoAccountModel.findByUserId(user.id);
+      const demoAccount = await demoAccountModel.findByUserId(user.id);
 
       // Generate JWT token
       const token = jwt.sign(
@@ -147,7 +147,7 @@ export const authController = {
       }
 
       // Find user
-      const user = userModel.findByUsername(username);
+      const user = await userModel.findByUsername(username);
       if (!user) {
         return res.status(401).json({
           success: false,
@@ -165,18 +165,16 @@ export const authController = {
       }
 
       // Get demo account (create if doesn't exist)
-      let demoAccount = demoAccountModel.findByUserId(user.id);
+      let demoAccount = await demoAccountModel.findByUserId(user.id);
       
       if (!demoAccount) {
         // Create demo account for existing user
         const { run } = await import('../db/database.js');
-        const { saveDatabase } = await import('../db/database.js');
-        run(
+        await run(
           `INSERT INTO demo_accounts (user_id, balance) VALUES (?, ?)`,
           [user.id, 1000000.00]
         );
-        saveDatabase();
-        demoAccount = demoAccountModel.findByUserId(user.id);
+        demoAccount = await demoAccountModel.findByUserId(user.id);
       }
 
       // Generate JWT token
@@ -214,7 +212,7 @@ export const authController = {
     try {
       const userId = req.user.userId;
 
-      const user = userModel.findById(userId);
+      const user = await userModel.findById(userId);
       if (!user) {
         return res.status(404).json({
           success: false,
@@ -223,18 +221,16 @@ export const authController = {
       }
 
       // Get demo account (create if doesn't exist)
-      let demoAccount = demoAccountModel.findByUserId(userId);
+      let demoAccount = await demoAccountModel.findByUserId(userId);
       
       if (!demoAccount) {
         // Create demo account for existing user
         const { run } = await import('../db/database.js');
-        const { saveDatabase } = await import('../db/database.js');
-        run(
+        await run(
           `INSERT INTO demo_accounts (user_id, balance) VALUES (?, ?)`,
           [userId, 1000000.00]
         );
-        saveDatabase();
-        demoAccount = demoAccountModel.findByUserId(userId);
+        demoAccount = await demoAccountModel.findByUserId(userId);
       }
 
       res.json({
