@@ -19,7 +19,7 @@ export const transactionModel = {
     installments,
     status = 'SUCCESS'
   }) {
-    const result = run(
+    const result = await run(
       `INSERT INTO transactions 
        (user_id, scheme_code, scheme_name, transaction_type, amount, units, nav, 
         frequency, start_date, end_date, installments, status) 
@@ -27,8 +27,6 @@ export const transactionModel = {
       [userId, schemeCode, schemeName, transactionType, amount, units, nav,
        frequency, startDate, endDate, installments, status]
     );
-    
-    saveDatabase();
     
     return {
       id: result.lastInsertRowid,
@@ -50,13 +48,17 @@ export const transactionModel = {
   /**
    * Get all transactions for a user
    */
-  findByUserId(userId, limit = 50, offset = 0) {
-    const results = query(
+  async findByUserId(userId, limit = 50, offset = 0) {
+    // Convert to integers to prevent SQL injection
+    const safeLimit = parseInt(limit) || 50;
+    const safeOffset = parseInt(offset) || 0;
+    
+    const results = await query(
       `SELECT * FROM transactions 
        WHERE user_id = ? 
        ORDER BY executed_at DESC 
-       LIMIT ? OFFSET ?`,
-      [userId, limit, offset]
+       LIMIT ${safeLimit} OFFSET ${safeOffset}`,
+      [userId]
     );
     return results;
   },
@@ -64,8 +66,8 @@ export const transactionModel = {
   /**
    * Get transaction by ID
    */
-  findById(id) {
-    return queryOne(
+  async findById(id) {
+    return await queryOne(
       `SELECT * FROM transactions WHERE id = ?`,
       [id]
     );
@@ -74,8 +76,8 @@ export const transactionModel = {
   /**
    * Get transactions by scheme
    */
-  findByScheme(userId, schemeCode) {
-    return query(
+  async findByScheme(userId, schemeCode) {
+    return await query(
       `SELECT * FROM transactions 
        WHERE user_id = ? AND scheme_code = ? 
        ORDER BY executed_at DESC`,
@@ -86,8 +88,8 @@ export const transactionModel = {
   /**
    * Get transaction count by user
    */
-  countByUserId(userId) {
-    const result = queryOne(
+  async countByUserId(userId) {
+    const result = await queryOne(
       `SELECT COUNT(*) as count FROM transactions WHERE user_id = ?`,
       [userId]
     );
@@ -97,20 +99,19 @@ export const transactionModel = {
   /**
    * Update transaction status
    */
-  updateStatus(id, status) {
-    run(
+  async updateStatus(id, status) {
+    await run(
       `UPDATE transactions SET status = ? WHERE id = ?`,
       [status, id]
     );
-    saveDatabase();
   },
 
   /**
    * Get active systematic plans (SIP, STP, SWP) for a user
    */
-  findActiveSystematicPlans(userId) {
+  async findActiveSystematicPlans(userId) {
     console.log('[Transaction Model] findActiveSystematicPlans - userId:', userId);
-    const results = query(
+    const results = await query(
       `SELECT * FROM transactions 
        WHERE user_id = ? 
        AND transaction_type IN ('SIP', 'STP', 'SWP')

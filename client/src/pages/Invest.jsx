@@ -30,6 +30,18 @@ export default function Invest() {
     }
   }, [schemeCode]);
 
+  // Handle navigation after successful transaction
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        navigate('/portfolio');
+      }, 2000);
+      
+      // Cleanup timeout on unmount
+      return () => clearTimeout(timer);
+    }
+  }, [success, navigate]);
+
   const loadFundDetails = async () => {
     try {
       setError('');
@@ -97,15 +109,17 @@ export default function Invest() {
       
       if (response.success) {
         setSuccess(true);
-        await refreshBalance();
         
-        // Redirect to portfolio after 2 seconds
-        setTimeout(() => {
-          navigate('/portfolio');
-        }, 2000);
+        // Refresh balance in the background (don't block navigation if it fails)
+        refreshBalance().catch(err => {
+          console.error('[Invest] Failed to refresh balance:', err);
+        });
+      } else {
+        setError(response.error || 'Transaction failed');
       }
     } catch (err) {
-      setError(err.message);
+      console.error('[Invest] Transaction error:', err);
+      setError(err.message || 'Transaction failed');
     } finally {
       setLoading(false);
     }

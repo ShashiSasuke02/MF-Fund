@@ -5,8 +5,8 @@ export const demoAccountModel = {
   /**
    * Get demo account by user ID
    */
-  findByUserId(userId) {
-    return queryOne(
+  async findByUserId(userId) {
+    return await queryOne(
       `SELECT id, user_id, balance, created_at, updated_at 
        FROM demo_accounts WHERE user_id = ?`,
       [userId]
@@ -16,21 +16,20 @@ export const demoAccountModel = {
   /**
    * Update demo account balance (system only - called by transaction service)
    */
-  updateBalance(userId, newBalance) {
-    run(
+  async updateBalance(userId, newBalance) {
+    await run(
       `UPDATE demo_accounts 
        SET balance = ?, updated_at = ? 
        WHERE user_id = ?`,
       [newBalance, Date.now(), userId]
     );
-    saveDatabase();
   },
 
   /**
    * Get current balance
    */
-  getBalance(userId) {
-    const account = this.findByUserId(userId);
+  async getBalance(userId) {
+    const account = await this.findByUserId(userId);
     return account ? account.balance : null;
   }
 };

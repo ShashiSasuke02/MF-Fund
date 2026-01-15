@@ -35,8 +35,8 @@ const server = app.listen(PORT, () => {
 });
 
 // Periodic cache cleanup (every 30 minutes)
-const cacheCleanupInterval = setInterval(() => {
-  const cleared = cacheService.clearExpired();
+const cacheCleanupInterval = setInterval(async () => {
+  const cleared = await cacheService.clearExpired();
   if (cleared > 0) {
     console.log(`[Cache] Cleared ${cleared} expired entries`);
   }

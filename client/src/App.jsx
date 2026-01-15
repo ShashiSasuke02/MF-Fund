@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Portfolio from './pages/Portfolio';
 import Invest from './pages/Invest';
+import Calculator from './pages/Calculator';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -49,6 +50,7 @@ function App() {
           <Route path="/browse" element={<AmcList />} />
           <Route path="/amc/:fundHouse" element={<FundList />} />
           <Route path="/fund/:schemeCode" element={<FundDetails />} />
+          <Route path="/calculators" element={<Calculator />} />
           
           {/* Auth routes (public only) */}
           <Route path="/register" element={

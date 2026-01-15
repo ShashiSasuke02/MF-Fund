@@ -325,7 +325,7 @@ function FundRow({ scheme }) {
 function BackButton() {
   return (
     <Link
-      to="/"
+      to="/browse"
       className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white/90 backdrop-blur-sm hover:bg-white border border-gray-300 hover:border-emerald-300 rounded-lg mb-6 group transition-all shadow-sm hover:shadow-md"
     >
       <svg className="w-4 h-4 mr-2 text-emerald-600 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">

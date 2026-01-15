@@ -44,7 +44,19 @@ async function fetchWithRetry(fetchFn, maxRetries = 3, baseDelayMs = 1000) {
     } catch (error) {
       lastError = error;
       
-      // Don't retry on client errors (4xx)
+      // Handle rate limiting (429) with longer delay
+      if (error.response && error.response.status === 429) {
+        if (attempt < maxRetries - 1) {
+          const delay = 5000 * (attempt + 1); // 5s, 10s, 15s
+          console.log(`[MFApi] Rate limited. Waiting ${delay}ms before retry ${attempt + 1}`);
+          await sleep(delay);
+          continue;
+        }
+        // On final attempt, throw error with helpful message
+        throw new Error('API rate limit exceeded. Please try again in a few moments.');
+      }
+      
+      // Don't retry on other client errors (4xx)
       if (error.response && error.response.status >= 400 && error.response.status < 500) {
         throw error;
       }
@@ -72,7 +84,7 @@ class MFApiService {
    */
   async searchSchemes(query) {
     const cacheKey = `search_${query.toLowerCase()}`;
-    const cached = cacheService.get(cacheKey);
+    const cached = await cacheService.get(cacheKey);
     
     if (cached) {
       console.log(`[MFApi] Cache hit for search: ${query}`);
@@ -87,7 +99,7 @@ class MFApiService {
     });
     
     // Cache search results for 1 hour
-    cacheService.set(cacheKey, data, CACHE_TTL_LATEST_NAV);
+    await cacheService.set(cacheKey, data, CACHE_TTL_LATEST_NAV);
     return data;
   }
 
@@ -99,7 +111,7 @@ class MFApiService {
    */
   async getSchemes(limit = 1000, offset = 0) {
     const cacheKey = `schemes_${limit}_${offset}`;
-    const cached = cacheService.get(cacheKey);
+    const cached = await cacheService.get(cacheKey);
     
     if (cached) {
       console.log(`[MFApi] Cache hit for schemes list`);
@@ -113,7 +125,7 @@ class MFApiService {
       return response.data;
     });
     
-    cacheService.set(cacheKey, data, CACHE_TTL_LATEST_NAV);
+    await cacheService.set(cacheKey, data, CACHE_TTL_LATEST_NAV);
     return data;
   }
 
@@ -125,7 +137,7 @@ class MFApiService {
    */
   async getLatestNAVAll(limit = 10000, offset = 0) {
     const cacheKey = `latest_nav_all_${limit}_${offset}`;
-    const cached = cacheService.get(cacheKey);
+    const cached = await cacheService.get(cacheKey);
     
     if (cached) {
       console.log(`[MFApi] Cache hit for latest NAV all`);
@@ -139,7 +151,7 @@ class MFApiService {
       return response.data;
     });
     
-    cacheService.set(cacheKey, data, CACHE_TTL_LATEST_NAV);
+    await cacheService.set(cacheKey, data, CACHE_TTL_LATEST_NAV);
     return data;
   }
 
@@ -150,7 +162,7 @@ class MFApiService {
    */
   async getLatestNAV(schemeCode) {
     const cacheKey = `latest_nav_${schemeCode}`;
-    const cached = cacheService.get(cacheKey);
+    const cached = await cacheService.get(cacheKey);
     
     if (cached) {
       console.log(`[MFApi] Cache hit for latest NAV: ${schemeCode}`);
@@ -162,7 +174,7 @@ class MFApiService {
       return response.data;
     });
     
-    cacheService.set(cacheKey, data, CACHE_TTL_SCHEME_DETAILS);
+    await cacheService.set(cacheKey, data, CACHE_TTL_SCHEME_DETAILS);
     return data;
   }
 
@@ -175,7 +187,7 @@ class MFApiService {
    */
   async getNAVHistory(schemeCode, startDate = null, endDate = null) {
     const cacheKey = `nav_history_${schemeCode}_${startDate || 'all'}_${endDate || 'all'}`;
-    const cached = cacheService.get(cacheKey);
+    const cached = await cacheService.get(cacheKey);
     
     if (cached) {
       console.log(`[MFApi] Cache hit for NAV history: ${schemeCode}`);
@@ -191,7 +203,7 @@ class MFApiService {
       return response.data;
     });
     
-    cacheService.set(cacheKey, data, CACHE_TTL_NAV_HISTORY);
+    await cacheService.set(cacheKey, data, CACHE_TTL_NAV_HISTORY);
     return data;
   }
 

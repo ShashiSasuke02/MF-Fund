@@ -11,7 +11,7 @@ export const amcController = {
    */
   async getAll(req, res, next) {
     try {
-      const amcs = amcModel.getAll();
+      const amcs = await amcModel.getAll();
       
       // Optionally enrich with scheme counts from cached data
       const enriched = await Promise.all(
@@ -54,7 +54,7 @@ export const amcController = {
   async getOne(req, res, next) {
     try {
       const { fundHouse } = req.params;
-      const amc = amcModel.getByFundHouse(fundHouse);
+      const amc = await amcModel.getByFundHouse(fundHouse);
 
       if (!amc) {
         return res.status(404).json({
@@ -97,7 +97,7 @@ export const amcController = {
       const { search, category, sort } = req.query;
 
       // Verify AMC exists
-      if (!amcModel.exists(fundHouse)) {
+      if (!await amcModel.exists(fundHouse)) {
         return res.status(404).json({
           success: false,
           error: 'AMC not found'

@@ -39,6 +39,12 @@ export default function Layout({ children }) {
               >
                 Mutual Funds
               </Link>
+              <Link
+                to="/calculators"
+                className="text-gray-700 hover:text-gray-900 font-medium text-base transition-colors"
+              >
+                Calculators
+              </Link>
               {isAuthenticated && (
                 <>
                   <Link
@@ -111,6 +117,13 @@ export default function Layout({ children }) {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Mutual Funds
+              </Link>
+              <Link
+                to="/calculators"
+                className="block py-2 text-gray-700 font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Calculators
               </Link>
               {isAuthenticated && (
                 <>

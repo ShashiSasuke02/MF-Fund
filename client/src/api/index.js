@@ -213,4 +213,197 @@ export const demoApi = {
   getSystematicPlans: () => fetchApi('/demo/systematic-plans')
 };
 
-export default { amcApi, fundApi, healthApi, authApi, demoApi };
+/**
+ * Calculator API functions
+ */
+export const calculatorApi = {
+  /**
+   * Get current interest rates
+   */
+  getInterestRates: async (forceRefresh = false) => {
+    const response = await fetchApi(`/calculator/rates${forceRefresh ? '?forceRefresh=true' : ''}`);
+    return response.data.rates;
+  },
+
+  /**
+   * Calculate Simple Interest
+   */
+  calculateSimpleInterest: (data) =>
+    fetchApi('/calculator/simple-interest', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate Compound Interest
+   */
+  calculateCompoundInterest: (data) =>
+    fetchApi('/calculator/compound-interest', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate Basic Loan EMI
+   */
+  calculateBasicLoan: (data) =>
+    fetchApi('/calculator/loan-basic', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate Advanced Loan with Prepayment
+   */
+  calculateAdvancedLoan: (data) =>
+    fetchApi('/calculator/loan-advanced', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate Fixed Deposit - Interest Payout
+   */
+  calculateFDPayout: (data) =>
+    fetchApi('/calculator/fd-payout', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate Fixed Deposit - Cumulative
+   */
+  calculateFDCumulative: (data) =>
+    fetchApi('/calculator/fd-cumulative', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate Recurring Deposit
+   */
+  calculateRD: (data) =>
+    fetchApi('/calculator/rd', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate Public Provident Fund
+   */
+  calculatePPF: (data) =>
+    fetchApi('/calculator/ppf', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate Sukanya Samriddhi Account
+   */
+  calculateSSA: (data) =>
+    fetchApi('/calculator/ssa', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate Senior Citizen Savings Scheme
+   */
+  calculateSCSS: (data) =>
+    fetchApi('/calculator/scss', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate Post Office Monthly Income Scheme
+   */
+  calculatePOMIS: (data) =>
+    fetchApi('/calculator/po-mis', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate Post Office Recurring Deposit
+   */
+  calculatePORD: (data) =>
+    fetchApi('/calculator/po-rd', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate Post Office Time Deposit
+   */
+  calculatePOTD: (data) =>
+    fetchApi('/calculator/po-td', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate National Savings Certificate
+   */
+  calculateNSC: (data) =>
+    fetchApi('/calculator/nsc', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate SIP
+   */
+  calculateSIP: (data) =>
+    fetchApi('/calculator/sip', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate SWP
+   */
+  calculateSWP: (data) =>
+    fetchApi('/calculator/swp', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate STP
+   */
+  calculateSTP: (data) =>
+    fetchApi('/calculator/stp', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate National Pension System
+   */
+  calculateNPS: (data) =>
+    fetchApi('/calculator/nps', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate Employees' Provident Fund
+   */
+  calculateEPF: (data) =>
+    fetchApi('/calculator/epf', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Calculate Atal Pension Yojana
+   */
+  calculateAPY: (data) =>
+    fetchApi('/calculator/apy', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+};
+
+export default { amcApi, fundApi, healthApi, authApi, demoApi, calculatorApi };

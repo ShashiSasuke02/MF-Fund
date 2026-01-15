@@ -1,7 +1,7 @@
 {
   "name": "mf-selection-app",
   "version": "1.0.0",
-  "description": "Mutual Fund Selection Web Application with Express, SQLite and React",
+  "description": "Mutual Fund Selection Web Application with Express, MySQL and React",
   "main": "src/server.js",
   "type": "module",
   "scripts": {
@@ -39,7 +39,7 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.0",
-    "sql.js": "^1.10.2",
+    "mysql2": "^3.6.5",
     "zod": "^3.22.4"
   },
   "devDependencies": {
