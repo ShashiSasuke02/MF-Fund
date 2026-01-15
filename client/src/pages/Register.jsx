@@ -8,7 +8,6 @@ export default function Register() {
   const [formData, setFormData] = useState({
     fullName: '',
     emailId: '',
-    username: '',
     password: '',
     confirmPassword: ''
   });
@@ -40,13 +39,6 @@ export default function Register() {
       newErrors.emailId = 'Invalid email format';
     }
 
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
-    } else if (!usernameRegex.test(formData.username)) {
-      newErrors.username = 'Username must be 3-20 characters (letters, numbers, underscore only)';
-    }
-
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
@@ -73,7 +65,6 @@ export default function Register() {
     const result = await register({
       fullName: formData.fullName.trim(),
       emailId: formData.emailId.trim().toLowerCase(),
-      username: formData.username.trim(),
       password: formData.password
     });
 
@@ -123,7 +114,7 @@ export default function Register() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 text-lg">₹10 Lakh Demo Balance</h4>
+                    <h4 className="font-semibold text-gray-900 text-lg">₹1 Crore Demo Balance</h4>
                     <p className="text-sm text-gray-600">Start with virtual money to practice</p>
                   </div>
                 </div>
@@ -179,7 +170,7 @@ export default function Register() {
                 Create Account
               </h2>
               <p className="text-gray-600">
-                Start with ₹10,00,000 demo balance
+                Start with ₹1,00,00,000 demo balance
               </p>
             </div>
 
@@ -255,39 +246,6 @@ export default function Register() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     {errors.emailId}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="username" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Username
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                    </svg>
-                  </div>
-                  <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    required
-                    value={formData.username}
-                    onChange={handleChange}
-                    className={`block w-full pl-10 pr-4 py-3 border ${
-                      errors.username ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-emerald-500'
-                    } rounded-xl shadow-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200`}
-                    placeholder="Choose a username"
-                  />
-                </div>
-                {errors.username && (
-                  <p className="mt-1.5 text-sm text-red-600 flex items-center">
-                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {errors.username}
                   </p>
                 )}
               </div>

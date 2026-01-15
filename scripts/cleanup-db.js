@@ -65,9 +65,9 @@ async function cleanupDatabase() {
         console.log(`  Creating demo account for User ID ${user.id} (${user.username})...`);
         await connection.execute(
           'INSERT INTO demo_accounts (user_id, balance, created_at, updated_at) VALUES (?, ?, ?, ?)',
-          [user.id, 1000000.00, Date.now(), Date.now()]
+          [user.id, 10000000.00, Date.now(), Date.now()]
         );
-        console.log(`  ✅ Created demo account with ₹10,00,000 balance`);
+        console.log(`  ✅ Created demo account with ₹1,00,00,000 balance`);
       }
     } else {
       console.log('✅ All users have demo accounts');

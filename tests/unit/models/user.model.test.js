@@ -60,13 +60,12 @@ describe('User Model', () => {
         fullName: 'John Doe',
         full_name: 'John Doe',
         emailId: 'john@example.com',
-        email_id: 'john@example.com',
-        username: 'johndoe'
+        email_id: 'john@example.com'
       });
       expect(mockRun).toHaveBeenCalledTimes(2); // User insert + demo account insert
     });
 
-    it('should create demo account with ₹10,00,000 balance', async () => {
+    it('should create demo account with ₹1,00,00,000 balance', async () => {
       mockRun.mockReturnValueOnce({ 
         lastInsertRowid: 5, 
         changes: 1 
@@ -81,7 +80,7 @@ describe('User Model', () => {
       expect(mockRun).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('INSERT INTO demo_accounts'),
-        [5, 1000000.00]
+        [5, 10000000.00]
       );
     });
 
@@ -127,7 +126,7 @@ describe('User Model', () => {
       expect(mockRun).toHaveBeenNthCalledWith(
         1,
         expect.any(String),
-        expect.arrayContaining(['John Doe', expect.any(String), 'johndoe', expect.any(String)])
+        expect.arrayContaining(['John Doe', expect.any(String), 'john@example.com', expect.any(String)])
       );
     });
   });
@@ -147,7 +146,7 @@ describe('User Model', () => {
 
       expect(result).toEqual(mockUser);
       expect(mockQueryOne).toHaveBeenCalledWith(
-        expect.stringContaining('WHERE username = ?'),
+        expect.stringContaining('LOWER(email_id)'),
         ['johndoe']
       );
     });
@@ -167,7 +166,7 @@ describe('User Model', () => {
 
       expect(mockQueryOne).toHaveBeenCalledWith(
         expect.any(String),
-        ['JohnDoe'] // Should preserve case
+        ['johndoe'] // Normalized to lowercase email lookup
       );
     });
   });

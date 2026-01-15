@@ -1,7 +1,7 @@
 # TryMutualFunds - Practice Investing Without Risk
 
 ## Project Overview
-A modern, full-stack web application inspired by Groww.in for learning mutual fund investments through risk-free practice. Users receive ₹10,00,000 virtual balance to execute real-world investment strategies (SIP, STP, Lump Sum, SWP) using live NAV data from MFApi. Features a sleek emerald-themed UI with glassmorphism effects, animated components, and professional design elements.
+A modern, full-stack web application inspired by Groww.in for learning mutual fund investments through risk-free practice. Users receive ₹1,00,00,000 virtual balance to execute real-world investment strategies (SIP, STP, Lump Sum, SWP) using live NAV data from MFApi. Features a sleek emerald-themed UI with glassmorphism effects, animated components, and professional design elements.
 
 ## Technology Stack
 
@@ -114,7 +114,7 @@ A modern, full-stack web application inspired by Groww.in for learning mutual fu
 ## API Endpoints
 
 ### Authentication (Public)
-- `POST /api/auth/register` - Register new user with ₹10L demo account
+- `POST /api/auth/register` - Register new user with ₹1Cr demo account
 - `POST /api/auth/login` - Login and get JWT token
 - `GET /api/auth/profile` - Get user profile (Protected)
 
@@ -231,7 +231,7 @@ RealEE/
 3. Check email uniqueness
 4. Hash password with bcrypt (10 salt rounds)
 5. Insert user record
-6. Create demo account with ₹10,00,000 balance (INSERT OR IGNORE)
+6. Create demo account with ₹1,00,00,000 balance (INSERT OR IGNORE)
 7. Generate JWT token (7 days expiry)
 8. Return user data + token
 
@@ -411,7 +411,7 @@ npm start          # Start backend
 1. Visit Landing page → See animated carousel, features, FAQs
 2. Click "Register" → Modern 2-column form with visual appeal
 3. Fill form (fullName, emailId, username, password, confirmPassword)
-4. Auto-login after registration with ₹10L balance
+4. Auto-login after registration with ₹1Cr balance
 5. Browse AMCs → Browse funds → Click fund → View details → Click "Invest Now"
 6. Enter amount → Select transaction type → Submit
 7. View updated portfolio with holdings and transaction history
@@ -427,7 +427,7 @@ npm start          # Start backend
 ## Important Business Rules
 
 1. **No Manual Balance Updates**: Users cannot add/update money directly. Only system through transactions.
-2. **Fixed Starting Balance**: Every new user gets exactly ₹10,00,000
+2. **Fixed Starting Balance**: Every new user gets exactly ₹1,00,00,000
 3. **Username Uniqueness**: Enforced at database and validation layers
 4. **Email Validation**: Must be valid email format
 5. **Password Strength**: Minimum 8 characters
@@ -472,7 +472,7 @@ Response with current values
 ## Testing Checklist
 
 ### Functionality
-- [x] Register new user → Check ₹10L balance
+- [x] Register new user → Check ₹1Cr balance
 - [x] Login existing user → Verify demo account auto-creation
 - [x] Browse AMCs → Should load top 3
 - [ ] Search funds → Should return results (removed from UI)

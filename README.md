@@ -30,7 +30,7 @@ npm test
 ## ✨ Key Features
 
 ### 💰 Demo Trading System
-- **₹10,00,000 Virtual Balance** - Practice investing without risk
+- **₹1,00,00,000 Virtual Balance** - Practice investing without risk
 - **Real-time NAV Updates** - Live mutual fund prices
 - **Complete Portfolio Tracking** - Monitor investments and returns
 
@@ -252,7 +252,7 @@ MF-Investments/
 
 ### Demo Trading Account
 Every registered user gets:
-- ₹10,00,000 virtual starting balance
+- ₹1,00,00,000 virtual starting balance
 - Real-time NAV updates for holdings
 - Complete transaction history
 - Portfolio performance tracking

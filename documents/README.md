@@ -14,7 +14,7 @@ A comprehensive Node.js web application for exploring and selecting mutual funds
 
 ### Investment Management
 - **User Authentication**: Secure registration and login with JWT authentication
-- **Demo Trading Account**: Practice investments with virtual balance (₹10,00,000)
+- **Demo Trading Account**: Practice investments with virtual balance (₹1,00,00,000)
 - **Multiple Transaction Types**:
   - **Lump Sum**: One-time investments
   - **SIP (Systematic Investment Plan)**: Regular investments with daily, weekly, monthly, or quarterly frequency

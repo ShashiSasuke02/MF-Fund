@@ -1,6 +1,7 @@
 ﻿import { useState } from 'react';
 import { calculatorApi } from '../../api';
 import LoadingSpinner from '../LoadingSpinner';
+import { BannerAd, DisplayAd } from '../AdSense';
 
 /**
  * National Savings Certificate Calculator
@@ -55,6 +56,9 @@ export default function NSCCalculator({ interestRates }) {
 
 	return (
 		<div className="space-y-6">
+			{/* Top Banner Ad */}
+			<BannerAd className="mb-6" />
+			
 			<div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r">
 				<div className="flex">
 					<svg className="w-5 h-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,6 +167,9 @@ export default function NSCCalculator({ interestRates }) {
 					</div>
 				</div>
 			)}
+
+			{/* Display Ad - Shows after calculation */}
+			{result && <DisplayAd className="mt-8" />}
 		</div>
 	);
 }

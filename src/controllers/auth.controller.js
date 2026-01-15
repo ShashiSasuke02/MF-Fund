@@ -12,17 +12,16 @@ export const authController = {
    */
   async register(req, res, next) {
     try {
-      const { fullName, emailId, username, password } = req.body;
+      const { fullName, emailId, password } = req.body;
 
       // Validate required fields
-      if (!fullName || !emailId || !username || !password) {
+      if (!fullName || !emailId || !password) {
         return res.status(400).json({
           success: false,
           message: 'All fields are required',
           errors: {
             fullName: !fullName ? 'Full name is required' : undefined,
             emailId: !emailId ? 'Email is required' : undefined,
-            username: !username ? 'Username is required' : undefined,
             password: !password ? 'Password is required' : undefined
           }
         });
@@ -47,31 +46,12 @@ export const authController = {
         });
       }
 
-      // Validate username format (no spaces, alphanumeric + underscore)
-      const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-      if (!usernameRegex.test(username)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Username must be 3-20 characters (letters, numbers, underscore only)',
-          errors: { username: 'Username must be 3-20 characters (letters, numbers, underscore only)' }
-        });
-      }
-
       // Validate password strength
       if (password.length < 8) {
         return res.status(400).json({
           success: false,
           message: 'Password must be at least 8 characters',
           errors: { password: 'Password must be at least 8 characters' }
-        });
-      }
-
-      // Check if username already exists
-      if (await userModel.usernameExists(username)) {
-        return res.status(409).json({
-          success: false,
-          message: 'Username already exists',
-          errors: { username: 'Username already exists' }
         });
       }
 
@@ -92,7 +72,6 @@ export const authController = {
       const user = await userModel.create({
         fullName: fullName.trim(),
         emailId: emailId.trim().toLowerCase(),
-        username: username.trim(),
         passwordHash
       });
 
@@ -101,7 +80,7 @@ export const authController = {
 
       // Generate JWT token
       const token = jwt.sign(
-        { userId: user.id, username: user.username },
+        { userId: user.id, emailId: user.emailId },
         JWT_SECRET,
         { expiresIn: JWT_EXPIRES_IN }
       );
@@ -113,8 +92,7 @@ export const authController = {
           user: {
             id: user.id,
             fullName: user.fullName,
-            emailId: user.emailId,
-            username: user.username
+            emailId: user.emailId
           },
           demoAccount: {
             balance: demoAccount.balance
@@ -132,26 +110,26 @@ export const authController = {
    */
   async login(req, res, next) {
     try {
-      const { username, password } = req.body;
+      const { emailId, password } = req.body;
 
       // Validate required fields
-      if (!username || !password) {
+      if (!emailId || !password) {
         return res.status(400).json({
           success: false,
-          message: 'Username and password are required',
+          message: 'Email and password are required',
           errors: {
-            username: !username ? 'Username is required' : undefined,
+            emailId: !emailId ? 'Email is required' : undefined,
             password: !password ? 'Password is required' : undefined
           }
         });
       }
 
-      // Find user
-      const user = await userModel.findByUsername(username);
+      // Find user by email
+      const user = await userModel.findByEmail(emailId);
       if (!user) {
         return res.status(401).json({
           success: false,
-          message: 'Invalid username or password'
+          message: 'Invalid email or password'
         });
       }
 
@@ -160,7 +138,7 @@ export const authController = {
       if (!passwordMatch) {
         return res.status(401).json({
           success: false,
-          message: 'Invalid username or password'
+          message: 'Invalid email or password'
         });
       }
 
@@ -172,14 +150,14 @@ export const authController = {
         const { run } = await import('../db/database.js');
         await run(
           `INSERT INTO demo_accounts (user_id, balance) VALUES (?, ?)`,
-          [user.id, 1000000.00]
+          [user.id, 10000000.00]
         );
         demoAccount = await demoAccountModel.findByUserId(user.id);
       }
 
       // Generate JWT token
       const token = jwt.sign(
-        { userId: user.id, username: user.username },
+        { userId: user.id, emailId: user.email_id },
         JWT_SECRET,
         { expiresIn: JWT_EXPIRES_IN }
       );
@@ -191,8 +169,7 @@ export const authController = {
           user: {
             id: user.id,
             fullName: user.full_name,
-            emailId: user.email_id,
-            username: user.username
+            emailId: user.email_id
           },
           demoAccount: {
             balance: demoAccount.balance
@@ -228,7 +205,7 @@ export const authController = {
         const { run } = await import('../db/database.js');
         await run(
           `INSERT INTO demo_accounts (user_id, balance) VALUES (?, ?)`,
-          [userId, 1000000.00]
+          [userId, 10000000.00]
         );
         demoAccount = await demoAccountModel.findByUserId(userId);
       }
@@ -240,7 +217,6 @@ export const authController = {
             id: user.id,
             fullName: user.full_name,
             emailId: user.email_id,
-            username: user.username,
             createdAt: user.created_at
           },
           demoAccount: {
