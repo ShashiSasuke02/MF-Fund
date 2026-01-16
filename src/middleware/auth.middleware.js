@@ -80,9 +80,11 @@ export const requireAdmin = (req, res, next) => {
     }
 
     // Check if user has admin role
-    // For now, check if username is 'admin' or user_id is 1
+    // For now, check if username is 'admin' or 'Shashi', or user_id is 1
     // In production, you should have a proper roles system in database
-    const isAdmin = req.user.username === 'admin' || req.user.id === 1;
+    const isAdmin = req.user.username === 'admin' || 
+                    req.user.username === 'Shashi' || 
+                    req.user.id === 1;
 
     if (!isAdmin) {
       return res.status(403).json({
