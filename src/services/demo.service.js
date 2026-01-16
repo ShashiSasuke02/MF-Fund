@@ -3,6 +3,14 @@ import { transactionModel } from '../models/transaction.model.js';
 import { holdingModel } from '../models/holding.model.js';
 import mfApiService from './mfapi.service.js';
 
+const isTestEnv = process.env.NODE_ENV === 'test';
+const log = (...args) => {
+  if (!isTestEnv) console.log(...args);
+};
+const logError = (...args) => {
+  if (!isTestEnv) console.error(...args);
+};
+
 export const demoService = {
   /**
    * Execute a transaction (SIP, STP, Lump Sum, SWP)
@@ -24,7 +32,7 @@ export const demoService = {
     amount = parseFloat(amount);
     schemeCode = parseInt(schemeCode);
     
-    console.log('[Demo Service] executeTransaction - userId:', userId, 'currentBalance:', currentBalance, 'amount:', amount);
+    log('[Demo Service] executeTransaction - userId:', userId, 'currentBalance:', currentBalance, 'amount:', amount);
     
     if (!currentBalance && currentBalance !== 0) {
       throw new Error('Demo account not found');
@@ -86,7 +94,7 @@ export const demoService = {
 
       // Update demo balance
       const newBalance = currentBalance - amount;
-      console.log('[Demo Service] Updating balance - old:', currentBalance, 'new:', newBalance, 'deducted:', amount);
+      log('[Demo Service] Updating balance - old:', currentBalance, 'new:', newBalance, 'deducted:', amount);
       await demoAccountModel.updateBalance(userId, newBalance);
 
       // Update or create holding
@@ -175,9 +183,9 @@ export const demoService = {
    * Get portfolio summary
    */
   async getPortfolio(userId) {
-    console.log('[Demo Service] getPortfolio - userId:', userId);
+    log('[Demo Service] getPortfolio - userId:', userId);
     const holdings = await holdingModel.findByUserId(userId);
-    console.log('[Demo Service] Retrieved', holdings.length, 'holdings for userId:', userId);
+    log('[Demo Service] Retrieved', holdings.length, 'holdings for userId:', userId);
     const balance = await demoAccountModel.getBalance(userId);
     
     // Update current values with latest NAV
@@ -189,10 +197,14 @@ export const demoService = {
         const currentValueFromDb = parseFloat(holding.current_value || 0);
         
         try {
+          // Fetch latest NAV and scheme details
           const latestData = await mfApiService.getLatestNAV(holding.scheme_code);
           if (latestData && latestData.data && latestData.data[0]) {
             const latestNav = parseFloat(latestData.data[0].nav);
             const currentValue = totalUnits * latestNav;
+            
+            // Get scheme category from meta data
+            const schemeCategory = latestData.meta?.scheme_category || null;
             
             await holdingModel.updateCurrentValue(
               userId, 
@@ -203,6 +215,7 @@ export const demoService = {
             
             return {
               ...holding,
+              scheme_category: schemeCategory,  // Add scheme_category
               total_units: totalUnits,
               invested_amount: investedAmount,
               last_nav: latestNav,
@@ -213,11 +226,12 @@ export const demoService = {
             };
           }
         } catch (error) {
-          console.error(`Failed to update NAV for scheme ${holding.scheme_code}:`, error.message);
+          logError(`Failed to update NAV for scheme ${holding.scheme_code}:`, error.message);
         }
         
         return {
           ...holding,
+          scheme_category: null,  // Add null scheme_category for error cases
           total_units: totalUnits,
           invested_amount: investedAmount,
           current_value: currentValueFromDb,
@@ -249,9 +263,9 @@ export const demoService = {
    * Get transaction history
    */
   async getTransactions(userId, limit = 50, offset = 0) {
-    console.log('[Demo Service] getTransactions - userId:', userId, 'limit:', limit, 'offset:', offset);
+    log('[Demo Service] getTransactions - userId:', userId, 'limit:', limit, 'offset:', offset);
     const transactions = await transactionModel.findByUserId(userId, limit, offset);
-    console.log('[Demo Service] Retrieved', transactions.length, 'transactions for userId:', userId);
+    log('[Demo Service] Retrieved', transactions.length, 'transactions for userId:', userId);
     return transactions;
   },
 
@@ -259,9 +273,9 @@ export const demoService = {
    * Get active systematic plans (SIP, STP, SWP)
    */
   async getSystematicPlans(userId) {
-    console.log('[Demo Service] getSystematicPlans - userId:', userId);
+    log('[Demo Service] getSystematicPlans - userId:', userId);
     const plans = await transactionModel.findActiveSystematicPlans(userId);
-    console.log('[Demo Service] Retrieved', plans.length, 'systematic plans for userId:', userId);
+    log('[Demo Service] Retrieved', plans.length, 'systematic plans for userId:', userId);
     return plans;
   }
 };

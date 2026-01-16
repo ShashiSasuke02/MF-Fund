@@ -128,8 +128,8 @@ async function fixOrphanedData() {
       usersWithoutAccounts.forEach(u => {
         console.log(`     - User ID: ${u.id}, Username: ${u.username}, Name: ${u.full_name}`);
         // Create demo account for user
-        db.run('INSERT INTO demo_accounts (user_id, balance) VALUES (?, ?)', [u.id, 1000000.00]);
-        console.log(`       ✅ Created demo account with ₹10,00,000 balance`);
+        db.run('INSERT INTO demo_accounts (user_id, balance) VALUES (?, ?)', [u.id, 10000000.00]);
+        console.log(`       ✅ Created demo account with ₹1,00,00,000 balance`);
       });
     } else {
       console.log('   ✓ All users have demo accounts');

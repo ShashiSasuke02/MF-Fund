@@ -74,7 +74,7 @@ node scripts/migrate-sqlite-to-mysql.js
 - `amc_master` - AMC/fund house information
 - `api_cache` - API response cache
 - `users` - User accounts
-- `demo_accounts` - Demo trading accounts (₹10L starting balance)
+- `demo_accounts` - Demo trading accounts (₹1Cr starting balance)
 - `transactions` - All transactions (SIP, Lump Sum, SWP, STP)
 - `holdings` - Current portfolio holdings
 

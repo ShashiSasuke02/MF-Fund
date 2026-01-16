@@ -8,9 +8,8 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 // Mock dependencies
 const mockUserModel = {
   create: jest.fn(),
-  findByUsername: jest.fn(),
+  findByEmail: jest.fn(),
   findById: jest.fn(),
-  usernameExists: jest.fn(),
   emailExists: jest.fn()
 };
 
@@ -70,24 +69,21 @@ describe('Auth Controller', () => {
     const validRegisterData = {
       fullName: 'John Doe',
       emailId: 'john@example.com',
-      username: 'johndoe',
       password: 'SecurePass123'
     };
 
     it('should register new user successfully', async () => {
       req.body = validRegisterData;
       
-      mockUserModel.usernameExists.mockReturnValueOnce(false);
       mockUserModel.emailExists.mockReturnValueOnce(false);
       mockBcrypt.hash.mockResolvedValueOnce('$2b$10$hashedpassword');
       mockUserModel.create.mockResolvedValueOnce({
         id: 1,
         fullName: 'John Doe',
-        emailId: 'john@example.com',
-        username: 'johndoe'
+        emailId: 'john@example.com'
       });
       mockDemoAccountModel.findByUserId.mockReturnValueOnce({
-        balance: 1000000.00
+        balance: 10000000.00
       });
       mockJwt.sign.mockReturnValueOnce('jwt.token.here');
 
@@ -100,10 +96,10 @@ describe('Auth Controller', () => {
         data: {
           user: expect.objectContaining({
             id: 1,
-            username: 'johndoe'
+            emailId: 'john@example.com'
           }),
           demoAccount: expect.objectContaining({
-            balance: 1000000.00
+            balance: 10000000.00
           }),
           token: 'jwt.token.here'
         }
@@ -111,7 +107,7 @@ describe('Auth Controller', () => {
     });
 
     it('should reject registration with missing fields', async () => {
-      req.body = { username: 'johndoe' }; // Missing other fields
+      req.body = { emailId: 'john@example.com' }; // Missing other fields
 
       await authController.register(req, res, next);
 
@@ -124,24 +120,8 @@ describe('Auth Controller', () => {
       );
     });
 
-    it('should reject duplicate username', async () => {
-      req.body = validRegisterData;
-      mockUserModel.usernameExists.mockReturnValueOnce(true);
-
-      await authController.register(req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(409);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: false,
-          message: 'Username already exists'
-        })
-      );
-    });
-
     it('should reject duplicate email', async () => {
       req.body = validRegisterData;
-      mockUserModel.usernameExists.mockReturnValueOnce(false);
       mockUserModel.emailExists.mockReturnValueOnce(true);
 
       await authController.register(req, res, next);
@@ -170,14 +150,6 @@ describe('Auth Controller', () => {
       );
     });
 
-    it('should validate username format (alphanumeric + underscore)', async () => {
-      req.body = { ...validRegisterData, username: 'user@name!' };
-
-      await authController.register(req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-    });
-
     it('should enforce minimum password length', async () => {
       req.body = { ...validRegisterData, password: '1234567' }; // 7 chars
 
@@ -203,11 +175,10 @@ describe('Auth Controller', () => {
 
     it('should hash password with bcrypt', async () => {
       req.body = validRegisterData;
-      mockUserModel.usernameExists.mockReturnValueOnce(false);
       mockUserModel.emailExists.mockReturnValueOnce(false);
       mockBcrypt.hash.mockResolvedValueOnce('$2b$10$hash');
       mockUserModel.create.mockResolvedValueOnce({ id: 1 });
-      mockDemoAccountModel.findByUserId.mockReturnValueOnce({ balance: 1000000 });
+      mockDemoAccountModel.findByUserId.mockReturnValueOnce({ balance: 10000000 });
       mockJwt.sign.mockReturnValueOnce('token');
 
       await authController.register(req, res, next);
@@ -217,11 +188,10 @@ describe('Auth Controller', () => {
 
     it('should normalize email to lowercase', async () => {
       req.body = { ...validRegisterData, emailId: 'John@EXAMPLE.COM' };
-      mockUserModel.usernameExists.mockReturnValueOnce(false);
       mockUserModel.emailExists.mockReturnValueOnce(false);
       mockBcrypt.hash.mockResolvedValueOnce('$2b$10$hash');
       mockUserModel.create.mockResolvedValueOnce({ id: 1 });
-      mockDemoAccountModel.findByUserId.mockReturnValueOnce({ balance: 1000000 });
+      mockDemoAccountModel.findByUserId.mockReturnValueOnce({ balance: 10000000 });
       mockJwt.sign.mockReturnValueOnce('token');
 
       await authController.register(req, res, next);
@@ -236,18 +206,17 @@ describe('Auth Controller', () => {
 
   describe('login', () => {
     it('should login with valid credentials', async () => {
-      req.body = { username: 'johndoe', password: 'SecurePass123' };
+      req.body = { emailId: 'john@example.com', password: 'SecurePass123' };
 
-      mockUserModel.findByUsername.mockReturnValueOnce({
+      mockUserModel.findByEmail.mockReturnValueOnce({
         id: 1,
-        username: 'johndoe',
         password_hash: '$2b$10$hash',
         full_name: 'John Doe',
         email_id: 'john@example.com'
       });
       mockBcrypt.compare.mockResolvedValueOnce(true);
       mockDemoAccountModel.findByUserId.mockReturnValueOnce({
-        balance: 950000.00
+        balance: 950000.0
       });
       mockJwt.sign.mockReturnValueOnce('jwt.token');
 
@@ -257,15 +226,15 @@ describe('Auth Controller', () => {
         success: true,
         message: 'Login successful',
         data: {
-          user: expect.objectContaining({ id: 1 }),
-          demoAccount: expect.objectContaining({ balance: 950000.00 }),
+          user: expect.objectContaining({ id: 1, emailId: 'john@example.com' }),
+          demoAccount: expect.objectContaining({ balance: 950000.0 }),
           token: 'jwt.token'
         }
       });
     });
 
     it('should reject login with missing credentials', async () => {
-      req.body = { username: 'johndoe' }; // Missing password
+      req.body = { emailId: '' }; // Missing password
 
       await authController.login(req, res, next);
 
@@ -273,22 +242,22 @@ describe('Auth Controller', () => {
     });
 
     it('should reject login for non-existent user', async () => {
-      req.body = { username: 'nonexistent', password: 'password' };
-      mockUserModel.findByUsername.mockReturnValueOnce(null);
+      req.body = { emailId: 'missing@example.com', password: 'password' };
+      mockUserModel.findByEmail.mockReturnValueOnce(null);
 
       await authController.login(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: 'Invalid username or password'
+          message: 'Invalid email or password'
         })
       );
     });
 
     it('should reject login with wrong password', async () => {
-      req.body = { username: 'johndoe', password: 'wrongpass' };
-      mockUserModel.findByUsername.mockReturnValueOnce({
+      req.body = { emailId: 'john@example.com', password: 'wrongpass' };
+      mockUserModel.findByEmail.mockReturnValueOnce({
         id: 1,
         password_hash: '$2b$10$hash'
       });
@@ -298,25 +267,6 @@ describe('Auth Controller', () => {
 
       expect(res.status).toHaveBeenCalledWith(401);
     });
-
-    it('should create demo account if missing', async () => {
-      req.body = { username: 'johndoe', password: 'SecurePass123' };
-      mockUserModel.findByUsername.mockReturnValueOnce({
-        id: 1,
-        username: 'johndoe',
-        password_hash: '$2b$10$hash'
-      });
-      mockBcrypt.compare.mockResolvedValueOnce(true);
-      mockDemoAccountModel.findByUserId.mockReturnValueOnce(null);
-      mockDemoAccountModel.create.mockReturnValueOnce({ balance: 1000000 });
-      mockJwt.sign.mockReturnValueOnce('fake-jwt-token');
-
-      await authController.login(req, res, next);
-
-      // Verify login flow executed
-      expect(mockUserModel.findByUsername).toHaveBeenCalledWith('johndoe');
-      expect(mockBcrypt.compare).toHaveBeenCalled();
-    });
   });
 
   describe('getProfile', () => {
@@ -324,12 +274,11 @@ describe('Auth Controller', () => {
       req.user = { userId: 1 };
       mockUserModel.findById.mockReturnValueOnce({
         id: 1,
-        username: 'johndoe',
         full_name: 'John Doe',
         email_id: 'john@example.com'
       });
       mockDemoAccountModel.findByUserId.mockReturnValueOnce({
-        balance: 1000000,
+        balance: 10000000,
         createdAt: undefined
       });
 
@@ -338,8 +287,8 @@ describe('Auth Controller', () => {
       expect(res.json).toHaveBeenCalledWith({
         success: true,
         data: {
-          user: expect.objectContaining({ username: 'johndoe' }),
-          demoAccount: expect.objectContaining({ balance: 1000000 })
+          user: expect.objectContaining({ emailId: 'john@example.com' }),
+          demoAccount: expect.objectContaining({ balance: 10000000 })
         }
       });
     });
@@ -355,28 +304,27 @@ describe('Auth Controller', () => {
   });
 
   describe('JWT Token Generation', () => {
-    it('should generate token with userId and username', async () => {
+    it('should generate token with userId and email', async () => {
       req.body = {
         fullName: 'Test',
         emailId: 'test@test.com',
-        username: 'testuser',
         password: 'Password123'
       };
 
-      mockUserModel.usernameExists.mockReturnValueOnce(false);
       mockUserModel.emailExists.mockReturnValueOnce(false);
       mockBcrypt.hash.mockResolvedValueOnce('$2b$10$hash');
       mockUserModel.create.mockResolvedValueOnce({
         id: 5,
-        username: 'testuser'
+        email_id: 'test@test.com',
+        emailId: 'test@test.com'
       });
-      mockDemoAccountModel.findByUserId.mockReturnValueOnce({ balance: 1000000 });
+      mockDemoAccountModel.findByUserId.mockReturnValueOnce({ balance: 10000000 });
       mockJwt.sign.mockReturnValueOnce('generated.token');
 
       await authController.register(req, res, next);
 
       expect(mockJwt.sign).toHaveBeenCalledWith(
-        { userId: 5, username: 'testuser' },
+        { userId: 5, emailId: 'test@test.com' },
         expect.any(String),
         { expiresIn: '7d' }
       );

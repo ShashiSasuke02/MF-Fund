@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { calculatorApi } from '../../api';
 import LoadingSpinner from '../LoadingSpinner';
+import { BannerAd, DisplayAd } from '../AdSense';
 
 /**
  * SIP Calculator Component
@@ -60,6 +61,9 @@ export default function SIPCalculator({ interestRates }) {
 
   return (
     <div className="space-y-6">
+      {/* Top Banner Ad */}
+      <BannerAd className="mb-6" />
+      
       {/* Info Box */}
       <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r">
         <div className="flex">
@@ -223,6 +227,9 @@ export default function SIPCalculator({ interestRates }) {
           </div>
         </div>
       )}
+
+      {/* Bottom Display Ad */}
+      {result && <DisplayAd className="mt-8" />}
     </div>
   );
 }

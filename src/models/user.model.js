@@ -4,17 +4,20 @@ import { saveDatabase } from '../db/database.js';
 export const userModel = {
   /**
    * Create a new user with demo account
+   * Username column is retained for legacy schema; it mirrors emailId so users don't need a separate handle.
    */
-  async create({ fullName, emailId, username, passwordHash }) {
-    try {      // Trim whitespace from inputs
-      const trimmedFullName = fullName.trim();
-      const trimmedEmailId = emailId.trim();
-      const trimmedUsername = username.trim();
-            // Insert user
+  async create({ fullName, emailId, passwordHash }) {
+    try {
+      // Trim and normalize inputs
+      const trimmedFullName = (fullName || '').trim();
+      const trimmedEmailId = (emailId || '').trim().toLowerCase();
+      const legacyUsername = trimmedEmailId; // keep schema compatibility without exposing a separate username
+
+      // Insert user
       const userResult = await run(
         `INSERT INTO users (full_name, email_id, username, password_hash) 
          VALUES (?, ?, ?, ?)`,
-        [trimmedFullName, trimmedEmailId, trimmedUsername, passwordHash]
+        [trimmedFullName, trimmedEmailId, legacyUsername, passwordHash]
       );
       
       const userId = userResult.lastInsertRowid;
@@ -39,10 +42,10 @@ export const userModel = {
       
       console.log('[User Model] Created user with ID:', userIdNum);
       
-      // Create demo account with ₹10,00,000 starting balance
+      // Create demo account with ₹1,00,00,000 (1 crore) starting balance
       const demoResult = await run(
         `INSERT INTO demo_accounts (user_id, balance) VALUES (?, ?)`,
-        [userIdNum, 1000000.00]
+        [userIdNum, 10000000.00]
       );
       
       console.log('[User Model] Created demo account for user:', userIdNum, 'result:', demoResult);
@@ -52,7 +55,6 @@ export const userModel = {
         id: userIdNum,
         full_name: trimmedFullName,
         email_id: trimmedEmailId,
-        username: trimmedUsername,
         // Also include camelCase versions for convenience
         fullName: trimmedFullName,
         emailId: trimmedEmailId
@@ -63,25 +65,20 @@ export const userModel = {
     }
   },
 
-  /**
-   * Find user by username
-   */
-  async findByUsername(username) {
-    return await queryOne(
-      `SELECT id, full_name, email_id, username, password_hash, created_at 
-       FROM users WHERE username = ?`,
-      [username]
-    );
+  // Legacy alias maintained for backward compatibility with older callers
+  async findByUsername(identifier) {
+    return await this.findByEmail(identifier);
   },
 
   /**
    * Find user by email
    */
   async findByEmail(emailId) {
+    const normalized = (emailId || '').trim().toLowerCase();
     return await queryOne(
       `SELECT id, full_name, email_id, username, password_hash, created_at 
-       FROM users WHERE email_id = ?`,
-      [emailId]
+       FROM users WHERE LOWER(email_id) = ?`,
+      [normalized]
     );
   },
 
@@ -99,24 +96,19 @@ export const userModel = {
     );
   },
 
-  /**
-   * Check if username exists
-   */
-  async usernameExists(username) {
-    const result = await queryOne(
-      `SELECT COUNT(*) as count FROM users WHERE username = ?`,
-      [username]
-    );
-    return result ? result.count > 0 : false;
+  // Legacy alias maintained for backward compatibility with older callers
+  async usernameExists(identifier) {
+    return this.emailExists(identifier);
   },
 
   /**
    * Check if email exists
    */
   async emailExists(emailId) {
+    const normalized = (emailId || '').trim().toLowerCase();
     const result = await queryOne(
-      `SELECT COUNT(*) as count FROM users WHERE email_id = ?`,
-      [emailId]
+      `SELECT COUNT(*) as count FROM users WHERE LOWER(email_id) = ?`,
+      [normalized]
     );
     return result ? result.count > 0 : false;
   }

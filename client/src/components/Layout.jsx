@@ -68,7 +68,7 @@ export default function Layout({ children }) {
               {isAuthenticated ? (
                 <>
                   <div className="hidden lg:flex items-center space-x-3">
-                    <span className="text-sm text-gray-600">{user?.username}</span>
+                    <span className="text-sm text-gray-600">{user?.emailId || user?.email_id}</span>
                     <button
                       onClick={logout}
                       className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
@@ -148,7 +148,7 @@ export default function Layout({ children }) {
                     }}
                     className="block w-full text-left py-2 text-gray-700 font-medium"
                   >
-                    Logout ({user?.username})
+                    Logout ({user?.emailId || user?.email_id})
                   </button>
                 </>
               )}

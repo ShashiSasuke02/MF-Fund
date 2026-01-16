@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { calculatorApi } from '../../api';
 import LoadingSpinner from '../LoadingSpinner';
+import { BannerAd, DisplayAd } from '../AdSense';
 
 /**
  * Simple Interest Calculator Component
@@ -58,6 +59,9 @@ export default function SimpleInterestCalculator({ interestRates }) {
 
   return (
     <div className="space-y-6">
+      {/* Top Banner Ad */}
+      <BannerAd className="mb-6" />
+      
       {/* Info Box */}
       <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r">
         <div className="flex">
@@ -189,6 +193,9 @@ export default function SimpleInterestCalculator({ interestRates }) {
           </div>
         </div>
       )}
+
+      {/* Display Ad - Shows after calculation */}
+      {result && <DisplayAd className="mt-8" />}
     </div>
   );
 }
