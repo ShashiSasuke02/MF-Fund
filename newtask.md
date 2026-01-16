@@ -486,10 +486,165 @@ The MFAPI `scheme_category` field follows SEBI's mutual fund classification:
 - **Standards Compliance:** Aligns with SEBI mutual fund classification guidelines
 
 ### Testing & Quality Assurance
-- Tests: All 110 tests passing (last run successful)
+- Tests: All 33 tests passing for demo service (updated for PENDING status logic)
 - Test coverage: Unit tests updated for 1 crore balance expectations
 - Integration tests: Calculator API endpoints verified end-to-end
 - Manual testing: All 20 calculators tested with AdSense placeholders
 - Browser testing: Responsive design verified on mobile/tablet/desktop
 - Ad layout testing: Development placeholders confirm proper spacing and positioning
 - Portfolio enhancement: Two-row tab layout tested across all breakpoints
+- Transaction status tests: Future-dated SIP/STP/SWP transactions remain PENDING until execution date
+
+### Scheduler Controller for SIP/STP/SWP Execution (Jan 16, 2026 - In Progress)
+**Automated execution of scheduled transactions with idempotency, concurrency safety, and audit trails**
+
+#### Feature Overview
+A comprehensive scheduler system that automatically executes PENDING SIP/STP/SWP transactions on their scheduled dates, with robust error handling, concurrency control, and full audit logging.
+
+#### Schema Updates
+**Transactions Table - New Fields:**
+- `execution_count INT` - Tracks number of times transaction has been executed
+- `next_execution_date VARCHAR(10)` - Next scheduled execution date (YYYY-MM-DD)
+- `last_execution_date VARCHAR(10)` - Last successful execution date
+- `failure_reason TEXT` - Detailed error message when execution fails
+- `is_locked BOOLEAN` - Prevents concurrent execution (idempotency)
+- `locked_at BIGINT` - Timestamp when lock was acquired
+
+**New Execution Logs Table:**
+```sql
+CREATE TABLE execution_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    transaction_id INT NOT NULL,
+    execution_date VARCHAR(10) NOT NULL,
+    status ENUM('SUCCESS', 'FAILED', 'SKIPPED') NOT NULL,
+    amount DECIMAL(15,2),
+    units DECIMAL(15,4),
+    nav DECIMAL(15,4),
+    balance_before DECIMAL(15,2),
+    balance_after DECIMAL(15,2),
+    failure_reason TEXT,
+    execution_duration_ms INT,
+    executed_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000),
+    FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON DELETE CASCADE
+);
+```
+
+#### Scheduler Architecture
+
+**Components:**
+1. **scheduler.service.js** - Core business logic for fetching due transactions and executing them
+2. **scheduler.controller.js** - API endpoints for manual trigger and status monitoring  
+3. **transaction.model.js updates** - New methods for finding due transactions, locking, and updating status
+4. **executionLog.model.js** - New model for audit trail management
+
+**Execution Flow:**
+```
+1. Fetch Due Transactions
+   ├─ Query: next_execution_date <= target_date
+   ├─ Filter: status IN ('PENDING')
+   ├─ Filter: is_locked = false
+   └─ Order: next_execution_date ASC, created_at ASC
+
+2. For Each Transaction:
+   ├─ Acquire Lock (is_locked = true, locked_at = now)
+   ├─ Validate Conditions
+   │  ├─ Check user balance (SIP/STP)
+   │  ├─ Check holdings (SWP/STP)
+   │  └─ Check date constraints (end_date, installments)
+   ├─ Execute Transaction
+   │  ├─ SIP: Debit balance → Buy units → Update holdings
+   │  ├─ STP: Transfer units from Fund A → Fund B
+   │  └─ SWP: Redeem units → Credit balance
+   ├─ Update Status
+   │  ├─ SUCCESS: Increment execution_count, set last_execution_date
+   │  ├─ FAILED: Set failure_reason, keep PENDING status
+   │  └─ Calculate next_execution_date (if recurring)
+   ├─ Log Execution
+   │  └─ Insert into execution_logs
+   └─ Release Lock (is_locked = false)
+
+3. Schedule Advancement Logic:
+   ├─ DAILY: Add 1 day
+   ├─ WEEKLY: Add 7 days
+   ├─ MONTHLY: Add 1 month (same date)
+   ├─ QUARTERLY: Add 3 months
+   └─ Check Stop Conditions:
+       ├─ execution_count >= installments (if specified)
+       ├─ next_execution_date > end_date (if specified)
+       └─ Set status to CANCELLED if conditions met
+```
+
+#### API Endpoints
+
+**POST /api/scheduler/execute**
+- Triggers scheduler run for specified date (default: today)
+- Request Body: `{ targetDate?: 'YYYY-MM-DD' }`
+- Response: `{ executed: number, failed: number, skipped: number, details: [] }`
+- Auth: JWT required (admin only - to be implemented)
+
+**GET /api/scheduler/due**
+- Lists all due transactions without executing
+- Query Params: `?date=YYYY-MM-DD`
+- Response: Array of transactions with next_execution_date <= date
+- Auth: JWT required
+
+**GET /api/scheduler/logs/:transactionId**
+- Retrieves execution history for specific transaction
+- Response: Array of execution_logs entries
+- Auth: JWT required (user must own transaction)
+
+#### Idempotency & Concurrency Safety
+
+**Lock Mechanism:**
+1. **Optimistic Locking:** Use `is_locked` flag with timestamp
+2. **Lock Acquisition:** 
+   ```sql
+   UPDATE transactions 
+   SET is_locked = true, locked_at = UNIX_TIMESTAMP() * 1000
+   WHERE id = ? AND is_locked = false
+   ```
+3. **Lock Timeout:** Release locks older than 5 minutes (configurable)
+4. **Double Execution Prevention:** Skip if `last_execution_date` == target_date
+
+**Error Handling:**
+- **Insufficient Balance:** Set status PENDING, log failure, don't increment execution_count
+- **NAV Unavailable:** Retry on next scheduler run
+- **Network Errors:** Log and retry
+- **Database Errors:** Rollback transaction, release lock
+
+#### Implementation Status (Jan 16, 2026)
+
+**Completed:**
+- ✅ Schema updates (transactions table + execution_logs table)
+- ✅ next_execution_date set for PENDING transactions in demo.service.js
+- ⏳ Transaction model methods (in progress)
+
+**Pending:**
+- ⏳ scheduler.service.js implementation
+- ⏳ scheduler.controller.js implementation
+- ⏳ executionLog.model.js implementation
+- ⏳ API route mounting
+- ⏳ Comprehensive tests
+- ⏳ Cron job setup (optional - manual trigger for now)
+- ⏳ Admin authentication for scheduler endpoints
+
+**Testing Requirements:**
+1. **Due Transaction Fetching:** Verify correct date filtering and status filtering
+2. **Lock Mechanism:** Test concurrent execution prevention
+3. **Execution Logic:** Test all transaction types (SIP/STP/SWP)
+4. **Schedule Advancement:** Test all frequencies (DAILY/WEEKLY/MONTHLY/QUARTERLY)
+5. **Stop Conditions:** Test installments completion and end_date reached
+6. **Error Scenarios:** Test insufficient balance, NAV unavailable, network failures
+7. **Audit Trail:** Verify execution_logs entries for all executions
+8. **Idempotency:** Test that same transaction doesn't execute twice on same date
+
+**Future Enhancements:**
+1. **Cron Integration:** Use node-cron for automatic daily execution
+2. **Admin Dashboard:** UI for monitoring scheduler runs and execution logs
+3. **Email Notifications:** Notify users of successful/failed executions
+4. **Retry Logic:** Automatic retry for transient failures
+5. **Batch Processing:** Process transactions in batches for better performance
+6. **STP Source Fund:** Add source_scheme_code field for STP transactions
+7. **Webhook Integration:** Notify external systems of execution events
+
+

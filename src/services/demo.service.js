@@ -76,8 +76,9 @@ export const demoService = {
       // Calculate units
       const units = amount / latestNav;
 
-      // Determine transaction status based on start date
+      // Determine transaction status and next execution date based on start date
       let transactionStatus = 'SUCCESS';
+      let nextExecutionDate = null;
       
       // For SIP/STP transactions with future start date, set status to PENDING
       if ((transactionType === 'SIP' || transactionType === 'STP') && startDate) {
@@ -88,6 +89,7 @@ export const demoService = {
         
         if (start > today) {
           transactionStatus = 'PENDING';
+          nextExecutionDate = startDate; // Set next execution to start date
         }
       }
 
@@ -104,7 +106,8 @@ export const demoService = {
         startDate: transactionType === 'LUMP_SUM' ? null : startDate,
         endDate: transactionType === 'LUMP_SUM' ? null : endDate,
         installments: transactionType === 'LUMP_SUM' ? null : installments,
-        status: transactionStatus
+        status: transactionStatus,
+        nextExecutionDate: nextExecutionDate
       });
 
       // Update demo balance only if transaction is executed immediately (not pending)
