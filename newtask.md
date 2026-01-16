@@ -234,12 +234,22 @@ VITE_ADSENSE_INFEED_SLOT=5544332211
 - **Development Mode:** Placeholder boxes for layout testing without AdSense account
 - **Production Mode:** Real ads with full Google optimization
 
-### Bug Fixes & Code Quality (Jan 15, 2026)
+### Bug Fixes & Code Quality (Jan 15-16, 2026)
 - **LoanAdvancedCalculator.jsx:** Fixed missing closing tags (</div>, );, }) causing JSX parse errors
 - **FDCumulativeCalculator.jsx:** Removed extra closing brace )}}} causing syntax error
 - **Calculator.jsx:** Removed duplicate ads from wrapper (reduced 4 ads to 2 per calculator page)
 - **Port Management:** Automated port clearing for 4000, 5173-5175 before dev server starts
 - **Error Handling:** Graceful handling of EADDRINUSE errors with automatic cleanup
+- **SIP/STP/SWP Transaction Status (Jan 16, 2026):** Fixed critical bug where transactions with future start dates were marked SUCCESS immediately instead of remaining PENDING until the scheduled start date
+  - **Problem:** SIP/STP/SWP transactions created with future start_date were incorrectly marked as SUCCESS and immediately deducted balance/updated holdings
+  - **Solution:** Added start date validation logic in demo.service.js to:
+    - Compare start_date with current date
+    - Set status to PENDING if start_date is in the future
+    - Only deduct balance and update holdings when status is SUCCESS (start date has arrived)
+    - Log appropriate messages for pending vs. executed transactions
+  - **Impact:** LUMP_SUM transactions (no start date) still execute immediately as SUCCESS
+  - **Files Modified:** src/services/demo.service.js (Lines 76-140, 144-176)
+  - **Testing Required:** Verify SIP/STP/SWP with future dates show PENDING status, and only execute on start date
 
 ### Portfolio Page Enhancement - Two-Row Tab Layout with Fund Categorization (Jan 15, 2026)
 **Major UI/UX Upgrade: 3 Tabs → 9 Tabs with Smart Fund Filtering Based on Standardized Scheme Categories**
