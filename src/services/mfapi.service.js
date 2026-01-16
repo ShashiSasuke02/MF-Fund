@@ -328,6 +328,14 @@ class MFApiService {
       sixMonth: calcReturn(nav6m)
     };
   }
+
+  /**
+   * Get all mutual funds (wrapper for getSchemes)
+   * @returns {Promise<Array>} - Array of all fund objects
+   */
+  async getAllFunds() {
+    return this.getSchemes(10000, 0);
+  }
 }
 
 export const mfApiService = new MFApiService();

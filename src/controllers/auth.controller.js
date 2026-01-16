@@ -186,7 +186,8 @@ export const authController = {
           user: {
             id: user.id,
             fullName: user.full_name,
-            emailId: user.email_id
+            emailId: user.email_id,
+            username: user.username
           },
           demoAccount: {
             balance: demoAccount.balance
@@ -241,6 +242,7 @@ export const authController = {
             id: user.id,
             fullName: user.full_name,
             emailId: user.email_id,
+            username: user.username,
             createdAt: user.created_at
           },
           demoAccount: {

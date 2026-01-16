@@ -59,6 +59,14 @@ export default function Layout({ children }) {
                   >
                     Invest
                   </Link>
+                  {(user?.id === 1 || user?.username === 'admin') && (
+                    <Link
+                      to="/admin/dashboard"
+                      className="text-gray-700 hover:text-gray-900 font-medium text-base transition-colors"
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
                 </>
               )}
             </nav>
@@ -141,6 +149,15 @@ export default function Layout({ children }) {
                   >
                     Invest
                   </Link>
+                  {(user?.id === 1 || user?.username === 'admin') && (
+                    <Link
+                      to="/admin/dashboard"
+                      className="block py-2 text-gray-700 font-medium"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
                   <button
                     onClick={() => {
                       logout();

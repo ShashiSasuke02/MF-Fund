@@ -19,17 +19,10 @@ export default function Portfolio() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('holdings'); // holdings, systematic-plans, lumpsum, transactions, debt-scheme, equity-scheme, hybrid-scheme, other-scheme, investment-report
 
-  console.log('[Portfolio] Render - authLoading:', authLoading, 'user:', user, 'loading:', loading, 'error:', error);
-  console.log('[Portfolio] Portfolio state:', portfolio);
-  console.log('[Portfolio] Transactions:', transactions?.length, 'Plans:', systematicPlans?.length);
-
   useEffect(() => {
-    console.log('[Portfolio] useEffect triggered - authLoading:', authLoading, 'user:', user);
     if (!authLoading && user) {
-      console.log('[Portfolio] Loading portfolio data...');
       loadPortfolioData();
     } else if (!authLoading && !user) {
-      console.log('[Portfolio] No user, setting loading to false');
       setLoading(false);
     }
   }, [user, authLoading]);
@@ -39,44 +32,30 @@ export default function Portfolio() {
       setLoading(true);
       setError(null);
       
-      console.log('[Portfolio] Starting data load...');
-      
       const [portfolioRes, transactionsRes, systematicPlansRes] = await Promise.all([
         demoApi.getPortfolio(),
         demoApi.getTransactions({ limit: 20 }),
         demoApi.getSystematicPlans()
       ]);
 
-      console.log('[Portfolio] API responses:', { 
-        portfolio: portfolioRes, 
-        transactions: transactionsRes, 
-        plans: systematicPlansRes 
-      });
-
       // Set portfolio with fallback
       if (portfolioRes && portfolioRes.success && portfolioRes.data) {
-        console.log('[Portfolio] Setting portfolio data:', portfolioRes.data);
         setPortfolio(portfolioRes.data);
       } else {
-        console.log('[Portfolio] Using fallback portfolio data');
         setPortfolio({ holdings: [], summary: { totalInvested: 0, totalCurrent: 0, totalReturns: 0, returnsPercentage: 0 } });
       }
 
       // Set transactions with fallback
       if (transactionsRes && transactionsRes.success && transactionsRes.data) {
-        console.log('[Portfolio] Setting transactions:', transactionsRes.data.transactions);
         setTransactions(transactionsRes.data.transactions || []);
       } else {
-        console.log('[Portfolio] Using fallback transactions');
         setTransactions([]);
       }
 
       // Set systematic plans with fallback
       if (systematicPlansRes && systematicPlansRes.success && systematicPlansRes.data) {
-        console.log('[Portfolio] Setting systematic plans:', systematicPlansRes.data.plans);
         setSystematicPlans(systematicPlansRes.data.plans || []);
       } else {
-        console.log('[Portfolio] Using fallback systematic plans');
         setSystematicPlans([]);
       }
 
@@ -84,12 +63,9 @@ export default function Portfolio() {
       try {
         await refreshBalance();
       } catch (balanceErr) {
-        console.error('[Portfolio] Failed to refresh balance:', balanceErr);
+        // Silent failure for balance refresh
       }
-      
-      console.log('[Portfolio] Data load complete');
     } catch (err) {
-      console.error('[Portfolio] Portfolio load error:', err);
       setError(err.message);
       // Set empty data on error
       setPortfolio({ holdings: [], summary: { totalInvested: 0, totalCurrent: 0, totalReturns: 0, returnsPercentage: 0 } });
@@ -124,46 +100,32 @@ export default function Portfolio() {
   // Filter by standardized scheme categories from MFAPI
   // API format: "Equity Scheme - Large Cap Fund", "Debt Scheme - Banking and PSU Fund", etc.
   const getDebtSchemes = () => {
-    const filtered = portfolio.holdings?.filter(h => {
-      console.log('[Portfolio] Debt filter - scheme:', h.scheme_name, 'category:', h.scheme_category);
-      return h.scheme_category?.toLowerCase().includes('debt scheme');
-    }) || [];
-    console.log('[Portfolio] Debt schemes count:', filtered.length);
-    return filtered;
+    return portfolio.holdings?.filter(h => 
+      h.scheme_category?.toLowerCase().includes('debt scheme')
+    ) || [];
   };
 
   const getEquitySchemes = () => {
-    const filtered = portfolio.holdings?.filter(h => {
-      console.log('[Portfolio] Equity filter - scheme:', h.scheme_name, 'category:', h.scheme_category);
-      return h.scheme_category?.toLowerCase().includes('equity scheme');
-    }) || [];
-    console.log('[Portfolio] Equity schemes count:', filtered.length);
-    return filtered;
+    return portfolio.holdings?.filter(h => 
+      h.scheme_category?.toLowerCase().includes('equity scheme')
+    ) || [];
   };
 
   const getHybridSchemes = () => {
-    const filtered = portfolio.holdings?.filter(h => {
-      console.log('[Portfolio] Hybrid filter - scheme:', h.scheme_name, 'category:', h.scheme_category);
-      return h.scheme_category?.toLowerCase().includes('hybrid scheme');
-    }) || [];
-    console.log('[Portfolio] Hybrid schemes count:', filtered.length);
-    return filtered;
+    return portfolio.holdings?.filter(h => 
+      h.scheme_category?.toLowerCase().includes('hybrid scheme')
+    ) || [];
   };
 
   const getOtherSchemes = () => {
-    const filtered = portfolio.holdings?.filter(h => {
+    return portfolio.holdings?.filter(h => {
       const category = h.scheme_category?.toLowerCase() || '';
-      console.log('[Portfolio] Other filter - scheme:', h.scheme_name, 'category:', h.scheme_category);
       // Other schemes include everything not in Debt, Equity, or Hybrid
       // This includes: Solution Oriented Scheme, Index Funds, FoFs, Commodity, etc.
-      const isOther = !category.includes('debt scheme') && 
-                      !category.includes('equity scheme') && 
-                      !category.includes('hybrid scheme');
-      console.log('[Portfolio] Is other?', isOther);
-      return isOther;
+      return !category.includes('debt scheme') && 
+             !category.includes('equity scheme') && 
+             !category.includes('hybrid scheme');
     }) || [];
-    console.log('[Portfolio] Other schemes count:', filtered.length);
-    return filtered;
   };
 
   if (loading) {

@@ -14,6 +14,7 @@ import authRoutes from './routes/auth.routes.js';
 import demoRoutes from './routes/demo.routes.js';
 import calculatorRoutes from './routes/calculator.routes.js';
 import schedulerRoutes from './routes/scheduler.routes.js';
+import ingestionRoutes from './routes/ingestion.routes.js';
 
 // Middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -77,6 +78,7 @@ app.use('/api/amcs', amcRoutes);
 app.use('/api/funds', fundRoutes);
 app.use('/api/calculator', calculatorRoutes);
 app.use('/api/scheduler', schedulerRoutes);
+app.use('/api/ingestion', ingestionRoutes);
 app.use('/api/health', healthRoutes);
 
 // Root route - API info
@@ -105,6 +107,13 @@ app.get('/', (req, res) => {
         failures: 'GET /api/scheduler/failures?limit=50',
         statistics: 'GET /api/scheduler/statistics?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD',
         unlock: 'POST /api/scheduler/unlock/:transactionId'
+      },
+      ingestion: {
+        fullSync: 'POST /api/ingestion/sync/full (admin only)',
+        incrementalSync: 'POST /api/ingestion/sync/incremental (admin only)',
+        logs: 'GET /api/ingestion/sync/logs?limit=10 (admin only)',
+        stats: 'GET /api/ingestion/sync/stats?days=30 (admin only)',
+        status: 'GET /api/ingestion/sync/status (admin only)'
       },
       amcs: '/api/amcs',
       fundsByAmc: '/api/amcs/:id/funds',

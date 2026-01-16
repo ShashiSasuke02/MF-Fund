@@ -4,6 +4,7 @@ import { initializeDatabase, closeDb } from './db/database.js';
 import cacheService from './services/cache.service.js';
 import cron from 'node-cron';
 import { schedulerService } from './services/scheduler.service.js';
+import { mfapiIngestionService } from './services/mfapiIngestion.service.js';
 
 const PORT = process.env.PORT || 4000;
 
@@ -76,6 +77,62 @@ if (process.env.ENABLE_SCHEDULER_CRON === 'true') {
   console.log('[Scheduler] To enable automatic execution, set ENABLE_SCHEDULER_CRON=true in .env');
 }
 
+// MFAPI Ingestion cron jobs
+// Full sync at 2:00 AM IST daily (UTC: 8:30 PM previous day)
+let fullSyncCron = null;
+if (process.env.ENABLE_FULL_SYNC === 'true') {
+  fullSyncCron = cron.schedule('30 20 * * *', async () => {
+    console.log('[MFAPI Ingestion] Starting nightly full sync at 2:00 AM IST...');
+    try {
+      const result = await mfapiIngestionService.runFullSync();
+      console.log('[MFAPI Ingestion] Full sync complete:', {
+        success: result.success,
+        fundsProcessed: result.totalFetched,
+        navRecordsAdded: result.navInserted,
+        errors: result.errors
+      });
+      
+      if (result.errors > 0) {
+        console.warn('[MFAPI Ingestion] Sync had errors. Check logs for details.');
+      }
+    } catch (error) {
+      console.error('[MFAPI Ingestion] Full sync error:', error.message);
+    }
+  }, {
+    timezone: 'Asia/Kolkata'
+  });
+
+  console.log('[MFAPI Ingestion] Full sync enabled (runs at 2:00 AM IST daily)');
+  console.log('[MFAPI Ingestion] Syncing 10 AMCs: SBI, ICICI, HDFC, Nippon, Kotak, Aditya Birla, UTI, Axis, Tata, Mirae Asset');
+} else {
+  console.log('[MFAPI Ingestion] Full sync disabled. Use POST /api/ingestion/sync/full for manual trigger');
+  console.log('[MFAPI Ingestion] To enable, set ENABLE_FULL_SYNC=true in .env');
+}
+
+// Incremental sync at market hours: 10 AM, 12 PM, 2 PM IST (optional)
+let incrementalSyncCron = null;
+if (process.env.ENABLE_INCREMENTAL_SYNC === 'true') {
+  incrementalSyncCron = cron.schedule('0 10,12,14 * * *', async () => {
+    console.log('[MFAPI Ingestion] Starting incremental NAV sync...');
+    try {
+      const result = await mfapiIngestionService.runIncrementalSync();
+      console.log('[MFAPI Ingestion] Incremental sync complete:', {
+        success: result.success,
+        navRecordsUpdated: result.navInserted,
+        errors: result.errors
+      });
+    } catch (error) {
+      console.error('[MFAPI Ingestion] Incremental sync error:', error.message);
+    }
+  }, {
+    timezone: 'Asia/Kolkata'
+  });
+
+  console.log('[MFAPI Ingestion] Incremental sync enabled (runs at 10 AM, 12 PM, 2 PM IST)');
+} else {
+  console.log('[MFAPI Ingestion] Incremental sync disabled (optional feature)');
+}
+
 // Graceful shutdown
 const shutdown = async (signal) => {
   console.log(`\n[Server] Received ${signal}, shutting down gracefully...`);
@@ -84,6 +141,17 @@ const shutdown = async (signal) => {
   if (schedulerCron) {
     schedulerCron.stop();
     console.log('[Scheduler] Cron job stopped');
+  }
+  
+  // Stop MFAPI ingestion cron jobs
+  if (fullSyncCron) {
+    fullSyncCron.stop();
+    console.log('[MFAPI Ingestion] Full sync cron stopped');
+  }
+  
+  if (incrementalSyncCron) {
+    incrementalSyncCron.stop();
+    console.log('[MFAPI Ingestion] Incremental sync cron stopped');
   }
   
   // Clear interval

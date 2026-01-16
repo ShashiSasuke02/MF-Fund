@@ -533,7 +533,12 @@ describe('Demo Service', () => {
       const result = await demoService.getPortfolio(1);
 
       expect(result).toEqual({
+        balance: undefined,
         holdings: [],
+        navStatus: {
+          unavailable: false,
+          lastUpdate: null
+        },
         summary: {
           totalInvested: 0,
           totalCurrent: 0,

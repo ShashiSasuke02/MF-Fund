@@ -1,0 +1,264 @@
+import db from '../db/database.js';
+
+/**
+ * Fund Model - Master Fund Directory (10 AMCs)
+ * Manages fund master data in the funds table
+ */
+
+export const fundModel = {
+  /**
+   * Insert or update fund master record
+   * @param {Object} fundData - Fund data object
+   * @returns {Promise} Database execution result
+   */
+  async upsertFund(fundData) {
+    const query = `
+      INSERT INTO funds (
+        scheme_code, scheme_name, scheme_category, scheme_type,
+        fund_house, amc_code, launch_date, isin, is_active,
+        updated_at, last_synced_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+        scheme_name = VALUES(scheme_name),
+        scheme_category = VALUES(scheme_category),
+        scheme_type = VALUES(scheme_type),
+        fund_house = VALUES(fund_house),
+        amc_code = VALUES(amc_code),
+        launch_date = VALUES(launch_date),
+        isin = VALUES(isin),
+        is_active = VALUES(is_active),
+        updated_at = VALUES(updated_at),
+        last_synced_at = VALUES(last_synced_at)
+    `;
+    
+    const now = Date.now();
+    
+    return db.execute(query, [
+      fundData.scheme_code,
+      fundData.scheme_name,
+      fundData.scheme_category || null,
+      fundData.scheme_type || null,
+      fundData.fund_house,
+      fundData.amc_code || null,
+      fundData.launch_date || null,
+      fundData.isin || null,
+      fundData.is_active !== undefined ? fundData.is_active : true,
+      now,
+      now
+    ]);
+  },
+
+  /**
+   * Bulk upsert funds (batch processing)
+   * @param {Array} fundsArray - Array of fund data objects
+   * @returns {Promise} Database execution result
+   */
+  async bulkUpsertFunds(fundsArray) {
+    if (fundsArray.length === 0) return { affectedRows: 0 };
+
+    const now = Date.now();
+    const values = fundsArray.map(fund => 
+      `(${fund.scheme_code}, ${db.escape(fund.scheme_name)}, ${db.escape(fund.scheme_category || null)}, ${db.escape(fund.scheme_type || null)}, ${db.escape(fund.fund_house)}, ${db.escape(fund.amc_code || null)}, ${db.escape(fund.launch_date || null)}, ${db.escape(fund.isin || null)}, ${fund.is_active !== undefined ? fund.is_active : true}, ${now}, ${now})`
+    ).join(',');
+
+    const query = `
+      INSERT INTO funds (
+        scheme_code, scheme_name, scheme_category, scheme_type,
+        fund_house, amc_code, launch_date, isin, is_active,
+        updated_at, last_synced_at
+      )
+      VALUES ${values}
+      ON DUPLICATE KEY UPDATE
+        scheme_name = VALUES(scheme_name),
+        scheme_category = VALUES(scheme_category),
+        scheme_type = VALUES(scheme_type),
+        fund_house = VALUES(fund_house),
+        amc_code = VALUES(amc_code),
+        launch_date = VALUES(launch_date),
+        isin = VALUES(isin),
+        is_active = VALUES(is_active),
+        updated_at = VALUES(updated_at),
+        last_synced_at = VALUES(last_synced_at)
+    `;
+
+    return db.execute(query);
+  },
+
+  /**
+   * Get single fund by scheme code
+   * @param {number} schemeCode - Fund scheme code
+   * @returns {Promise<Object|null>} Fund object or null
+   */
+  async findBySchemeCode(schemeCode) {
+    const [rows] = await db.execute(
+      'SELECT * FROM funds WHERE scheme_code = ?',
+      [schemeCode]
+    );
+    return rows[0] || null;
+  },
+
+  /**
+   * Get all active funds for specific AMC
+   * @param {string} fundHouse - AMC name
+   * @param {Object} options - Filter options
+   * @returns {Promise<Array>} Array of funds
+   */
+  async findByFundHouse(fundHouse, options = {}) {
+    let query = 'SELECT * FROM funds WHERE fund_house = ? AND is_active = true';
+    const params = [fundHouse];
+
+    if (options.category) {
+      query += ' AND scheme_category = ?';
+      params.push(options.category);
+    }
+
+    if (options.limit) {
+      query += ' LIMIT ?';
+      params.push(options.limit);
+    }
+
+    const [rows] = await db.execute(query, params);
+    return rows;
+  },
+
+  /**
+   * Search funds by name
+   * @param {string} searchQuery - Search term
+   * @param {Object} filters - Additional filters
+   * @returns {Promise<Array>} Array of matching funds
+   */
+  async searchFunds(searchQuery, filters = {}) {
+    let query = 'SELECT * FROM funds WHERE scheme_name LIKE ? AND is_active = true';
+    const params = [`%${searchQuery}%`];
+
+    if (filters.category) {
+      query += ' AND scheme_category = ?';
+      params.push(filters.category);
+    }
+
+    if (filters.fundHouse) {
+      query += ' AND fund_house = ?';
+      params.push(filters.fundHouse);
+    }
+
+    query += ' ORDER BY scheme_name';
+
+    if (filters.limit) {
+      query += ' LIMIT ?';
+      params.push(filters.limit);
+    }
+
+    const [rows] = await db.execute(query, params);
+    return rows;
+  },
+
+  /**
+   * Get all active funds
+   * @param {Object} options - Query options
+   * @returns {Promise<Array>} Array of all active funds
+   */
+  async getAllActiveFunds(options = {}) {
+    let query = 'SELECT * FROM funds WHERE is_active = true';
+    const params = [];
+
+    if (options.fundHouse) {
+      query += ' AND fund_house = ?';
+      params.push(options.fundHouse);
+    }
+
+    query += ' ORDER BY fund_house, scheme_name';
+
+    if (options.limit) {
+      query += ' LIMIT ?';
+      params.push(options.limit);
+    }
+
+    const [rows] = await db.execute(query, params);
+    return rows;
+  },
+
+  /**
+   * Mark funds as inactive (soft delete)
+   * @param {Array<number>} schemeCodes - Array of scheme codes to deactivate
+   * @returns {Promise} Database execution result
+   */
+  async markInactive(schemeCodes) {
+    if (schemeCodes.length === 0) return { affectedRows: 0 };
+
+    const placeholders = schemeCodes.map(() => '?').join(',');
+    const query = `
+      UPDATE funds 
+      SET is_active = false, updated_at = ?
+      WHERE scheme_code IN (${placeholders})
+    `;
+
+    return db.execute(query, [Date.now(), ...schemeCodes]);
+  },
+
+  /**
+   * Mark funds as active
+   * @param {Array<number>} schemeCodes - Array of scheme codes to activate
+   * @returns {Promise} Database execution result
+   */
+  async markActive(schemeCodes) {
+    if (schemeCodes.length === 0) return { affectedRows: 0 };
+
+    const placeholders = schemeCodes.map(() => '?').join(',');
+    const query = `
+      UPDATE funds 
+      SET is_active = true, updated_at = ?
+      WHERE scheme_code IN (${placeholders})
+    `;
+
+    return db.execute(query, [Date.now(), ...schemeCodes]);
+  },
+
+  /**
+   * Get fund count by fund house
+   * @returns {Promise<Array>} Array of {fund_house, count} objects
+   */
+  async getFundCountByAMC() {
+    const [rows] = await db.execute(`
+      SELECT fund_house, COUNT(*) as count
+      FROM funds
+      WHERE is_active = true
+      GROUP BY fund_house
+      ORDER BY count DESC
+    `);
+    return rows;
+  },
+
+  /**
+   * Get fund count by category
+   * @returns {Promise<Array>} Array of {scheme_category, count} objects
+   */
+  async getFundCountByCategory() {
+    const [rows] = await db.execute(`
+      SELECT scheme_category, COUNT(*) as count
+      FROM funds
+      WHERE is_active = true AND scheme_category IS NOT NULL
+      GROUP BY scheme_category
+      ORDER BY count DESC
+    `);
+    return rows;
+  },
+
+  /**
+   * Get total fund count
+   * @param {Object} filters - Optional filters
+   * @returns {Promise<number>} Total count
+   */
+  async getTotalCount(filters = {}) {
+    let query = 'SELECT COUNT(*) as total FROM funds WHERE is_active = true';
+    const params = [];
+
+    if (filters.fundHouse) {
+      query += ' AND fund_house = ?';
+      params.push(filters.fundHouse);
+    }
+
+    const [rows] = await db.execute(query, params);
+    return rows[0].total;
+  }
+};

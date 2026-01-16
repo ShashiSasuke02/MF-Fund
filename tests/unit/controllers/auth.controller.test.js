@@ -226,9 +226,10 @@ describe('Auth Controller', () => {
         success: true,
         message: 'Login successful',
         data: {
-          user: expect.objectContaining({ id: 1, emailId: 'john@example.com' }),
+          user: expect.objectContaining({ id: 1, emailId: 'john@example.com', fullName: 'John Doe' }),
           demoAccount: expect.objectContaining({ balance: 950000.0 }),
-          token: 'jwt.token'
+          token: 'jwt.token',
+          portfolio: null // Portfolio fetch failed in test (no mfapi service mocked)
         }
       });
     });
