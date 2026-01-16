@@ -236,6 +236,9 @@ export const demoService = {
     log('[Demo Service] Retrieved', holdings.length, 'holdings for userId:', userId);
     const balance = await demoAccountModel.getBalance(userId);
     
+    let navUnavailable = false;
+    let lastSuccessfulUpdate = null;
+    
     // Update current values with latest NAV
     const updatedHoldings = await Promise.all(
       holdings.map(async (holding) => {
@@ -254,6 +257,11 @@ export const demoService = {
             // Get scheme category from meta data
             const schemeCategory = latestData.meta?.scheme_category || null;
             
+            // Track last successful NAV date
+            if (!lastSuccessfulUpdate || latestData.data[0].date > lastSuccessfulUpdate) {
+              lastSuccessfulUpdate = latestData.data[0].date;
+            }
+            
             await holdingModel.updateCurrentValue(
               userId, 
               holding.scheme_code, 
@@ -261,11 +269,16 @@ export const demoService = {
               latestData.data[0].date
             );
             
+            // Calculate invested NAV (average purchase price per unit)
+            const investedNav = totalUnits > 0 ? investedAmount / totalUnits : 0;
+            
             return {
               ...holding,
               scheme_category: schemeCategory,  // Add scheme_category
               total_units: totalUnits,
               invested_amount: investedAmount,
+              invested_nav: investedNav,
+              created_at: holding.created_at,
               last_nav: latestNav,
               last_nav_date: latestData.data[0].date,
               current_value: currentValue,
@@ -275,17 +288,32 @@ export const demoService = {
           }
         } catch (error) {
           logError(`Failed to update NAV for scheme ${holding.scheme_code}:`, error.message);
+          navUnavailable = true;
+          
+          // Use last known NAV date from database
+          if (holding.last_nav_date && (!lastSuccessfulUpdate || holding.last_nav_date > lastSuccessfulUpdate)) {
+            lastSuccessfulUpdate = holding.last_nav_date;
+          }
         }
+        
+        // Calculate invested NAV (average purchase price per unit)
+        const investedNav = totalUnits > 0 ? investedAmount / totalUnits : 0;
+        
+        // Recalculate current value using last known NAV even in error cases
+        const lastKnownNav = parseFloat(holding.last_nav || 0);
+        const recalculatedCurrentValue = totalUnits * lastKnownNav;
         
         return {
           ...holding,
           scheme_category: null,  // Add null scheme_category for error cases
           total_units: totalUnits,
           invested_amount: investedAmount,
-          current_value: currentValueFromDb,
-          returns: currentValueFromDb - investedAmount,
+          invested_nav: investedNav,
+          created_at: holding.created_at,
+          current_value: recalculatedCurrentValue,
+          returns: recalculatedCurrentValue - investedAmount,
           returns_percentage: investedAmount > 0 
-            ? ((currentValueFromDb - investedAmount) / investedAmount) * 100 
+            ? ((recalculatedCurrentValue - investedAmount) / investedAmount) * 100 
             : 0
         };
       })
@@ -303,6 +331,10 @@ export const demoService = {
         totalCurrent,
         totalReturns,
         returnsPercentage: totalInvested > 0 ? (totalReturns / totalInvested) * 100 : 0
+      },
+      navStatus: {
+        unavailable: navUnavailable,
+        lastUpdate: lastSuccessfulUpdate
       }
     };
   },
