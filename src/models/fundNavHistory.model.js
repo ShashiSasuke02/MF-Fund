@@ -16,7 +16,10 @@ export const fundNavHistoryModel = {
   async upsertNavRecord(schemeCode, navDate, navValue) {
     // Convert DD-MM-YYYY to YYYY-MM-DD if needed
     const formattedDate = this.formatDateForDB(navDate);
-    
+    // Debug log for troubleshooting
+    if (!schemeCode || !formattedDate || isNaN(navValue)) {
+      console.error('[NAV UPSERT DEBUG]', { schemeCode, navDate, formattedDate, navValue });
+    }
     const query = `
       INSERT INTO fund_nav_history (scheme_code, nav_date, nav_value)
       VALUES (?, ?, ?)
@@ -24,8 +27,7 @@ export const fundNavHistoryModel = {
         nav_value = VALUES(nav_value),
         created_at = UNIX_TIMESTAMP() * 1000
     `;
-    
-    return db.execute(query, [schemeCode, formattedDate, navValue]);
+    return db.run(query, [schemeCode, formattedDate, navValue]);
   },
 
   /**
@@ -43,12 +45,11 @@ export const fundNavHistoryModel = {
           SELECT id FROM fund_nav_history 
           WHERE scheme_code = ? 
           ORDER BY nav_date DESC 
-          LIMIT ?
+          LIMIT ${keepLatest}
         ) AS recent_navs
       )
     `;
-    
-    return db.execute(query, [schemeCode, schemeCode, keepLatest]);
+    return db.run(query, [schemeCode, schemeCode]);
   },
 
   /**
@@ -57,14 +58,7 @@ export const fundNavHistoryModel = {
    * @returns {Promise<Object|null>} Latest NAV record or null
    */
   async getLatestNav(schemeCode) {
-    const [rows] = await db.execute(
-      `SELECT * FROM fund_nav_history 
-       WHERE scheme_code = ? 
-       ORDER BY nav_date DESC 
-       LIMIT 1`,
-      [schemeCode]
-    );
-    return rows[0] || null;
+    return db.queryOne(`SELECT * FROM fund_nav_history WHERE scheme_code = ? ORDER BY nav_date DESC LIMIT 1`, [schemeCode]);
   },
 
   /**
@@ -76,15 +70,7 @@ export const fundNavHistoryModel = {
    * @returns {Promise<Array>} Array of NAV records
    */
   async getNavHistory(schemeCode, startDate, endDate, limit = 30) {
-    const [rows] = await db.execute(
-      `SELECT * FROM fund_nav_history 
-       WHERE scheme_code = ? 
-       AND nav_date BETWEEN ? AND ?
-       ORDER BY nav_date DESC 
-       LIMIT ?`,
-      [schemeCode, startDate, endDate, limit]
-    );
-    return rows;
+    return db.query(`SELECT * FROM fund_nav_history WHERE scheme_code = ? AND nav_date BETWEEN ? AND ? ORDER BY nav_date DESC LIMIT ?`, [schemeCode, startDate, endDate, limit]);
   },
 
   /**
@@ -95,12 +81,7 @@ export const fundNavHistoryModel = {
    */
   async getNavByDate(schemeCode, navDate) {
     const formattedDate = this.formatDateForDB(navDate);
-    const [rows] = await db.execute(
-      `SELECT * FROM fund_nav_history 
-       WHERE scheme_code = ? AND nav_date = ?`,
-      [schemeCode, formattedDate]
-    );
-    return rows[0] || null;
+      return db.queryOne(`SELECT * FROM fund_nav_history WHERE scheme_code = ? AND nav_date = ?`, [schemeCode, formattedDate]);
   },
 
   /**
@@ -124,7 +105,7 @@ export const fundNavHistoryModel = {
         created_at = UNIX_TIMESTAMP() * 1000
     `;
 
-    return db.execute(query);
+    return db.run(query);
   },
 
   /**
@@ -133,11 +114,8 @@ export const fundNavHistoryModel = {
    * @returns {Promise<number>} Count of NAV records
    */
   async getRecordCount(schemeCode) {
-    const [rows] = await db.execute(
-      'SELECT COUNT(*) as count FROM fund_nav_history WHERE scheme_code = ?',
-      [schemeCode]
-    );
-    return rows[0].count;
+    const row = await db.queryOne('SELECT COUNT(*) as count FROM fund_nav_history WHERE scheme_code = ?', [schemeCode]);
+    return row ? row.count : 0;
   },
 
   /**
@@ -146,14 +124,7 @@ export const fundNavHistoryModel = {
    * @returns {Promise<Object|null>} Oldest NAV record or null
    */
   async getOldestNav(schemeCode) {
-    const [rows] = await db.execute(
-      `SELECT * FROM fund_nav_history 
-       WHERE scheme_code = ? 
-       ORDER BY nav_date ASC 
-       LIMIT 1`,
-      [schemeCode]
-    );
-    return rows[0] || null;
+    return db.queryOne(`SELECT * FROM fund_nav_history WHERE scheme_code = ? ORDER BY nav_date ASC LIMIT 1`, [schemeCode]);
   },
 
   /**
@@ -162,10 +133,7 @@ export const fundNavHistoryModel = {
    * @returns {Promise} Database execution result
    */
   async deleteAllForFund(schemeCode) {
-    return db.execute(
-      'DELETE FROM fund_nav_history WHERE scheme_code = ?',
-      [schemeCode]
-    );
+    return db.run('DELETE FROM fund_nav_history WHERE scheme_code = ?', [schemeCode]);
   },
 
   /**
@@ -173,10 +141,8 @@ export const fundNavHistoryModel = {
    * @returns {Promise<number>} Total count
    */
   async getTotalRecordCount() {
-    const [rows] = await db.execute(
-      'SELECT COUNT(*) as total FROM fund_nav_history'
-    );
-    return rows[0].total;
+    const row = await db.queryOne('SELECT COUNT(*) as total FROM fund_nav_history');
+    return row ? row.total : 0;
   },
 
   /**
@@ -184,9 +150,7 @@ export const fundNavHistoryModel = {
    * @returns {Promise<Array>} Array of scheme_codes with NAV data
    */
   async getFundsWithNavData() {
-    const [rows] = await db.execute(
-      'SELECT DISTINCT scheme_code FROM fund_nav_history'
-    );
+    const rows = await db.query('SELECT DISTINCT scheme_code FROM fund_nav_history');
     return rows.map(r => r.scheme_code);
   },
 

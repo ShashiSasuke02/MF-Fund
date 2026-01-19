@@ -125,3 +125,22 @@ CREATE TABLE IF NOT EXISTS execution_logs (
     INDEX idx_execution_logs_execution_date (execution_date),
     INDEX idx_execution_logs_status (status)
 );
+
+-- Fund Sync Log table for MFAPI ingestion audit trail
+CREATE TABLE IF NOT EXISTS fund_sync_log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sync_type ENUM('FULL', 'INCREMENTAL') NOT NULL DEFAULT 'FULL',
+    sync_status ENUM('STARTED', 'SUCCESS', 'PARTIAL', 'FAILED') NOT NULL DEFAULT 'STARTED',
+    start_time BIGINT NOT NULL,
+    end_time BIGINT,
+    total_funds_fetched INT DEFAULT 0,
+    funds_inserted INT DEFAULT 0,
+    funds_updated INT DEFAULT 0,
+    nav_records_inserted INT DEFAULT 0,
+    error_count INT DEFAULT 0,
+    execution_duration_ms INT,
+    error_details TEXT,
+    INDEX idx_fund_sync_log_status (sync_status),
+    INDEX idx_fund_sync_log_start_time (start_time),
+    INDEX idx_fund_sync_log_type (sync_type)
+);

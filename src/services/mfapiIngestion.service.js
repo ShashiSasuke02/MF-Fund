@@ -10,16 +10,16 @@ import { fundSyncLogModel } from '../models/fundSyncLog.model.js';
 
 // 10 AMC Whitelist - ~60% of India's mutual fund AUM
 const AMC_WHITELIST = [
-  'SBI Mutual Fund',
-  'ICICI Prudential Mutual Fund',
-  'HDFC Mutual Fund',
-  'Nippon India Mutual Fund',
-  'Kotak Mahindra Mutual Fund',
-  'Aditya Birla Sun Life Mutual Fund',
-  'UTI Mutual Fund',
-  'Axis Mutual Fund',
-  'Tata Mutual Fund',
-  'Mirae Asset Mutual Fund'
+  'SBI',
+  'ICICI Prudential',
+  'HDFC',
+  'Nippon India',
+  'Kotak Mahindra',
+  'Aditya Birla Sun Life',
+  'UTI',
+  'Axis',
+  'Tata',
+  'Mirae Asset'
 ];
 
 const NAV_RETENTION_COUNT = 30; // Keep latest 30 NAV records per fund
@@ -198,8 +198,8 @@ export const mfapiIngestionService = {
    */
   filterByWhitelist(funds) {
     return funds.filter(fund => {
-      const fundName = fund.schemeName || '';
-      return AMC_WHITELIST.some(amc => fundName.includes(amc));
+      const fundName = (fund.schemeName || '').toLowerCase();
+      return AMC_WHITELIST.some(amc => fundName.includes(amc.toLowerCase()));
     });
   },
 

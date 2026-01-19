@@ -19,6 +19,7 @@
  *   - MFAPI_BATCH_SIZE (optional, defaults to 50)
  */
 
+import 'dotenv/config.js';
 import { mfapiIngestionService } from '../src/services/mfapiIngestion.service.js';
 import { initializeDatabase } from '../src/db/database.js';
 

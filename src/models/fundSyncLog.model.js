@@ -12,12 +12,12 @@ export const fundSyncLogModel = {
    * @returns {Promise<number>} Sync log ID
    */
   async startSync(syncType) {
-    const [result] = await db.execute(
+    const result = await db.run(
       `INSERT INTO fund_sync_log (sync_type, sync_status, start_time)
        VALUES (?, 'STARTED', ?)`,
       [syncType, Date.now()]
     );
-    return result.insertId;
+    return result.lastInsertRowid;
   },
 
   /**
@@ -37,7 +37,7 @@ export const fundSyncLogModel = {
       WHERE id = ?
     `;
 
-    return db.execute(query, [
+    return db.run(query, [
       stats.totalFetched || 0,
       stats.inserted || 0,
       stats.updated || 0,
@@ -73,13 +73,13 @@ export const fundSyncLogModel = {
     const status = finalStats.errors > 0 ? 'PARTIAL' : 'SUCCESS';
 
     // Get start_time to calculate duration
-    const [syncRecord] = await db.execute(
+    const syncRecord = await db.queryOne(
       'SELECT start_time FROM fund_sync_log WHERE id = ?',
       [syncId]
     );
-    const duration = syncRecord[0] ? now - syncRecord[0].start_time : null;
+    const duration = syncRecord ? now - syncRecord.start_time : null;
 
-    return db.execute(query, [
+    return db.run(query, [
       status,
       now,
       finalStats.totalFetched || 0,
@@ -102,11 +102,11 @@ export const fundSyncLogModel = {
     const now = Date.now();
 
     // Get start_time to calculate duration
-    const [syncRecord] = await db.execute(
+    const syncRecord = await db.queryOne(
       'SELECT start_time FROM fund_sync_log WHERE id = ?',
       [syncId]
     );
-    const duration = syncRecord[0] ? now - syncRecord[0].start_time : null;
+    const duration = syncRecord ? now - syncRecord.start_time : null;
 
     const query = `
       UPDATE fund_sync_log 
@@ -119,7 +119,7 @@ export const fundSyncLogModel = {
 
     const errorDetails = error ? `${error.message}\n${error.stack}` : 'Unknown error';
 
-    return db.execute(query, [now, duration, errorDetails, syncId]);
+    return db.run(query, [now, duration, errorDetails, syncId]);
   },
 
   /**
@@ -128,7 +128,7 @@ export const fundSyncLogModel = {
    * @returns {Promise<Array>} Array of sync log records
    */
   async getRecentSyncs(limit = 10) {
-    const [rows] = await db.execute(
+    const rows = await db.query(
       `SELECT * FROM fund_sync_log 
        ORDER BY start_time DESC 
        LIMIT ?`,
@@ -143,11 +143,11 @@ export const fundSyncLogModel = {
    * @returns {Promise<Object|null>} Sync log record or null
    */
   async getSyncById(syncId) {
-    const [rows] = await db.execute(
+    const row = await db.queryOne(
       'SELECT * FROM fund_sync_log WHERE id = ?',
       [syncId]
     );
-    return rows[0] || null;
+    return row || null;
   },
 
   /**
@@ -157,7 +157,7 @@ export const fundSyncLogModel = {
    * @returns {Promise<Array>} Array of sync log records
    */
   async getSyncsByStatus(status, limit = 50) {
-    const [rows] = await db.execute(
+    const rows = await db.query(
       `SELECT * FROM fund_sync_log 
        WHERE sync_status = ?
        ORDER BY start_time DESC 
@@ -174,7 +174,7 @@ export const fundSyncLogModel = {
    * @returns {Promise<Array>} Array of sync log records
    */
   async getSyncsByType(syncType, limit = 50) {
-    const [rows] = await db.execute(
+    const rows = await db.query(
       `SELECT * FROM fund_sync_log 
        WHERE sync_type = ?
        ORDER BY start_time DESC 
@@ -191,7 +191,7 @@ export const fundSyncLogModel = {
    * @returns {Promise<Array>} Array of sync log records
    */
   async getSyncsByDateRange(startTime, endTime) {
-    const [rows] = await db.execute(
+    const rows = await db.query(
       `SELECT * FROM fund_sync_log 
        WHERE start_time BETWEEN ? AND ?
        ORDER BY start_time DESC`,
@@ -238,7 +238,28 @@ export const fundSyncLogModel = {
       total_errors: 0
     };
   },
+  /**
+   * Get last successful sync
+   * @param {string} syncType - Optional sync type filter
+   * @returns {Promise<Object|null>} Last successful sync record or null
+   */
+  async getLastSuccessfulSync(syncType = null) {
+    let query = `
+      SELECT * FROM fund_sync_log 
+      WHERE sync_status IN ('SUCCESS', 'PARTIAL')
+    `;
+    const params = [];
 
+    if (syncType) {
+      query += ' AND sync_type = ?';
+      params.push(syncType);
+    }
+
+    query += ' ORDER BY end_time DESC LIMIT 1';
+
+    const row = await db.queryOne(query, params);
+    return row || null;
+  },
   /**
    * Get last successful sync
    * @param {string} syncType - Optional sync type filter
@@ -270,7 +291,7 @@ export const fundSyncLogModel = {
   async cleanupOldLogs(daysToKeep = 90) {
     const cutoffTime = Date.now() - (daysToKeep * 24 * 60 * 60 * 1000);
     
-    return db.execute(
+    return db.run(
       'DELETE FROM fund_sync_log WHERE start_time < ?',
       [cutoffTime]
     );

@@ -34,7 +34,7 @@ export const fundModel = {
     
     const now = Date.now();
     
-    return db.execute(query, [
+      return db.run(query, [
       fundData.scheme_code,
       fundData.scheme_name,
       fundData.scheme_category || null,
@@ -82,7 +82,7 @@ export const fundModel = {
         last_synced_at = VALUES(last_synced_at)
     `;
 
-    return db.execute(query);
+      return db.run(query);
   },
 
   /**
@@ -91,11 +91,7 @@ export const fundModel = {
    * @returns {Promise<Object|null>} Fund object or null
    */
   async findBySchemeCode(schemeCode) {
-    const [rows] = await db.execute(
-      'SELECT * FROM funds WHERE scheme_code = ?',
-      [schemeCode]
-    );
-    return rows[0] || null;
+    return db.queryOne('SELECT * FROM funds WHERE scheme_code = ?', [schemeCode]);
   },
 
   /**
@@ -118,8 +114,7 @@ export const fundModel = {
       params.push(options.limit);
     }
 
-    const [rows] = await db.execute(query, params);
-    return rows;
+      return db.query(query, params);
   },
 
   /**
@@ -149,8 +144,7 @@ export const fundModel = {
       params.push(filters.limit);
     }
 
-    const [rows] = await db.execute(query, params);
-    return rows;
+      return db.query(query, params);
   },
 
   /**
@@ -174,8 +168,7 @@ export const fundModel = {
       params.push(options.limit);
     }
 
-    const [rows] = await db.execute(query, params);
-    return rows;
+      return db.query(query, params);
   },
 
   /**
@@ -193,7 +186,7 @@ export const fundModel = {
       WHERE scheme_code IN (${placeholders})
     `;
 
-    return db.execute(query, [Date.now(), ...schemeCodes]);
+      return db.run(query, [Date.now(), ...schemeCodes]);
   },
 
   /**
@@ -211,7 +204,7 @@ export const fundModel = {
       WHERE scheme_code IN (${placeholders})
     `;
 
-    return db.execute(query, [Date.now(), ...schemeCodes]);
+      return db.run(query, [Date.now(), ...schemeCodes]);
   },
 
   /**
@@ -219,14 +212,13 @@ export const fundModel = {
    * @returns {Promise<Array>} Array of {fund_house, count} objects
    */
   async getFundCountByAMC() {
-    const [rows] = await db.execute(`
+    return db.query(`
       SELECT fund_house, COUNT(*) as count
       FROM funds
       WHERE is_active = true
       GROUP BY fund_house
       ORDER BY count DESC
     `);
-    return rows;
   },
 
   /**
@@ -234,14 +226,13 @@ export const fundModel = {
    * @returns {Promise<Array>} Array of {scheme_category, count} objects
    */
   async getFundCountByCategory() {
-    const [rows] = await db.execute(`
+    return db.query(`
       SELECT scheme_category, COUNT(*) as count
       FROM funds
       WHERE is_active = true AND scheme_category IS NOT NULL
       GROUP BY scheme_category
       ORDER BY count DESC
     `);
-    return rows;
   },
 
   /**
@@ -258,7 +249,7 @@ export const fundModel = {
       params.push(filters.fundHouse);
     }
 
-    const [rows] = await db.execute(query, params);
-    return rows[0].total;
+      const row = await db.queryOne(query, params);
+      return row ? row.total : 0;
   }
 };
