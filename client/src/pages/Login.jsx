@@ -11,7 +11,6 @@ export default function Login() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,24 +39,13 @@ export default function Login() {
     setLoading(false);
 
     if (result.success) {
-      // Show success message with portfolio summary if available
+      // Set flag to show notification on Portfolio page
       if (result.portfolio) {
-        const { totalReturns, returnsPercentage, lastNavUpdate } = result.portfolio;
-        const returnsSign = totalReturns >= 0 ? '+' : '';
-        const returnsColor = totalReturns >= 0 ? 'text-emerald-600' : 'text-red-600';
-        
-        setSuccessMessage(
-          `Portfolio updated with latest NAV${lastNavUpdate ? ` (${lastNavUpdate})` : ''}. ` +
-          `Total Returns: ${returnsSign}${formatCurrency(totalReturns)} (${returnsSign}${returnsPercentage.toFixed(2)}%)`
-        );
-      } else {
-        setSuccessMessage('Login successful! Redirecting to portfolio...');
+        sessionStorage.setItem('showLoginNotification', 'true');
       }
       
-      // Navigate after a brief delay to show the message
-      setTimeout(() => {
-        navigate('/portfolio');
-      }, 2000);
+      // Auth state will update, causing PublicOnlyRoute to redirect to /portfolio
+      // Notification will show there
     } else {
       setError(result.error || 'Login failed');
     }
@@ -158,15 +146,6 @@ export default function Login() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span className="text-sm">{error}</span>
-                </div>
-              )}
-
-              {successMessage && (
-                <div className="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 px-4 py-3 rounded-lg flex items-start space-x-3">
-                  <svg className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="text-sm">{successMessage}</span>
                 </div>
               )}
 

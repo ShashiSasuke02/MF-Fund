@@ -5,9 +5,10 @@ import { demoApi } from '../api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import { RectangleAd, BannerAd } from '../components/AdSense';
+import InvestmentPerformanceNotification from '../components/InvestmentPerformanceNotification';
 
 export default function Portfolio() {
-  const { user, demoAccount, refreshBalance, loading: authLoading } = useAuth();
+  const { user, demoAccount, refreshBalance, loading: authLoading, portfolioSummary } = useAuth();
   const [portfolio, setPortfolio] = useState({
     balance: 0,
     holdings: [],
@@ -18,6 +19,16 @@ export default function Portfolio() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('holdings'); // holdings, systematic-plans, lumpsum, transactions, debt-scheme, equity-scheme, hybrid-scheme, other-scheme, investment-report
+  const [showLoginNotification, setShowLoginNotification] = useState(false);
+
+  // Check if we should show the login notification (only once per session)
+  useEffect(() => {
+    const shouldShow = sessionStorage.getItem('showLoginNotification');
+    if (shouldShow === 'true' && portfolioSummary) {
+      setShowLoginNotification(true);
+      sessionStorage.removeItem('showLoginNotification'); // Clear flag
+    }
+  }, [portfolioSummary]);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -1178,6 +1189,14 @@ export default function Portfolio() {
             <span>Feature in development</span>
           </div>
         </div>
+      )}
+
+      {/* Login Performance Notification */}
+      {showLoginNotification && portfolioSummary && (
+        <InvestmentPerformanceNotification 
+          portfolioSummary={portfolioSummary}
+          onClose={() => setShowLoginNotification(false)}
+        />
       )}
     </div>
   );
