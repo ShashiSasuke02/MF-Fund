@@ -28,7 +28,7 @@ Deploy MF-Investments on your TrueNAS SCALE server as a Docker-based Custom App.
    ```bash
    ssh admin@your-truenas-ip
    cd /mnt/your-pool/apps
-   git clone https://github.com/ShashidharBelavankiTR/MF-Investments.git mf-investments
+   git clone https://github.com/ShashiSasuke02/MF-Fund.git mf-investments
    cd mf-investments
    ```
 
@@ -91,7 +91,7 @@ MYSQL_PASSWORD = your_secure_password
 
 On a machine with Docker:
 ```bash
-git clone https://github.com/ShashidharBelavankiTR/MF-Investments.git
+git clone https://github.com/ShashiSasuke02/MF-Fund.git
 cd MF-Investments
 
 # Build the image
