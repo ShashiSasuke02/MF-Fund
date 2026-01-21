@@ -42,7 +42,7 @@ export default function Portfolio() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const [portfolioRes, transactionsRes, systematicPlansRes] = await Promise.all([
         demoApi.getPortfolio(),
         demoApi.getTransactions({ limit: 20 }),
@@ -111,19 +111,19 @@ export default function Portfolio() {
   // Filter by standardized scheme categories from MFAPI
   // API format: "Equity Scheme - Large Cap Fund", "Debt Scheme - Banking and PSU Fund", etc.
   const getDebtSchemes = () => {
-    return portfolio.holdings?.filter(h => 
+    return portfolio.holdings?.filter(h =>
       h.scheme_category?.toLowerCase().includes('debt scheme')
     ) || [];
   };
 
   const getEquitySchemes = () => {
-    return portfolio.holdings?.filter(h => 
+    return portfolio.holdings?.filter(h =>
       h.scheme_category?.toLowerCase().includes('equity scheme')
     ) || [];
   };
 
   const getHybridSchemes = () => {
-    return portfolio.holdings?.filter(h => 
+    return portfolio.holdings?.filter(h =>
       h.scheme_category?.toLowerCase().includes('hybrid scheme')
     ) || [];
   };
@@ -133,9 +133,9 @@ export default function Portfolio() {
       const category = h.scheme_category?.toLowerCase() || '';
       // Other schemes include everything not in Debt, Equity, or Hybrid
       // This includes: Solution Oriented Scheme, Index Funds, FoFs, Commodity, etc.
-      return !category.includes('debt scheme') && 
-             !category.includes('equity scheme') && 
-             !category.includes('hybrid scheme');
+      return !category.includes('debt scheme') &&
+        !category.includes('equity scheme') &&
+        !category.includes('hybrid scheme');
     }) || [];
   };
 
@@ -165,7 +165,7 @@ export default function Portfolio() {
         {/* Decorative blob */}
         <div className="absolute top-0 -left-4 w-72 h-72 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
         <div className="absolute top-0 -right-4 w-72 h-72 bg-teal-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
-        
+
         <div className="relative">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -195,113 +195,103 @@ export default function Portfolio() {
         </div>
       </div>
 
-      {/* Balance Card with glassmorphism */}
-      <div className="relative mb-8 overflow-hidden rounded-2xl">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600"></div>
-        
-        {/* Decorative circles */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full mix-blend-overlay opacity-10 transform translate-x-16 -translate-y-16"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full mix-blend-overlay opacity-10 transform -translate-x-12 translate-y-12"></div>
-        
-        <div className="relative backdrop-blur-sm bg-white/10 p-8 shadow-2xl border border-white/20">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="flex-1">
-              <div className="flex items-center mb-2">
-                <svg className="w-6 h-6 mr-2 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                </svg>
-                <p className="text-white/90 text-sm font-medium">Available Balance</p>
-              </div>
-              <p className="text-5xl font-bold text-white mb-4 tracking-tight">
-                {formatCurrency(demoAccount?.balance || 0)}
-              </p>
-              <Link
-                to="/invest"
-                className="inline-flex items-center px-6 py-3 bg-white text-emerald-600 rounded-xl font-semibold hover:bg-emerald-50 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-                Start Investing
-              </Link>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-6">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                <div className="flex items-center mb-2">
-                  <svg className="w-5 h-5 mr-2 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
+      {/* Premium Balance Card with Mesh Gradient */}
+      <div className="relative mb-12 overflow-hidden rounded-3xl shadow-2xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(16,185,129,0.3)] group">
+        {/* Animated Mesh Background */}
+        <div className="absolute inset-0 bg-gray-900">
+          <div className="absolute inset-0 opacity-80 bg-[radial-gradient(at_0%_0%,_#10b981_0px,_transparent_50%)]"></div>
+          <div className="absolute inset-0 opacity-80 bg-[radial-gradient(at_100%_0%,_#3b82f6_0px,_transparent_50%)]"></div>
+          <div className="absolute inset-0 opacity-60 bg-[radial-gradient(at_100%_100%,_#ec4899_0px,_transparent_50%)]"></div>
+          <div className="absolute inset-0 opacity-60 bg-[radial-gradient(at_0%_100%,_#f59e0b_0px,_transparent_50%)]"></div>
+        </div>
+
+        {/* Glass Overlay Pattern */}
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-[1px]"></div>
+
+        <div className="relative p-8 md:p-10">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center space-x-2 text-white/80">
+                <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-md">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                   </svg>
-                  <p className="text-white/80 text-sm font-medium">Total Invested</p>
                 </div>
-                <p className="text-2xl font-bold text-white">
+                <span className="text-sm font-medium tracking-wide uppercase">Total Balance</span>
+              </div>
+              <div>
+                <h2 className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/70 tracking-tight">
+                  {formatCurrency(demoAccount?.balance || 0)}
+                </h2>
+                <div className="flex items-center mt-2 text-emerald-300 bg-emerald-500/10 px-3 py-1 rounded-full w-fit backdrop-blur-md border border-emerald-500/20">
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                  <span className="text-sm font-semibold">Ready to Invest</span>
+                </div>
+              </div>
+              <div className="pt-4">
+                <Link
+                  to="/invest"
+                  className="inline-flex items-center px-8 py-4 bg-white text-gray-900 rounded-2xl font-bold hover:bg-emerald-50 transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 group/btn"
+                >
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600 group-hover/btn:from-emerald-500 group-hover/btn:to-teal-500">
+                    Start Investing
+                  </span>
+                  <svg className="w-5 h-5 ml-2 text-emerald-600 transition-transform group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full md:w-auto min-w-[320px]">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/10 transition-transform hover:scale-105">
+                <p className="text-white/60 text-xs font-bold uppercase tracking-wider mb-1">Total Invested</p>
+                <p className="text-2xl font-bold text-white tracking-tight">
                   {formatCurrency(portfolio?.summary?.totalInvested || 0)}
                 </p>
               </div>
-              
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                <div className="flex items-center mb-2">
-                  <svg className="w-5 h-5 mr-2 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                  </svg>
-                  <p className="text-white/80 text-sm font-medium">Current Value</p>
-                </div>
-                <p className="text-2xl font-bold text-white">
+
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/10 transition-transform hover:scale-105">
+                <p className="text-white/60 text-xs font-bold uppercase tracking-wider mb-1">Current Value</p>
+                <p className="text-2xl font-bold text-white tracking-tight">
                   {formatCurrency(portfolio?.summary?.totalCurrent || 0)}
                 </p>
               </div>
-              
-              <div className="col-span-2 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center mb-2">
-                      <svg className="w-5 h-5 mr-2 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                      <p className="text-white/80 text-sm font-medium">Total Returns</p>
-                    </div>
-                    <div className={`flex items-baseline space-x-2 ${
-                      (portfolio?.summary?.totalReturns || 0) >= 0 ? 'text-green-300' : 'text-red-300'
-                    }`}>
-                      <p className="text-2xl font-bold">
+
+              <div className="col-span-1 sm:col-span-2 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-5 border border-white/10 relative overflow-hidden group/stats">
+                <div className="absolute top-0 right-0 p-3 opacity-10 group-hover/stats:opacity-20 transition-opacity">
+                  <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 11.586 15.293 7.293A1 1 0 0115.707 7H12z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="relative">
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <p className="text-white/60 text-xs font-bold uppercase tracking-wider mb-1">Total Returns</p>
+                      <div className={`text-3xl font-bold tracking-tight ${(portfolio?.summary?.totalReturns || 0) >= 0 ? 'text-emerald-300' : 'text-rose-300'
+                        }`}>
                         {(portfolio?.summary?.totalReturns || 0) >= 0 ? '+' : ''}
                         {formatCurrency(portfolio?.summary?.totalReturns || 0)}
-                      </p>
-                      <span className="text-lg font-semibold">
-                        ({parseFloat(portfolio?.summary?.returnsPercentage || 0).toFixed(2)}%)
-                      </span>
+                      </div>
+                    </div>
+                    <div className={`px-3 py-1 rounded-lg text-sm font-bold backdrop-blur-md ${(portfolio?.summary?.totalReturns || 0) >= 0
+                      ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/30'
+                      : 'bg-rose-500/20 text-rose-200 border border-rose-500/30'
+                      }`}>
+                      {parseFloat(portfolio?.summary?.returnsPercentage || 0).toFixed(2)}%
                     </div>
                   </div>
-                  {(portfolio?.summary?.totalReturns || 0) >= 0 ? (
-                    <svg className="w-12 h-12 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
-                  ) : (
-                    <svg className="w-12 h-12 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-                    </svg>
-                  )}
                 </div>
               </div>
             </div>
           </div>
-          
-          {/* Last NAV Update Indicator */}
+
           {portfolio?.holdings && portfolio.holdings.length > 0 && portfolio.holdings[0]?.last_nav_date && (
-            <div className="mt-4 pt-4 border-t border-white/20">
-              <div className="flex items-center justify-center text-white/70 text-sm">
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {portfolio?.navStatus?.unavailable ? (
-                  <span className="text-yellow-300">
-                    ⚠️ Latest NAV unavailable; showing last updated at {portfolio.navStatus.lastUpdate || portfolio.holdings[0].last_nav_date}
-                  </span>
-                ) : (
-                  <span>Latest NAV updated: {portfolio.navStatus?.lastUpdate || portfolio.holdings[0].last_nav_date}</span>
-                )}
-              </div>
+            <div className="mt-6 flex items-center space-x-2 text-white/40 text-xs font-mono">
+              <div className={`w-2 h-2 rounded-full ${portfolio?.navStatus?.unavailable ? 'bg-yellow-400' : 'bg-emerald-400'} animate-pulse`}></div>
+              <span>NAV updated: {portfolio?.navStatus?.lastUpdate || portfolio.holdings[0]?.last_nav_date}</span>
             </div>
           )}
         </div>
@@ -318,11 +308,10 @@ export default function Portfolio() {
         <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-2 flex flex-wrap gap-2">
           <button
             onClick={() => setActiveTab('holdings')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${
-              activeTab === 'holdings'
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
+            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'holdings'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -331,11 +320,10 @@ export default function Portfolio() {
           </button>
           <button
             onClick={() => setActiveTab('systematic-plans')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${
-              activeTab === 'systematic-plans'
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
+            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'systematic-plans'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -344,11 +332,10 @@ export default function Portfolio() {
           </button>
           <button
             onClick={() => setActiveTab('lumpsum')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${
-              activeTab === 'lumpsum'
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
+            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'lumpsum'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
@@ -357,11 +344,10 @@ export default function Portfolio() {
           </button>
           <button
             onClick={() => setActiveTab('transactions')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${
-              activeTab === 'transactions'
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
+            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'transactions'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
@@ -374,11 +360,10 @@ export default function Portfolio() {
         <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-2 flex flex-wrap gap-2">
           <button
             onClick={() => setActiveTab('debt-scheme')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${
-              activeTab === 'debt-scheme'
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
+            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'debt-scheme'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
@@ -387,11 +372,10 @@ export default function Portfolio() {
           </button>
           <button
             onClick={() => setActiveTab('equity-scheme')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${
-              activeTab === 'equity-scheme'
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
+            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'equity-scheme'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -400,11 +384,10 @@ export default function Portfolio() {
           </button>
           <button
             onClick={() => setActiveTab('hybrid-scheme')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${
-              activeTab === 'hybrid-scheme'
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
+            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'hybrid-scheme'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
@@ -414,11 +397,10 @@ export default function Portfolio() {
           </button>
           <button
             onClick={() => setActiveTab('other-scheme')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${
-              activeTab === 'other-scheme'
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
+            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'other-scheme'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
@@ -427,11 +409,10 @@ export default function Portfolio() {
           </button>
           <button
             onClick={() => setActiveTab('investment-report')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${
-              activeTab === 'investment-report'
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
+            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'investment-report'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -448,7 +429,7 @@ export default function Portfolio() {
             portfolio.holdings.map((holding) => (
               <div
                 key={holding.id}
-                className="group bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-2xl hover:border-emerald-200 transition-all duration-300 transform hover:scale-[1.02]"
+                className="group card-premium card-premium-hover p-6 animate-fade-in-up"
               >
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
@@ -472,11 +453,10 @@ export default function Portfolio() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className={`inline-flex items-center px-4 py-2 rounded-xl font-bold text-lg ${
-                      (holding.returns || 0) >= 0 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-red-100 text-red-700'
-                    }`}>
+                    <div className={`inline-flex items-center px-4 py-2 rounded-xl font-bold text-lg ${(holding.returns || 0) >= 0
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-red-100 text-red-700'
+                      }`}>
                       {(holding.returns || 0) >= 0 ? (
                         <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -489,9 +469,8 @@ export default function Portfolio() {
                       {(holding.returns || 0) >= 0 ? '+' : ''}
                       {formatCurrency(holding.returns || 0)}
                     </div>
-                    <div className={`mt-1 text-sm font-semibold ${
-                      (holding.returns || 0) >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
+                    <div className={`mt-1 text-sm font-semibold ${(holding.returns || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
                       ({parseFloat(holding.returns_percentage || 0).toFixed(2)}%)
                     </div>
                   </div>
@@ -677,13 +656,12 @@ export default function Portfolio() {
                         ₹{parseFloat(txn.nav || 0).toFixed(4)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg ${
-                          txn.status === 'SUCCESS'
-                            ? 'bg-green-100 text-green-800'
-                            : txn.status === 'PENDING'
+                        <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg ${txn.status === 'SUCCESS'
+                          ? 'bg-green-100 text-green-800'
+                          : txn.status === 'PENDING'
                             ? 'bg-yellow-100 text-yellow-800'
                             : 'bg-red-100 text-red-800'
-                        }`}>
+                          }`}>
                           {txn.status === 'SUCCESS' && (
                             <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -724,26 +702,24 @@ export default function Portfolio() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center mb-2">
-                        <span className={`inline-flex items-center px-3 py-1 text-xs font-bold rounded-lg mr-3 ${
-                          plan.transaction_type === 'SIP'
-                            ? 'bg-blue-100 text-blue-800'
-                            : plan.transaction_type === 'STP'
+                        <span className={`inline-flex items-center px-3 py-1 text-xs font-bold rounded-lg mr-3 ${plan.transaction_type === 'SIP'
+                          ? 'bg-blue-100 text-blue-800'
+                          : plan.transaction_type === 'STP'
                             ? 'bg-purple-100 text-purple-800'
                             : 'bg-orange-100 text-orange-800'
-                        }`}>
+                          }`}>
                           {plan.transaction_type}
                         </span>
-                        <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg ${
-                          plan.frequency === 'DAILY'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : plan.frequency === 'WEEKLY'
+                        <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg ${plan.frequency === 'DAILY'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : plan.frequency === 'WEEKLY'
                             ? 'bg-teal-100 text-teal-800'
                             : plan.frequency === 'MONTHLY'
-                            ? 'bg-indigo-100 text-indigo-800'
-                            : plan.frequency === 'QUARTERLY'
-                            ? 'bg-violet-100 text-violet-800'
-                            : 'bg-pink-100 text-pink-800'
-                        }`}>
+                              ? 'bg-indigo-100 text-indigo-800'
+                              : plan.frequency === 'QUARTERLY'
+                                ? 'bg-violet-100 text-violet-800'
+                                : 'bg-pink-100 text-pink-800'
+                          }`}>
                           <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -758,13 +734,12 @@ export default function Portfolio() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg ${
-                        plan.status === 'SUCCESS'
-                          ? 'bg-green-100 text-green-800'
-                          : plan.status === 'PENDING'
+                      <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg ${plan.status === 'SUCCESS'
+                        ? 'bg-green-100 text-green-800'
+                        : plan.status === 'PENDING'
                           ? 'bg-yellow-100 text-yellow-800'
                           : 'bg-red-100 text-red-800'
-                      }`}>
+                        }`}>
                         {plan.status === 'SUCCESS' && (
                           <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -892,9 +867,8 @@ export default function Portfolio() {
                           ₹{parseFloat(txn.nav || 0).toFixed(4)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg ${
-                            txn.status === 'SUCCESS' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                          }`}>
+                          <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg ${txn.status === 'SUCCESS' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                            }`}>
                             {txn.status}
                           </span>
                         </td>
@@ -1193,7 +1167,7 @@ export default function Portfolio() {
 
       {/* Login Performance Notification */}
       {showLoginNotification && portfolioSummary && (
-        <InvestmentPerformanceNotification 
+        <InvestmentPerformanceNotification
           portfolioSummary={portfolioSummary}
           onClose={() => setShowLoginNotification(false)}
         />
