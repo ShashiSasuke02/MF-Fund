@@ -1,0 +1,51 @@
+# Build artifacts
+node_modules/
+client/node_modules/
+client/dist/
+dist/
+build/
+
+# Git
+.git/
+.gitignore
+
+# Environment files (will mount separately)
+.env
+.env.*
+!.env.example
+client/.env
+client/.env.*
+!client/.env.example
+
+# IDE and editor configs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and debug
+*.log
+npm-debug.log*
+nav_debug_output.txt
+
+# Documentation (not needed in container)
+documents/
+.agent/
+*.md
+!README.md
+
+# Test files
+tests/
+*.test.js
+coverage/
+.nyc_output/
+
+# Scripts not needed at runtime
+scripts/
+debug-*.js
+trigger-sync.js
+update-admin-password.js
+
+# OS files
+.DS_Store
+Thumbs.db
