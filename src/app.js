@@ -30,12 +30,18 @@ app.set('trust proxy', 1);
 
 // Security middleware
 app.use(helmet({
+  hsts: false, // Disable HSTS for local HTTP usage
   contentSecurityPolicy: {
+    useDefaults: false,
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://api.mfapi.in", "http://localhost:4000", "ws://localhost:4000", "https://*.google.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https:", "https://pagead2.googlesyndication.com"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+      frameSrc: ["'self'", "https://googleads.g.doubleclick.net"],
+      upgradeInsecureRequests: null, // Explicitly disable auto-upgrade to HTTPS
     }
   }
 }));
