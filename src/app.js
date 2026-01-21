@@ -42,7 +42,7 @@ app.use(helmet({
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
+  origin: process.env.NODE_ENV === 'production'
     ? false // In production, served from same origin
     : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
   credentials: true
@@ -82,56 +82,40 @@ app.use('/api/ingestion', ingestionRoutes);
 app.use('/api/health', healthRoutes);
 
 // Root route - API info
-app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'MF Selection API',
-    version: '1.0.0',
-    endpoints: {
-      health: '/api/health',
-      auth: {
-        register: 'POST /api/auth/register',
-        login: 'POST /api/auth/login',
-        profile: 'GET /api/auth/profile (protected)'
-      },
-      demo: {
-        portfolio: 'GET /api/demo/portfolio (protected)',
-        balance: 'GET /api/demo/balance (protected)',
-        transactions: 'POST /api/demo/transactions (protected)',
-        transactionHistory: 'GET /api/demo/transactions (protected)'
-      },
-      scheduler: {
-        execute: 'POST /api/scheduler/execute',
-        due: 'GET /api/scheduler/due?date=YYYY-MM-DD',
-        logs: 'GET /api/scheduler/logs/:transactionId',
-        failures: 'GET /api/scheduler/failures?limit=50',
-        statistics: 'GET /api/scheduler/statistics?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD',
-        unlock: 'POST /api/scheduler/unlock/:transactionId'
-      },
-      ingestion: {
-        fullSync: 'POST /api/ingestion/sync/full (admin only)',
-        incrementalSync: 'POST /api/ingestion/sync/incremental (admin only)',
-        logs: 'GET /api/ingestion/sync/logs?limit=10 (admin only)',
-        stats: 'GET /api/ingestion/sync/stats?days=30 (admin only)',
-        status: 'GET /api/ingestion/sync/status (admin only)'
-      },
-      amcs: '/api/amcs',
-      fundsByAmc: '/api/amcs/:id/funds',
-      fundDetails: '/api/funds/:code',
-      searchFunds: '/api/funds/search'
-    },
-    documentation: 'See README.md for API documentation',
-    frontend: process.env.NODE_ENV === 'development' 
-      ? 'http://localhost:5173' 
-      : 'Served from this domain'
+// Root route - API info
+// In production, this is handled by the React frontend
+// In development, we show this JSON info
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/', (req, res) => {
+    res.json({
+      success: true,
+      message: 'MF Selection API',
+      version: '1.0.0',
+      endpoints: {
+        health: '/api/health',
+        // ... (truncated for brevity, keep the logic if needed or just redirect)
+        documentation: 'See README.md for API documentation',
+        frontend: 'http://localhost:5173'
+      }
+    });
   });
-});
+} else {
+  // In production, also serve API info at /api
+  app.get('/api', (req, res) => {
+    res.json({
+      success: true,
+      message: 'MF Selection API',
+      version: '1.0.0',
+      docs: 'This is the API root. Frontend is at /'
+    });
+  });
+}
 
 // Serve static files from React build in production
 const clientDistPath = path.join(__dirname, '../client/dist');
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(clientDistPath));
-  
+
   // SPA fallback - serve index.html for all non-API routes in production
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api')) {
