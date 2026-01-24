@@ -1,12 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useState } from 'react';
 import Footer from './Footer';
 
 export default function Layout({ children }) {
   const location = useLocation();
   const { isAuthenticated, user, logout } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-white"
@@ -19,8 +17,9 @@ export default function Layout({ children }) {
       }}>
       {/* Header */}
       <header className="bg-white/95 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+        {/* Main Header Row */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 md:h-20">
+          <div className="flex items-center justify-between h-14 lg:h-20">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
               <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
@@ -31,7 +30,7 @@ export default function Layout({ children }) {
               <span className="text-lg md:text-xl font-bold text-gray-900">TryMutualFunds</span>
             </Link>
 
-            {/* Desktop Navigation - Centered */}
+            {/* Desktop Navigation - Centered (hidden on mobile) */}
             <nav className="hidden lg:flex items-center space-x-8 flex-1 justify-center">
               <Link
                 to="/browse"
@@ -71,25 +70,23 @@ export default function Layout({ children }) {
               )}
             </nav>
 
-            {/* Right side buttons */}
-            <div className="flex items-center space-x-3 flex-shrink-0">
+            {/* Right side buttons - Desktop */}
+            <div className="hidden lg:flex items-center space-x-3 flex-shrink-0">
               {isAuthenticated ? (
                 <>
-                  <div className="hidden lg:flex items-center space-x-3">
-                    <span className="text-sm text-gray-600">{user?.emailId || user?.email_id}</span>
-                    <button
-                      onClick={logout}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
-                    >
-                      Logout
-                    </button>
-                  </div>
+                  <span className="text-sm text-gray-600">{user?.emailId || user?.email_id}</span>
+                  <button
+                    onClick={logout}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                  >
+                    Logout
+                  </button>
                 </>
               ) : (
                 <>
                   <Link
                     to="/login"
-                    className="hidden md:inline-block px-6 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                    className="px-6 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
                   >
                     Login
                   </Link>
@@ -101,115 +98,121 @@ export default function Layout({ children }) {
                   </Link>
                 </>
               )}
+            </div>
 
-              {/* Mobile menu button */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 text-gray-700"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
+            {/* Mobile: Auth buttons only */}
+            <div className="flex lg:hidden items-center space-x-2">
+              {isAuthenticated ? (
+                <button
+                  onClick={logout}
+                  className="px-3 py-1.5 text-xs font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg border border-red-200 transition-all"
+                >
+                  Logout
+                </button>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="px-3 py-1.5 text-xs font-medium text-gray-700 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-all"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="px-3 py-1.5 text-xs font-medium bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-sm transition-all"
+                  >
+                    Sign up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Mobile Menu Overlay */}
-        <div className={`fixed inset-y-0 right-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:hidden ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <span className="text-lg font-bold text-gray-900">Menu</span>
-            <button
-              onClick={() => setMobileMenuOpen(false)}
-              className="p-2 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="flex flex-col p-4 space-y-4 overflow-y-auto h-full pb-20">
-            <Link
-              to="/browse"
-              className="block py-2 text-gray-700 font-medium text-lg hover:text-emerald-600 border-b border-gray-100"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Mutual Funds
-            </Link>
-            <Link
-              to="/calculators"
-              className="block py-2 text-gray-700 font-medium text-lg hover:text-emerald-600 border-b border-gray-100"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Calculators
-            </Link>
-            {isAuthenticated && (
-              <>
-                <Link
-                  to="/portfolio"
-                  className="block py-2 text-gray-700 font-medium text-lg hover:text-emerald-600 border-b border-gray-100"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Portfolio
-                </Link>
-                <Link
-                  to="/invest"
-                  className="block py-2 text-gray-700 font-medium text-lg hover:text-emerald-600 border-b border-gray-100"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Invest
-                </Link>
-                {(user?.id === 1 || user?.username === 'admin') && (
+        {/* Mobile Navigation Bar - Always visible on mobile, hidden on desktop */}
+        <div className="lg:hidden border-t border-gray-100">
+          <div className="max-w-7xl mx-auto px-2">
+            <nav className="flex items-center justify-center overflow-x-auto scrollbar-hide py-2 gap-1">
+              <Link
+                to="/browse"
+                className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${location.pathname === '/browse' || location.pathname.startsWith('/amc/')
+                    ? 'bg-emerald-500 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
+                  }`}
+              >
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  Funds
+                </span>
+              </Link>
+              <Link
+                to="/calculators"
+                className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${location.pathname === '/calculators'
+                    ? 'bg-emerald-500 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
+                  }`}
+              >
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  Calc
+                </span>
+              </Link>
+              {isAuthenticated && (
+                <>
                   <Link
-                    to="/admin/dashboard"
-                    className="block py-2 text-gray-700 font-medium text-lg hover:text-emerald-600 border-b border-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
+                    to="/portfolio"
+                    className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${location.pathname === '/portfolio'
+                        ? 'bg-emerald-500 text-white shadow-sm'
+                        : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
+                      }`}
                   >
-                    Admin Dashboard
+                    <span className="flex items-center gap-1.5">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      Portfolio
+                    </span>
                   </Link>
-                )}
-                <button
-                  onClick={() => {
-                    logout();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full text-left py-2 text-red-600 font-medium text-lg border-b border-gray-100 hover:text-red-700"
-                >
-                  Logout
-                </button>
-                <div className="pt-2 text-sm text-gray-500 truncate">
-                  Signed in as: <span className="font-medium text-gray-700">{user?.emailId || user?.email_id}</span>
-                </div>
-              </>
-            )}
-            {!isAuthenticated && (
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <Link
-                  to="/login"
-                  className="flex items-center justify-center px-4 py-3 text-center text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="flex items-center justify-center px-4 py-3 text-center text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 rounded-lg shadow-sm"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Sign up
-                </Link>
-              </div>
-            )}
+                  <Link
+                    to="/invest"
+                    className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${location.pathname === '/invest'
+                        ? 'bg-emerald-500 text-white shadow-sm'
+                        : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
+                      }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                      </svg>
+                      Invest
+                    </span>
+                  </Link>
+                  {(user?.id === 1 || user?.username === 'admin') && (
+                    <Link
+                      to="/admin/dashboard"
+                      className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${location.pathname === '/admin/dashboard'
+                          ? 'bg-emerald-500 text-white shadow-sm'
+                          : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
+                        }`}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Admin
+                      </span>
+                    </Link>
+                  )}
+                </>
+              )}
+            </nav>
           </div>
         </div>
-
-        {/* Backdrop */}
-        {mobileMenuOpen && (
-          <div
-            className="fixed inset-0 z-40 bg-black/50 lg:hidden backdrop-blur-sm transition-opacity"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-        )}
       </header>
 
       {/* Main Content */}

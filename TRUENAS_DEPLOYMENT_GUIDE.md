@@ -34,13 +34,13 @@ Deploy MF-Investments on your TrueNAS SCALE server as a Docker-based Custom App.
 
 3. **Configure Environment**:
    ```bash
-   cp .env.docker.example .env.docker
-   nano .env.docker  # Edit passwords and JWT_SECRET
+   cp .env.example .env
+   nano .env  # Edit passwords and JWT_SECRET
    ```
 
 4. **Start the Application**:
    ```bash
-   docker-compose --env-file .env.docker up -d
+   docker compose --env-file .env up -d
    ```
 
 5. **Access the App**: `http://your-truenas-ip:4000`
@@ -190,8 +190,8 @@ docker logs mf-investments-app
 
 # Common fixes:
 # 1. Database not ready - wait 30s after mysql starts
-# 2. Wrong DB credentials - verify .env.docker
-# 3. Port conflict - change APP_PORT in .env.docker
+# 2. Wrong DB credentials - verify .env
+# 3. Port conflict - change APP_PORT in .env
 ```
 
 ### Database Connection Failed
@@ -233,7 +233,7 @@ docker exec -i mf-investments-db mysql -u root -p mf_selection_app < /mnt/pool/b
 
 ## Security Recommendations
 
-1. **Change default passwords** in `.env.docker`
+1. **Change default passwords** in `.env`
 2. **Generate secure JWT_SECRET**: `openssl rand -hex 32`
 3. **Enable TrueNAS firewall** - only expose port 4000 to LAN
 4. **Regular backups** - set up TrueNAS periodic snapshot tasks

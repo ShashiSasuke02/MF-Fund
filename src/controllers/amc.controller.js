@@ -1,38 +1,43 @@
 import amcModel from '../models/amc.model.js';
-import mfApiService from '../services/mfapi.service.js';
+import { localFundService } from '../services/localFund.service.js';
 
 /**
  * AMC Controller - handles AMC-related HTTP requests
+ * 
+ * LOCAL-FIRST ARCHITECTURE: All fund data is served from local database.
+ * MFAPI is ONLY accessed by sync jobs (mfapiIngestion.service.js).
  */
 export const amcController = {
   /**
    * GET /api/amcs
-   * Get all AMCs with optional scheme counts
+   * Get all AMCs with optional scheme counts (from local DB)
    */
   async getAll(req, res, next) {
     try {
       const amcs = await amcModel.getAll();
-      
-      // Optionally enrich with scheme counts from cached data
+
+      // Enrich with scheme counts from LOCAL DATABASE
       const enriched = await Promise.all(
         amcs.map(async (amc) => {
           try {
-            const schemes = await mfApiService.getSchemesByFundHouse(amc.fund_house);
+            const schemes = await localFundService.getSchemesByFundHouse(amc.fund_house);
             return {
               fundHouse: amc.fund_house,
               displayName: amc.display_name,
               displayOrder: amc.display_order,
               logoUrl: amc.logo_url,
-              schemeCount: schemes.length
+              schemeCount: schemes.length,
+              dataSource: 'LOCAL_DB'
             };
           } catch (e) {
-            // If API fails, return without scheme count
+            // If query fails, return without scheme count
             return {
               fundHouse: amc.fund_house,
               displayName: amc.display_name,
               displayOrder: amc.display_order,
               logoUrl: amc.logo_url,
-              schemeCount: null
+              schemeCount: null,
+              dataSource: 'LOCAL_DB'
             };
           }
         })
@@ -40,7 +45,8 @@ export const amcController = {
 
       res.json({
         success: true,
-        data: enriched
+        data: enriched,
+        dataSource: 'LOCAL_DB'
       });
     } catch (error) {
       next(error);
@@ -49,7 +55,7 @@ export const amcController = {
 
   /**
    * GET /api/amcs/:fundHouse
-   * Get single AMC details
+   * Get single AMC details (from local DB)
    */
   async getOne(req, res, next) {
     try {
@@ -63,10 +69,10 @@ export const amcController = {
         });
       }
 
-      // Get scheme count
+      // Get scheme count from LOCAL DATABASE
       let schemeCount = null;
       try {
-        const schemes = await mfApiService.getSchemesByFundHouse(fundHouse);
+        const schemes = await localFundService.getSchemesByFundHouse(fundHouse);
         schemeCount = schemes.length;
       } catch (e) {
         console.error('[AMC Controller] Failed to get scheme count:', e.message);
@@ -79,7 +85,8 @@ export const amcController = {
           displayName: amc.display_name,
           displayOrder: amc.display_order,
           logoUrl: amc.logo_url,
-          schemeCount
+          schemeCount,
+          dataSource: 'LOCAL_DB'
         }
       });
     } catch (error) {
@@ -89,7 +96,7 @@ export const amcController = {
 
   /**
    * GET /api/amcs/:fundHouse/funds
-   * Get all funds for a specific AMC
+   * Get all funds for a specific AMC (from local DB)
    */
   async getFunds(req, res, next) {
     try {
@@ -104,13 +111,13 @@ export const amcController = {
         });
       }
 
-      // Fetch schemes from MFapi
-      let schemes = await mfApiService.getSchemesByFundHouse(fundHouse);
+      // Fetch schemes from LOCAL DATABASE
+      let schemes = await localFundService.getSchemesByFundHouse(fundHouse);
 
       // Apply search filter
       if (search) {
         const searchLower = search.toLowerCase();
-        schemes = schemes.filter(s => 
+        schemes = schemes.filter(s =>
           s.schemeName?.toLowerCase().includes(searchLower)
         );
       }
@@ -118,7 +125,7 @@ export const amcController = {
       // Apply category filter
       if (category) {
         const categoryLower = category.toLowerCase();
-        schemes = schemes.filter(s => 
+        schemes = schemes.filter(s =>
           s.schemeCategory?.toLowerCase().includes(categoryLower)
         );
       }
@@ -163,10 +170,9 @@ export const amcController = {
             schemeType: s.schemeType,
             schemeCategory: s.schemeCategory,
             nav: s.nav,
-            date: s.date,
-            isinGrowth: s.isinGrowth,
-            isinDivReinvestment: s.isinDivReinvestment
-          }))
+            date: s.date
+          })),
+          dataSource: 'LOCAL_DB'
         }
       });
     } catch (error) {

@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 4000;
 
 // Initialize database before starting server
 try {
-  initializeDatabase();
+  await initializeDatabase();
 } catch (error) {
   console.error('[Server] Failed to initialize database:', error.message);
   process.exit(1);

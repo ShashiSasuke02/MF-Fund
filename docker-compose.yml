@@ -25,6 +25,7 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD:-mf_password_2024}
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - mf-network
     healthcheck:

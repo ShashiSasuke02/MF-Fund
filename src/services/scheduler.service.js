@@ -2,11 +2,14 @@ import { transactionModel } from '../models/transaction.model.js';
 import { executionLogModel } from '../models/executionLog.model.js';
 import { demoAccountModel } from '../models/demoAccount.model.js';
 import { holdingModel } from '../models/holding.model.js';
-import { mfApiService } from './mfapi.service.js';
+import { localFundService } from './localFund.service.js';
 
 /**
  * Scheduler Service
  * Handles automated execution of PENDING SIP/STP/SWP transactions
+ * 
+ * LOCAL-FIRST ARCHITECTURE: Uses local DB NAV data for transaction execution.
+ * MFAPI is ONLY accessed by sync jobs.
  */
 export const schedulerService = {
   /**
@@ -16,7 +19,7 @@ export const schedulerService = {
    */
   async executeDueTransactions(targetDate = null) {
     const startTime = Date.now();
-    
+
     // Default to today if no target date provided
     if (!targetDate) {
       const today = new Date();
@@ -24,13 +27,13 @@ export const schedulerService = {
     }
 
     console.log(`[Scheduler] Starting execution for date: ${targetDate}`);
-    
+
     // Release any stale locks first
     await transactionModel.releaseStaleAccess();
-    
+
     // Fetch due transactions
     const dueTransactions = await transactionModel.findDueTransactions(targetDate);
-    
+
     if (dueTransactions.length === 0) {
       console.log('[Scheduler] No due transactions found');
       return {
@@ -45,7 +48,7 @@ export const schedulerService = {
     }
 
     console.log(`[Scheduler] Found ${dueTransactions.length} due transactions`);
-    
+
     const results = {
       targetDate,
       totalDue: dueTransactions.length,
@@ -59,7 +62,7 @@ export const schedulerService = {
     // Process each transaction
     for (const transaction of dueTransactions) {
       const execResult = await this.executeScheduledTransaction(transaction, targetDate);
-      
+
       if (execResult.status === 'SUCCESS') {
         results.executed++;
       } else if (execResult.status === 'FAILED') {
@@ -67,19 +70,19 @@ export const schedulerService = {
       } else if (execResult.status === 'SKIPPED') {
         results.skipped++;
       }
-      
+
       results.details.push(execResult);
     }
 
     results.durationMs = Date.now() - startTime;
-    
+
     console.log(`[Scheduler] Execution complete:`, {
       executed: results.executed,
       failed: results.failed,
       skipped: results.skipped,
       totalDurationMs: results.durationMs
     });
-    
+
     return results;
   },
 
@@ -106,18 +109,18 @@ export const schedulerService = {
 
     try {
       console.log(`[Scheduler] Executing transaction ${transaction.id} (${transaction.transaction_type})`);
-      
+
       // Attempt to acquire lock
       const lockAcquired = await transactionModel.lockForExecution(transaction.id);
-      
+
       if (!lockAcquired) {
         console.log(`[Scheduler] Transaction ${transaction.id} is already locked (concurrency prevention)`);
         logData.status = 'SKIPPED';
         logData.failureReason = 'Transaction already locked by another process';
         logData.executionDurationMs = Date.now() - startTime;
-        
+
         await executionLogModel.create(logData);
-        
+
         return {
           transactionId: transaction.id,
           status: 'SKIPPED',
@@ -129,24 +132,24 @@ export const schedulerService = {
       try {
         // Check stop conditions before executing
         const shouldStop = await this.checkStopConditions(transaction, executionDate);
-        
+
         if (shouldStop.shouldStop) {
           console.log(`[Scheduler] Transaction ${transaction.id} reached stop condition:`, shouldStop.reason);
-          
+
           // Cancel the transaction
           await transactionModel.updateExecutionStatus(transaction.id, {
             status: 'CANCELLED',
             nextExecutionDate: null,
             failureReason: shouldStop.reason
           });
-          
+
           logData.status = 'SKIPPED';
           logData.failureReason = shouldStop.reason;
           logData.executionDurationMs = Date.now() - startTime;
           await executionLogModel.create(logData);
-          
+
           await transactionModel.unlock(transaction.id);
-          
+
           return {
             transactionId: transaction.id,
             status: 'SKIPPED',
@@ -161,7 +164,7 @@ export const schedulerService = {
 
         // Execute based on transaction type
         let executionResult;
-        
+
         switch (transaction.transaction_type) {
           case 'SIP':
             executionResult = await this.executeSIP(transaction);
@@ -202,10 +205,10 @@ export const schedulerService = {
       } catch (error) {
         // Execution failed
         console.error(`[Scheduler] Transaction ${transaction.id} failed:`, error.message);
-        
+
         logData.status = 'FAILED';
         logData.failureReason = error.message;
-        
+
         // Update transaction with failure reason but keep PENDING for retry
         await transactionModel.updateExecutionStatus(transaction.id, {
           status: 'PENDING',
@@ -214,7 +217,7 @@ export const schedulerService = {
       } finally {
         // Always unlock and log
         await transactionModel.unlock(transaction.id);
-        
+
         logData.executionDurationMs = Date.now() - startTime;
         await executionLogModel.create(logData);
       }
@@ -228,14 +231,14 @@ export const schedulerService = {
 
     } catch (error) {
       console.error(`[Scheduler] Unexpected error for transaction ${transaction.id}:`, error);
-      
+
       // Attempt to unlock if error occurred before unlock
       try {
         await transactionModel.unlock(transaction.id);
       } catch (unlockError) {
         console.error(`[Scheduler] Failed to unlock transaction ${transaction.id}:`, unlockError);
       }
-      
+
       return {
         transactionId: transaction.id,
         status: 'FAILED',
@@ -249,16 +252,16 @@ export const schedulerService = {
    * Execute SIP transaction
    */
   async executeSIP(transaction) {
-    // Get current NAV
-    const navData = await mfApiService.getLatestNAV(transaction.scheme_code);
-    
+    // Get current NAV from LOCAL DATABASE
+    const navData = await localFundService.getLatestNAV(transaction.scheme_code);
+
     if (!navData || !navData.nav) {
-      throw new Error(`NAV not available for scheme ${transaction.scheme_code}`);
+      throw new Error(`NAV not available in local DB for scheme ${transaction.scheme_code}. Run fund sync.`);
     }
 
     const nav = parseFloat(navData.nav);
     const amount = parseFloat(transaction.amount);
-    
+
     // Check balance
     const account = await demoAccountModel.findByUserId(transaction.user_id);
     if (!account || account.balance < amount) {
@@ -304,16 +307,16 @@ export const schedulerService = {
    * Execute SWP transaction
    */
   async executeSWP(transaction) {
-    // Get current NAV
-    const navData = await mfApiService.getLatestNAV(transaction.scheme_code);
-    
+    // Get current NAV from LOCAL DATABASE
+    const navData = await localFundService.getLatestNAV(transaction.scheme_code);
+
     if (!navData || !navData.nav) {
-      throw new Error(`NAV not available for scheme ${transaction.scheme_code}`);
+      throw new Error(`NAV not available in local DB for scheme ${transaction.scheme_code}. Run fund sync.`);
     }
 
     const nav = parseFloat(navData.nav);
     const amount = parseFloat(transaction.amount);
-    
+
     // Calculate units to redeem
     const unitsToRedeem = amount / nav;
 
@@ -366,22 +369,22 @@ export const schedulerService = {
         next = new Date(current);
         next.setDate(current.getDate() + 1);
         break;
-        
+
       case 'WEEKLY':
         next = new Date(current);
         next.setDate(current.getDate() + 7);
         break;
-        
+
       case 'MONTHLY':
         next = new Date(current);
         next.setMonth(current.getMonth() + 1);
         break;
-        
+
       case 'QUARTERLY':
         next = new Date(current);
         next.setMonth(current.getMonth() + 3);
         break;
-        
+
       default:
         throw new Error(`Unsupported frequency: ${frequency}`);
     }
@@ -408,7 +411,7 @@ export const schedulerService = {
     if (transaction.end_date) {
       const endDate = new Date(transaction.end_date);
       const execDate = new Date(executionDate);
-      
+
       if (execDate > endDate) {
         return {
           shouldStop: true,

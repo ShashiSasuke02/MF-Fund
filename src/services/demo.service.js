@@ -1,7 +1,14 @@
 import { demoAccountModel } from '../models/demoAccount.model.js';
 import { transactionModel } from '../models/transaction.model.js';
 import { holdingModel } from '../models/holding.model.js';
-import mfApiService from './mfapi.service.js';
+import { localFundService } from './localFund.service.js';
+
+/**
+ * Demo Service - handles demo account transactions
+ * 
+ * LOCAL-FIRST ARCHITECTURE: All fund/NAV data is fetched from local database.
+ * MFAPI is ONLY accessed by sync jobs.
+ */
 
 const isTestEnv = process.env.NODE_ENV === 'test';
 const log = (...args) => {
@@ -27,26 +34,26 @@ export const demoService = {
   }) {
     // Get current balance and ensure it's a number
     const currentBalance = parseFloat(await demoAccountModel.getBalance(userId));
-    
+
     // Ensure numeric values are numbers
     amount = parseFloat(amount);
     schemeCode = parseInt(schemeCode);
-    
+
     log('[Demo Service] executeTransaction - userId:', userId, 'currentBalance:', currentBalance, 'amount:', amount);
-    
+
     if (!currentBalance && currentBalance !== 0) {
       throw new Error('Demo account not found');
     }
 
-    // Get fund details from API
-    const fundDetails = await mfApiService.getSchemeDetails(schemeCode);
+    // Get fund details from LOCAL DATABASE
+    const fundDetails = await localFundService.getSchemeDetails(schemeCode);
     if (!fundDetails || !fundDetails.meta) {
-      throw new Error('Invalid scheme code');
+      throw new Error('Fund not found in local database. Please run fund sync.');
     }
 
     const schemeName = fundDetails.meta.scheme_name;
-    const latestNav = parseFloat(fundDetails.latestNAV?.nav || 0);
-    
+    const latestNav = parseFloat(fundDetails.latestNav?.nav || 0);
+
     if (!latestNav) {
       throw new Error('NAV not available for this scheme');
     }
@@ -79,14 +86,14 @@ export const demoService = {
       // Determine transaction status and next execution date based on start date
       let transactionStatus = 'SUCCESS';
       let nextExecutionDate = null;
-      
+
       // For SIP/STP transactions with future start date, set status to PENDING
       if ((transactionType === 'SIP' || transactionType === 'STP') && startDate) {
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Reset time to start of day
         const start = new Date(startDate);
         start.setHours(0, 0, 0, 0);
-        
+
         if (start > today) {
           transactionStatus = 'PENDING';
           nextExecutionDate = startDate; // Set next execution to start date
@@ -123,7 +130,7 @@ export const demoService = {
       // Update or create holding only if transaction is executed immediately (not pending)
       if (transactionStatus === 'SUCCESS') {
         const existingHolding = await holdingModel.findByScheme(userId, schemeCode);
-        
+
         if (existingHolding) {
           await holdingModel.upsert({
             userId,
@@ -133,7 +140,7 @@ export const demoService = {
             investedAmount: existingHolding.invested_amount + amount,
             currentValue: (existingHolding.total_units + units) * latestNav,
             lastNav: latestNav,
-            lastNavDate: fundDetails.latestNAV?.date
+            lastNavDate: fundDetails.latestNav?.date
           });
         } else {
           await holdingModel.upsert({
@@ -144,7 +151,7 @@ export const demoService = {
             investedAmount: amount,
             currentValue: units * latestNav,
             lastNav: latestNav,
-            lastNavDate: fundDetails.latestNAV?.date
+            lastNavDate: fundDetails.latestNav?.date
           });
         }
       } else {
@@ -168,21 +175,21 @@ export const demoService = {
       }
 
       const requiredUnits = amount / latestNav;
-      
+
       if (holding.total_units < requiredUnits) {
         throw new Error('Insufficient units for withdrawal');
       }
 
       // Determine transaction status based on start date
       let transactionStatus = 'SUCCESS';
-      
+
       // For SWP transactions with future start date, set status to PENDING
       if (startDate) {
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Reset time to start of day
         const start = new Date(startDate);
         start.setHours(0, 0, 0, 0);
-        
+
         if (start > today) {
           transactionStatus = 'PENDING';
         }
@@ -235,10 +242,10 @@ export const demoService = {
     const holdings = await holdingModel.findByUserId(userId);
     log('[Demo Service] Retrieved', holdings.length, 'holdings for userId:', userId);
     const balance = await demoAccountModel.getBalance(userId);
-    
+
     let navUnavailable = false;
     let lastSuccessfulUpdate = null;
-    
+
     // Update current values with latest NAV
     const updatedHoldings = await Promise.all(
       holdings.map(async (holding) => {
@@ -246,41 +253,42 @@ export const demoService = {
         const totalUnits = parseFloat(holding.total_units);
         const investedAmount = parseFloat(holding.invested_amount);
         const currentValueFromDb = parseFloat(holding.current_value || 0);
-        
+
         try {
-          // Fetch latest NAV and scheme details
-          const latestData = await mfApiService.getLatestNAV(holding.scheme_code);
-          if (latestData && latestData.data && latestData.data[0]) {
-            const latestNav = parseFloat(latestData.data[0].nav);
+          // Fetch latest NAV from LOCAL DATABASE
+          const latestData = await localFundService.getLatestNAV(holding.scheme_code);
+          if (latestData && latestData.nav) {
+            const latestNav = parseFloat(latestData.nav);
             const currentValue = totalUnits * latestNav;
-            
-            // Get scheme category from meta data
-            const schemeCategory = latestData.meta?.scheme_category || null;
-            
+
+            // Get scheme category from fund details
+            const fundInfo = await localFundService.getFundWithNav(holding.scheme_code);
+            const schemeCategory = fundInfo?.scheme_category || null;
+
             // Track last successful NAV date
-            if (!lastSuccessfulUpdate || latestData.data[0].date > lastSuccessfulUpdate) {
-              lastSuccessfulUpdate = latestData.data[0].date;
+            if (!lastSuccessfulUpdate || latestData.date > lastSuccessfulUpdate) {
+              lastSuccessfulUpdate = latestData.date;
             }
-            
+
             await holdingModel.updateCurrentValue(
-              userId, 
-              holding.scheme_code, 
-              latestNav, 
-              latestData.data[0].date
+              userId,
+              holding.scheme_code,
+              latestNav,
+              latestData.date
             );
-            
+
             // Calculate invested NAV (average purchase price per unit)
             const investedNav = totalUnits > 0 ? investedAmount / totalUnits : 0;
-            
+
             return {
               ...holding,
-              scheme_category: schemeCategory,  // Add scheme_category
+              scheme_category: schemeCategory,
               total_units: totalUnits,
               invested_amount: investedAmount,
               invested_nav: investedNav,
               created_at: holding.created_at,
               last_nav: latestNav,
-              last_nav_date: latestData.data[0].date,
+              last_nav_date: latestData.date,
               current_value: currentValue,
               returns: currentValue - investedAmount,
               returns_percentage: ((currentValue - investedAmount) / investedAmount) * 100
@@ -289,20 +297,20 @@ export const demoService = {
         } catch (error) {
           logError(`Failed to update NAV for scheme ${holding.scheme_code}:`, error.message);
           navUnavailable = true;
-          
+
           // Use last known NAV date from database
           if (holding.last_nav_date && (!lastSuccessfulUpdate || holding.last_nav_date > lastSuccessfulUpdate)) {
             lastSuccessfulUpdate = holding.last_nav_date;
           }
         }
-        
+
         // Calculate invested NAV (average purchase price per unit)
         const investedNav = totalUnits > 0 ? investedAmount / totalUnits : 0;
-        
+
         // Recalculate current value using last known NAV even in error cases
         const lastKnownNav = parseFloat(holding.last_nav || 0);
         const recalculatedCurrentValue = totalUnits * lastKnownNav;
-        
+
         return {
           ...holding,
           scheme_category: null,  // Add null scheme_category for error cases
@@ -312,8 +320,8 @@ export const demoService = {
           created_at: holding.created_at,
           current_value: recalculatedCurrentValue,
           returns: recalculatedCurrentValue - investedAmount,
-          returns_percentage: investedAmount > 0 
-            ? ((recalculatedCurrentValue - investedAmount) / investedAmount) * 100 
+          returns_percentage: investedAmount > 0
+            ? ((recalculatedCurrentValue - investedAmount) / investedAmount) * 100
             : 0
         };
       })

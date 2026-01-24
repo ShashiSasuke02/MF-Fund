@@ -11,11 +11,11 @@ import { InFeedAd, BannerAd, DisplayAd } from '../components/AdSense';
 export default function FundList() {
   const { fundHouse } = useParams();
   const decodedFundHouse = decodeURIComponent(fundHouse);
-  
+
   const [fundsData, setFundsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Filters
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
@@ -62,199 +62,192 @@ export default function FundList() {
       <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
       <div className="absolute top-0 right-0 w-96 h-96 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
       <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-cyan-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-      {/* Back Button */}
-      <BackButton />
+        {/* Back Button */}
+        <BackButton />
 
-      {/* Banner Ad */}
-      <div className="mb-6 bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-200 overflow-hidden">
-        <BannerAd />
-      </div>
-
-      {/* Header with gradient */}
-      <div className="mb-10">
-        <div className="inline-flex items-center px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-emerald-200 mb-4">
-          <svg className="w-5 h-5 text-emerald-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          <span className="text-sm font-semibold text-emerald-700">Fund House</span>
+        {/* Banner Ad */}
+        <div className="mb-6 bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-200 overflow-hidden">
+          <BannerAd />
         </div>
-        <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-gray-900 via-emerald-900 to-teal-900 bg-clip-text text-transparent mb-3">
-          {decodedFundHouse}
-        </h1>
-        <p className="text-lg text-gray-600 font-medium flex items-center">
-          <svg className="w-5 h-5 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          {loading ? 'Loading schemes...' : `${fundsData?.totalCount || 0} mutual fund schemes available`}
-        </p>
-      </div>
 
-      {/* Filters with modern styling */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 mb-8">
-        <div className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1">
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search schemes..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                />
-              </div>
-            </div>
+        {/* Header with gradient */}
+        <div className="mb-10">
+          <div className="inline-flex items-center px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-emerald-200 mb-4">
+            <svg className="w-5 h-5 text-emerald-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span className="text-sm font-semibold text-emerald-700">Fund House</span>
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-gray-900 via-emerald-900 to-teal-900 bg-clip-text text-transparent mb-3">
+            {decodedFundHouse}
+          </h1>
+          <p className="text-lg text-gray-600 font-medium flex items-center">
+            <svg className="w-5 h-5 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            {loading ? 'Loading schemes...' : `${fundsData?.totalCount || 0} mutual fund schemes available`}
+          </p>
+        </div>
 
-            {/* Category Filter */}
-            <div className="sm:w-64">
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                  </svg>
-                </div>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all appearance-none bg-white"
-                >
-                  <option value="">All Categories</option>
-                  {fundsData?.categories?.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+        {/* Filters with modern styling */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 mb-8">
+          <div className="p-4 sm:p-6">
+            <div className="flex flex-col gap-3 sm:gap-4">
+              {/* Search */}
+              <div className="w-full">
+                <div className="relative">
+                  <div className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search schemes..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    className="w-full pl-14 sm:pl-16 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm sm:text-base"
+                  />
                 </div>
               </div>
-            </div>
 
-            {/* Sort */}
-            <div className="sm:w-56">
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                  </svg>
+              {/* Category & Sort Row */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                {/* Category Filter */}
+                <div className="w-full sm:w-1/2 lg:w-64">
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>
+                    </div>
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all appearance-none bg-white text-sm sm:text-base"
+                    >
+                      <option value="">All Categories</option>
+                      {fundsData?.categories?.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
-                <select
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value)}
-                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all appearance-none bg-white"
-                >
-                  <option value="name_asc">Name (A-Z)</option>
-                  <option value="name_desc">Name (Z-A)</option>
-                  <option value="nav_desc">NAV (High-Low)</option>
-                  <option value="nav_asc">NAV (Low-High)</option>
-                </select>
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+
+                {/* Sort */}
+                <div className="w-full sm:w-1/2 lg:w-56">
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                      </svg>
+                    </div>
+                    <select
+                      value={sort}
+                      onChange={(e) => setSort(e.target.value)}
+                      className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all appearance-none bg-white text-sm sm:text-base"
+                    >
+                      <option value="name_asc">Name (A-Z)</option>
+                      <option value="name_desc">Name (Z-A)</option>
+                      <option value="nav_desc">NAV (High-Low)</option>
+                      <option value="nav_asc">NAV (Low-High)</option>
+                    </select>
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Funds Table */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b-2 border-emerald-200">
-              <tr>
-                <th className="px-6 py-4 text-left">
-                  <div className="flex items-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    <svg className="w-4 h-4 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Scheme Name
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-left">
-                  <div className="flex items-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    <svg className="w-4 h-4 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                    </svg>
-                    Category
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    <svg className="w-4 h-4 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                    </svg>
-                    NAV
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-left">
-                  <div className="flex items-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    <svg className="w-4 h-4 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    Date
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-center">
-                  <div className="flex items-center justify-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    <svg className="w-4 h-4 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Action
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {loading ? (
-                // Loading skeletons
-                Array.from({ length: 10 }).map((_, i) => (
-                  <TableRowSkeleton key={i} columns={5} />
-                ))
-              ) : fundsData?.schemes?.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12">
-                    <EmptyState
-                      title="No schemes found"
-                      message={search ? `No schemes matching "${search}"` : "No schemes available for this AMC"}
-                    />
-                  </td>
-                </tr>
-              ) : (
-                <>
-                  {fundsData?.schemes?.map((scheme, index) => (
-                    <FundRow key={scheme.schemeCode} scheme={scheme} />
-                  ))}
-                  {/* In-feed Ad after every 10 funds */}
-                  {fundsData?.schemes?.length > 10 && (
+        <div>
+          {/* Desktop Table View */}
+          <div className="hidden md:block bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b-2 border-emerald-200">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Scheme Name</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">NAV</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {loading ? (
+                    Array.from({ length: 10 }).map((_, i) => <TableRowSkeleton key={i} columns={5} />)
+                  ) : fundsData?.schemes?.length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="px-6 py-4">
-                        <InFeedAd />
+                      <td colSpan={5} className="px-6 py-12">
+                        <EmptyState title="No schemes found" message={search ? `No schemes matching "${search}"` : "No schemes available"} />
                       </td>
                     </tr>
+                  ) : (
+                    <>
+                      {fundsData?.schemes?.map((scheme) => <FundRow key={scheme.schemeCode} scheme={scheme} />)}
+                      {fundsData?.schemes?.length > 10 && (
+                        <tr><td colSpan="5" className="px-6 py-4"><InFeedAd /></td></tr>
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-      {/* Display Ad */}
-      <div className="mt-8 bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-200 overflow-hidden">
-        <DisplayAd />
-      </div>
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => <div key={i} className="skeleton h-32 w-full rounded-xl" />)
+            ) : fundsData?.schemes?.length === 0 ? (
+              <div className="bg-white/90 p-8 rounded-2xl border border-gray-200 text-center">
+                <EmptyState title="No schemes found" message={search ? `No schemes matching "${search}"` : "No schemes available"} />
+              </div>
+            ) : (
+              fundsData?.schemes?.map((scheme) => (
+                <div key={scheme.schemeCode} className="card-premium p-5 space-y-4">
+                  <div>
+                    <h4 className="text-base font-bold text-gray-900 leading-tight mb-2">{scheme.schemeName}</h4>
+                    <div className="flex flex-wrap gap-2 text-[10px] uppercase font-bold tracking-wider">
+                      <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-md">{scheme.schemeCategory}</span>
+                      <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-md">#{scheme.schemeCode}</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-end border-t border-gray-100 pt-3">
+                    <div>
+                      <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-0.5">Latest NAV</p>
+                      <p className="text-xl font-bold text-emerald-600">₹{parseFloat(scheme.nav).toFixed(2)}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{scheme.date}</p>
+                    </div>
+                    <Link
+                      to={`/fund/${scheme.schemeCode}`}
+                      className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95"
+                    >
+                      Details
+                    </Link>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Display Ad */}
+        <div className="mt-8 bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-200 overflow-hidden">
+          <DisplayAd />
+        </div>
       </div>
     </div>
   );

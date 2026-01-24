@@ -16,6 +16,7 @@ import calculatorRoutes from './routes/calculator.routes.js';
 import schedulerRoutes from './routes/scheduler.routes.js';
 import ingestionRoutes from './routes/ingestion.routes.js';
 import cronRoutes from './routes/cron.routes.js';
+import adminRoutes from './routes/admin.routes.js';
 
 // Middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -38,7 +39,7 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       connectSrc: ["'self'", "https://api.mfapi.in", "http://localhost:4000", "ws://localhost:4000", "https://*.google.com"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https:", "https://pagead2.googlesyndication.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https:", "https://pagead2.googlesyndication.com", "blob:"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
       frameSrc: ["'self'", "https://googleads.g.doubleclick.net"],
@@ -87,6 +88,7 @@ app.use('/api/calculator', calculatorRoutes);
 app.use('/api/scheduler', schedulerRoutes);
 app.use('/api/ingestion', ingestionRoutes);
 app.use('/api/cron', cronRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/health', healthRoutes);
 
 // Root route - API info

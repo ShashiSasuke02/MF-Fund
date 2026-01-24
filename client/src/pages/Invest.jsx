@@ -9,7 +9,7 @@ export default function Invest() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { demoAccount, refreshBalance } = useAuth();
-  
+
   const [schemeCode, setSchemeCode] = useState(searchParams.get('schemeCode') || '');
   const [fundDetails, setFundDetails] = useState(null);
   const [transactionType, setTransactionType] = useState('LUMP_SUM');
@@ -36,7 +36,7 @@ export default function Invest() {
       const timer = setTimeout(() => {
         navigate('/portfolio');
       }, 2000);
-      
+
       // Cleanup timeout on unmount
       return () => clearTimeout(timer);
     }
@@ -62,7 +62,7 @@ export default function Invest() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!schemeCode) {
       setError('Please enter a scheme code');
       return;
@@ -100,16 +100,16 @@ export default function Invest() {
         frequency: transactionType === 'LUMP_SUM' ? undefined : formData.frequency,
         startDate: transactionType === 'LUMP_SUM' ? undefined : formData.startDate,
         endDate: transactionType === 'LUMP_SUM' ? undefined : formData.endDate || undefined,
-        installments: transactionType === 'LUMP_SUM' || !formData.installments 
-          ? undefined 
+        installments: transactionType === 'LUMP_SUM' || !formData.installments
+          ? undefined
           : parseInt(formData.installments)
       };
 
       const response = await demoApi.createTransaction(transactionData);
-      
+
       if (response.success) {
         setSuccess(true);
-        
+
         // Refresh balance in the background (don't block navigation if it fails)
         refreshBalance().catch(err => {
           console.error('[Invest] Failed to refresh balance:', err);
@@ -140,7 +140,7 @@ export default function Invest() {
           {/* Decorative blobs */}
           <div className="absolute -top-4 -left-4 w-72 h-72 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-50 animate-blob"></div>
           <div className="absolute -top-4 -right-4 w-72 h-72 bg-teal-200 rounded-full mix-blend-multiply filter blur-xl opacity-50 animate-blob animation-delay-2000"></div>
-          
+
           <div className="relative bg-white/90 backdrop-blur-sm border-2 border-emerald-200 rounded-2xl p-8 text-center shadow-2xl">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full mb-6">
               <svg className="w-12 h-12 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -177,7 +177,7 @@ export default function Invest() {
         <div className="relative mb-8">
           <div className="absolute -top-4 -left-4 w-64 h-64 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
           <div className="absolute -top-4 -right-4 w-64 h-64 bg-teal-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-          
+
           <div className="relative">
             <div className="flex items-center mb-4">
               <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
@@ -190,7 +190,7 @@ export default function Invest() {
                 <p className="text-gray-600 mt-1">Build your portfolio with confidence</p>
               </div>
             </div>
-            
+
             {/* Balance Card */}
             <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl p-6 shadow-xl border border-emerald-400">
               <div className="flex items-center justify-between text-white">
@@ -254,7 +254,7 @@ export default function Invest() {
                 Load
               </button>
             </div>
-            
+
             {fundDetails && (
               <div className="mt-4 p-5 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border border-emerald-200 shadow-inner">
                 <div className="flex items-start">
@@ -297,11 +297,10 @@ export default function Invest() {
                   key={type}
                   type="button"
                   onClick={() => setTransactionType(type)}
-                  className={`px-4 py-4 rounded-xl font-semibold text-sm transition-all transform hover:scale-105 ${
-                    transactionType === type
+                  className={`px-4 py-4 rounded-xl font-semibold text-sm transition-all transform hover:scale-105 ${transactionType === type
                       ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
-                  }`}
+                    }`}
                 >
                   <div className="flex flex-col items-center">
                     <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -446,11 +445,11 @@ export default function Invest() {
           )}
 
           {/* Submit Button */}
-          <div className="flex gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <button
               type="button"
               onClick={() => navigate('/portfolio')}
-              className="flex-1 px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-semibold transition-all flex items-center justify-center hover:border-gray-400"
+              className="flex-1 px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-semibold transition-all flex items-center justify-center hover:border-gray-400 min-h-[56px]"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -460,7 +459,7 @@ export default function Invest() {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-bold hover:from-emerald-600 hover:to-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none flex items-center justify-center"
+              className="flex-1 px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-bold hover:from-emerald-600 hover:to-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none flex items-center justify-center min-h-[56px]"
             >
               {loading ? (
                 <>

@@ -195,105 +195,111 @@ export default function Portfolio() {
         </div>
       </div>
 
-      {/* Premium Balance Card with Mesh Gradient */}
-      <div className="relative mb-12 overflow-hidden rounded-3xl shadow-2xl transition-all duration-300 hover:shadow-[0_20px_50px_rgba(16,185,129,0.3)] group">
-        {/* Animated Mesh Background */}
-        <div className="absolute inset-0 bg-gray-900">
-          <div className="absolute inset-0 opacity-80 bg-[radial-gradient(at_0%_0%,_#10b981_0px,_transparent_50%)]"></div>
-          <div className="absolute inset-0 opacity-80 bg-[radial-gradient(at_100%_0%,_#3b82f6_0px,_transparent_50%)]"></div>
-          <div className="absolute inset-0 opacity-60 bg-[radial-gradient(at_100%_100%,_#ec4899_0px,_transparent_50%)]"></div>
-          <div className="absolute inset-0 opacity-60 bg-[radial-gradient(at_0%_100%,_#f59e0b_0px,_transparent_50%)]"></div>
-        </div>
+      {/* Portfolio Summary - Two Card Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Card 1: Available Balance - Light Theme */}
+        <div className="relative overflow-hidden rounded-2xl shadow-xl bg-white/90 backdrop-blur-sm border border-gray-200">
+          {/* Decorative gradient orbs */}
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-100 rounded-full blur-2xl"></div>
+          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-teal-100 rounded-full blur-2xl"></div>
 
-        {/* Glass Overlay Pattern */}
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-[1px]"></div>
-
-        <div className="relative p-8 md:p-10">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-            <div className="flex-1 space-y-2">
-              <div className="flex items-center space-x-2 text-white/80">
-                <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-md">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+          <div className="relative p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl border border-emerald-200">
+                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                   </svg>
                 </div>
-                <span className="text-sm font-medium tracking-wide uppercase">Total Balance</span>
-              </div>
-              <div>
-                <h2 className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/70 tracking-tight">
-                  {formatCurrency(demoAccount?.balance || 0)}
-                </h2>
-                <div className="flex items-center mt-2 text-emerald-300 bg-emerald-500/10 px-3 py-1 rounded-full w-fit backdrop-blur-md border border-emerald-500/20">
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
-                  <span className="text-sm font-semibold">Ready to Invest</span>
+                <div>
+                  <p className="text-gray-600 text-xs font-medium uppercase tracking-wider">Available Balance</p>
+                  <p className="text-xs text-emerald-600 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                    Ready to Invest
+                  </p>
                 </div>
-              </div>
-              <div className="pt-4">
-                <Link
-                  to="/invest"
-                  className="inline-flex items-center px-8 py-4 bg-white text-gray-900 rounded-2xl font-bold hover:bg-emerald-50 transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 group/btn"
-                >
-                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600 group-hover/btn:from-emerald-500 group-hover/btn:to-teal-500">
-                    Start Investing
-                  </span>
-                  <svg className="w-5 h-5 ml-2 text-emerald-600 transition-transform group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </Link>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full md:w-auto min-w-[320px]">
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/10 transition-transform hover:scale-105">
-                <p className="text-white/60 text-xs font-bold uppercase tracking-wider mb-1">Total Invested</p>
-                <p className="text-2xl font-bold text-white tracking-tight">
+            <div className="mb-4">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
+                {formatCurrency(demoAccount?.balance || 0)}
+              </h2>
+            </div>
+
+            <Link
+              to="/invest"
+              className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold text-sm hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-emerald-500/25 cursor-pointer"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Start Investing
+            </Link>
+          </div>
+        </div>
+
+        {/* Card 2: Investment Summary */}
+        <div className="relative overflow-hidden rounded-2xl shadow-xl bg-white/90 backdrop-blur-sm border border-gray-200">
+          {/* Decorative elements */}
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-100 rounded-full blur-2xl"></div>
+
+          <div className="relative p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2.5 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl border border-emerald-200">
+                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-gray-900 text-sm font-semibold">Investment Summary</p>
+                {portfolio?.holdings && portfolio.holdings.length > 0 && portfolio.holdings[0]?.last_nav_date && (
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <span className={`w-1.5 h-1.5 rounded-full ${portfolio?.navStatus?.unavailable ? 'bg-yellow-400' : 'bg-emerald-400'}`}></span>
+                    NAV: {portfolio?.navStatus?.lastUpdate || portfolio.holdings[0]?.last_nav_date}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              {/* Total Invested */}
+              <div className="text-center p-3 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
+                <div className="w-8 h-1 bg-blue-400 rounded-full mx-auto mb-2"></div>
+                <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Invested</p>
+                <p className="text-sm sm:text-base font-bold text-gray-900">
                   {formatCurrency(portfolio?.summary?.totalInvested || 0)}
                 </p>
               </div>
 
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/10 transition-transform hover:scale-105">
-                <p className="text-white/60 text-xs font-bold uppercase tracking-wider mb-1">Current Value</p>
-                <p className="text-2xl font-bold text-white tracking-tight">
+              {/* Current Value */}
+              <div className="text-center p-3 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100">
+                <div className="w-8 h-1 bg-emerald-400 rounded-full mx-auto mb-2"></div>
+                <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Current</p>
+                <p className="text-sm sm:text-base font-bold text-gray-900">
                   {formatCurrency(portfolio?.summary?.totalCurrent || 0)}
                 </p>
               </div>
 
-              <div className="col-span-1 sm:col-span-2 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-5 border border-white/10 relative overflow-hidden group/stats">
-                <div className="absolute top-0 right-0 p-3 opacity-10 group-hover/stats:opacity-20 transition-opacity">
-                  <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 11.586 15.293 7.293A1 1 0 0115.707 7H12z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="relative">
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <p className="text-white/60 text-xs font-bold uppercase tracking-wider mb-1">Total Returns</p>
-                      <div className={`text-3xl font-bold tracking-tight ${(portfolio?.summary?.totalReturns || 0) >= 0 ? 'text-emerald-300' : 'text-rose-300'
-                        }`}>
-                        {(portfolio?.summary?.totalReturns || 0) >= 0 ? '+' : ''}
-                        {formatCurrency(portfolio?.summary?.totalReturns || 0)}
-                      </div>
-                    </div>
-                    <div className={`px-3 py-1 rounded-lg text-sm font-bold backdrop-blur-md ${(portfolio?.summary?.totalReturns || 0) >= 0
-                      ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/30'
-                      : 'bg-rose-500/20 text-rose-200 border border-rose-500/30'
-                      }`}>
-                      {parseFloat(portfolio?.summary?.returnsPercentage || 0).toFixed(2)}%
-                    </div>
-                  </div>
-                </div>
+              {/* Returns */}
+              <div className={`text-center p-3 rounded-xl border ${(portfolio?.summary?.totalReturns || 0) >= 0
+                ? 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-100'
+                : 'bg-gradient-to-br from-rose-50 to-red-50 border-rose-100'
+                }`}>
+                <div className={`w-8 h-1 rounded-full mx-auto mb-2 ${(portfolio?.summary?.totalReturns || 0) >= 0 ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
+                <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Returns</p>
+                <p className={`text-sm sm:text-base font-bold ${(portfolio?.summary?.totalReturns || 0) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {(portfolio?.summary?.totalReturns || 0) >= 0 ? '+' : ''}{formatCurrency(portfolio?.summary?.totalReturns || 0)}
+                </p>
+                <span className={`inline-block mt-1 px-2 py-0.5 text-[10px] font-bold rounded-full ${(portfolio?.summary?.totalReturns || 0) >= 0
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : 'bg-rose-100 text-rose-700'
+                  }`}>
+                  {parseFloat(portfolio?.summary?.returnsPercentage || 0).toFixed(2)}%
+                </span>
               </div>
             </div>
           </div>
-
-          {portfolio?.holdings && portfolio.holdings.length > 0 && portfolio.holdings[0]?.last_nav_date && (
-            <div className="mt-6 flex items-center space-x-2 text-white/40 text-xs font-mono">
-              <div className={`w-2 h-2 rounded-full ${portfolio?.navStatus?.unavailable ? 'bg-yellow-400' : 'bg-emerald-400'} animate-pulse`}></div>
-              <span>NAV updated: {portfolio?.navStatus?.lastUpdate || portfolio.holdings[0]?.last_nav_date}</span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -302,123 +308,134 @@ export default function Portfolio() {
         <BannerAd />
       </div>
 
-      {/* Tabs with modern design - Two Row Layout */}
+      {/* Tabs with modern design - Two Row Layout with horizontal scroll on mobile */}
       <div className="mb-6 space-y-3">
         {/* First Row: Holdings, Systematic Plans, Lumpsum, Transactions */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-2 flex flex-wrap gap-2">
-          <button
-            onClick={() => setActiveTab('holdings')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'holdings'
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-            <span className="hidden sm:inline">Holdings</span> ({portfolio?.holdings?.length || 0})
-          </button>
-          <button
-            onClick={() => setActiveTab('systematic-plans')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'systematic-plans'
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <span className="hidden sm:inline">Systematic Plans</span> ({systematicPlans?.length || 0})
-          </button>
-          <button
-            onClick={() => setActiveTab('lumpsum')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'lumpsum'
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-            </svg>
-            <span className="hidden sm:inline">Lumpsum</span> ({getLumpsumTransactions().length})
-          </button>
-          <button
-            onClick={() => setActiveTab('transactions')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'transactions'
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-            </svg>
-            <span className="hidden sm:inline">Transactions</span> ({transactions?.length || 0})
-          </button>
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-2 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 min-w-max">
+            <button
+              onClick={() => setActiveTab('holdings')}
+              className={`flex items-center px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 whitespace-nowrap ${activeTab === 'holdings'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              <span className="sm:hidden">Hold</span>
+              <span className="hidden sm:inline">Holdings</span>
+              <span className="ml-1">({portfolio?.holdings?.length || 0})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('systematic-plans')}
+              className={`flex items-center px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 whitespace-nowrap ${activeTab === 'systematic-plans'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span className="sm:hidden">SIP</span>
+              <span className="hidden sm:inline">Systematic Plans</span>
+              <span className="ml-1">({systematicPlans?.length || 0})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('lumpsum')}
+              className={`flex items-center px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 whitespace-nowrap ${activeTab === 'lumpsum'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+              </svg>
+              Lump ({getLumpsumTransactions().length})
+            </button>
+            <button
+              onClick={() => setActiveTab('transactions')}
+              className={`flex items-center px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 whitespace-nowrap ${activeTab === 'transactions'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+              <span className="sm:hidden">Txns</span>
+              <span className="hidden sm:inline">Transactions</span>
+              <span className="ml-1">({transactions?.length || 0})</span>
+            </button>
+          </div>
         </div>
 
         {/* Second Row: Debt, Equity, Hybrid, Other, Investment Report */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-2 flex flex-wrap gap-2">
-          <button
-            onClick={() => setActiveTab('debt-scheme')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'debt-scheme'
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-            </svg>
-            <span className="hidden sm:inline">Debt Scheme</span> ({getDebtSchemes().length})
-          </button>
-          <button
-            onClick={() => setActiveTab('equity-scheme')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'equity-scheme'
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-            <span className="hidden sm:inline">Equity Scheme</span> ({getEquitySchemes().length})
-          </button>
-          <button
-            onClick={() => setActiveTab('hybrid-scheme')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'hybrid-scheme'
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
-            </svg>
-            <span className="hidden sm:inline">Hybrid Scheme</span> ({getHybridSchemes().length})
-          </button>
-          <button
-            onClick={() => setActiveTab('other-scheme')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'other-scheme'
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
-            </svg>
-            <span className="hidden sm:inline">Other Scheme</span> ({getOtherSchemes().length})
-          </button>
-          <button
-            onClick={() => setActiveTab('investment-report')}
-            className={`flex items-center px-4 md:px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${activeTab === 'investment-report'
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span className="hidden sm:inline">Investment Report</span>
-          </button>
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-2 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 min-w-max">
+            <button
+              onClick={() => setActiveTab('debt-scheme')}
+              className={`flex items-center px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 whitespace-nowrap ${activeTab === 'debt-scheme'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+              Debt ({getDebtSchemes().length})
+            </button>
+            <button
+              onClick={() => setActiveTab('equity-scheme')}
+              className={`flex items-center px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 whitespace-nowrap ${activeTab === 'equity-scheme'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+              Equity ({getEquitySchemes().length})
+            </button>
+            <button
+              onClick={() => setActiveTab('hybrid-scheme')}
+              className={`flex items-center px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 whitespace-nowrap ${activeTab === 'hybrid-scheme'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+              </svg>
+              Hybrid ({getHybridSchemes().length})
+            </button>
+            <button
+              onClick={() => setActiveTab('other-scheme')}
+              className={`flex items-center px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 whitespace-nowrap ${activeTab === 'other-scheme'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+              </svg>
+              Other ({getOtherSchemes().length})
+            </button>
+            <button
+              onClick={() => setActiveTab('investment-report')}
+              className={`flex items-center px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 whitespace-nowrap ${activeTab === 'investment-report'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span className="sm:hidden">Report</span>
+              <span className="hidden sm:inline">Investment Report</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -476,7 +493,7 @@ export default function Portfolio() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-4 border-t border-gray-100">
+                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3 pt-4 border-t border-gray-100">
                   <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-3">
                     <div className="flex items-center mb-1">
                       <svg className="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -521,7 +538,7 @@ export default function Portfolio() {
                       <svg className="w-4 h-4 mr-1 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                       </svg>
-                      <p className="text-xs text-teal-700 font-medium">Today's NAV</p>
+                      <p className="text-xs text-teal-700 font-medium">Latest NAV</p>
                     </div>
                     <p className="font-bold text-teal-900">₹{parseFloat(holding.last_nav || 0).toFixed(4)}</p>
                     {holding.last_nav_date && (
@@ -558,122 +575,89 @@ export default function Portfolio() {
       {activeTab === 'transactions' && (
         <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 overflow-hidden">
           {transactions && transactions.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gradient-to-r from-emerald-50 to-teal-50">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-emerald-900 uppercase tracking-wider">
-                      <div className="flex items-center">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        Date
-                      </div>
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-emerald-900 uppercase tracking-wider">
-                      <div className="flex items-center">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                        Fund
-                      </div>
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-emerald-900 uppercase tracking-wider">
-                      <div className="flex items-center">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                        </svg>
-                        Type
-                      </div>
-                    </th>
-                    <th className="px-6 py-4 text-right text-xs font-bold text-emerald-900 uppercase tracking-wider">
-                      <div className="flex items-center justify-end">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                        </svg>
-                        Amount
-                      </div>
-                    </th>
-                    <th className="px-6 py-4 text-right text-xs font-bold text-emerald-900 uppercase tracking-wider">
-                      <div className="flex items-center justify-end">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                        </svg>
-                        Units
-                      </div>
-                    </th>
-                    <th className="px-6 py-4 text-right text-xs font-bold text-emerald-900 uppercase tracking-wider">
-                      <div className="flex items-center justify-end">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
-                        NAV
-                      </div>
-                    </th>
-                    <th className="px-6 py-4 text-center text-xs font-bold text-emerald-900 uppercase tracking-wider">
-                      <div className="flex items-center justify-center">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Status
-                      </div>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
-                  {transactions.map((txn) => (
-                    <tr key={txn.id} className="hover:bg-emerald-50/50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-900 font-medium">
-                          <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          {formatDate(txn.executed_at)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        <div className="max-w-xs truncate font-medium" title={txn.scheme_name}>
-                          {txn.scheme_name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800">
-                          {txn.transaction_type === 'LUMP_SUM' && (
-                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                            </svg>
-                          )}
-                          {txn.transaction_type}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900">
-                        {formatCurrency(txn.amount)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700 font-medium">
-                        {parseFloat(txn.units || 0).toFixed(4)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700 font-medium">
-                        ₹{parseFloat(txn.nav || 0).toFixed(4)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg ${txn.status === 'SUCCESS'
-                          ? 'bg-green-100 text-green-800'
-                          : txn.status === 'PENDING'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                          }`}>
-                          {txn.status === 'SUCCESS' && (
-                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                          {txn.status}
-                        </span>
-                      </td>
+            <div>
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gradient-to-r from-emerald-50 to-teal-50">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-emerald-900 uppercase tracking-wider">Date</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-emerald-900 uppercase tracking-wider">Fund</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-emerald-900 uppercase tracking-wider">Type</th>
+                      <th className="px-6 py-4 text-right text-xs font-bold text-emerald-900 uppercase tracking-wider">Amount</th>
+                      <th className="px-6 py-4 text-right text-xs font-bold text-emerald-900 uppercase tracking-wider">Units</th>
+                      <th className="px-6 py-4 text-right text-xs font-bold text-emerald-900 uppercase tracking-wider">NAV</th>
+                      <th className="px-6 py-4 text-center text-xs font-bold text-emerald-900 uppercase tracking-wider">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-100">
+                    {transactions.map((txn) => (
+                      <tr key={txn.id} className="hover:bg-emerald-50/50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                          {formatDate(txn.executed_at)}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          <div className="max-w-xs truncate font-medium">{txn.scheme_name}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg bg-emerald-100 text-emerald-800">
+                            {txn.transaction_type}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900">
+                          {formatCurrency(txn.amount)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">
+                          {parseFloat(txn.units || 0).toFixed(4)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">
+                          ₹{parseFloat(txn.nav || 0).toFixed(4)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg ${txn.status === 'SUCCESS' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                            {txn.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4 p-4">
+                {transactions.map((txn) => (
+                  <div key={txn.id} className="card-premium p-4 space-y-3">
+                    <div className="flex justify-between items-start border-b border-gray-100 pb-2">
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">{formatDate(txn.executed_at)}</p>
+                        <h4 className="text-sm font-bold text-gray-900 leading-tight mt-1">{txn.scheme_name}</h4>
+                      </div>
+                      <span className={`px-2 py-1 text-[10px] font-bold rounded-lg ${txn.status === 'SUCCESS' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                        {txn.status}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Amount</p>
+                        <p className="text-sm font-bold text-gray-900">{formatCurrency(txn.amount)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Type</p>
+                        <p className="text-sm font-semibold text-emerald-700">{txn.transaction_type}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Units</p>
+                        <p className="text-sm font-medium text-gray-700">{parseFloat(txn.units || 0).toFixed(4)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">NAV</p>
+                        <p className="text-sm font-medium text-gray-700">₹{parseFloat(txn.nav || 0).toFixed(4)}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
             <div className="text-center py-16">

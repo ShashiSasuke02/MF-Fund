@@ -234,6 +234,108 @@ VITE_ADSENSE_INFEED_SLOT=5544332211
 - **Development Mode:** Placeholder boxes for layout testing without AdSense account
 - **Production Mode:** Real ads with full Google optimization
 
+
+### AMC Branding on Fund Details Page (Jan 24, 2026)
+**Complete Integration: 10 Whitelisted AMCs with Custom Branding**
+
+#### Feature Overview
+Implemented AMC-specific branding on the Fund Details page, providing visual identity for all 10 whitelisted AMCs with custom colors, logos, and taglines.
+
+#### 10 Whitelisted AMCs with Branding
+
+| AMC | Short Name | Primary Color | Tagline |
+|-----|------------|---------------|---------|
+| SBI Mutual Fund | SBI | #1a4b9e (Blue) | "With you. For you. Always." |
+| ICICI Prudential | ICICI | #b82e1c (Red) | "Partner for Life" |
+| HDFC Mutual Fund | HDFC | #004080 (Navy) | "We understand your world" |
+| Nippon India | Nippon | #cc0000 (Rose) | "Building Wealth. Creating Value." |
+| Kotak Mahindra | Kotak | #ed1c24 (Red) | "Think Investments. Think Kotak." |
+| Aditya Birla Sun Life | ABSL | #6b2c91 (Purple) | "Securing your present. Building your future." |
+| UTI Mutual Fund | UTI | #0066b3 (Sky) | "Inspiring Trust. Building Tomorrow." |
+| Axis Mutual Fund | Axis | #800020 (Rose) | "Badhti Ka Naam Zindagi" |
+| Tata Mutual Fund | Tata | #0033a0 (Blue) | "Improving the Quality of Life" |
+| Mirae Asset | Mirae | #f7931e (Orange) | "Global Investing. Local Expertise." |
+
+#### Implementation Details
+
+**File Modified:** `client/src/pages/FundDetails.jsx`
+
+**AMC Branding Configuration:**
+```javascript
+const AMC_BRANDING = {
+  'SBI': {
+    name: 'SBI Mutual Fund',
+    shortName: 'SBI',
+    primaryColor: '#1a4b9e',
+    secondaryColor: '#2563eb',
+    gradientFrom: 'from-blue-600',
+    gradientTo: 'to-blue-800',
+    bgLight: 'bg-blue-50',
+    textColor: 'text-blue-700',
+    borderColor: 'border-blue-200',
+    logo: '/amc-logos/sbi.png',
+    tagline: 'With you. For you. Always.',
+  },
+  // ... 9 more AMCs ...
+};
+```
+
+**Key UI Components:**
+
+1. **AMC Brand Strip Header:**
+   - Full-width gradient header with AMC colors
+   - AMC logo and name displayed prominently
+   - "Whitelisted AMC" badge for trust signal
+
+2. **AMC Logo Component:**
+   - Supports PNG logos from `/public/amc-logos/`
+   - Fallback to styled initials if logo unavailable
+   - Three sizes: sm (40px), md (56px), lg (80px)
+
+3. **Dynamic Color Theming:**
+   - NAV card uses AMC gradient colors
+   - Info cards have AMC-colored icons
+   - Table headers styled with AMC colors
+   - Animated blobs use AMC colors
+
+4. **AMC Info Card:**
+   - "About [AMC]" section with branding
+   - Three badges: Whitelisted, SEBI Registered, Daily NAV
+   - Consistent styling with AMC color scheme
+
+5. **Invest Button:**
+   - Uses AMC primary color for text
+   - Maintains white background for contrast
+   - Smooth hover animations
+
+#### Logo Setup (Optional)
+
+To use AMC logos, add PNG files to `/client/public/amc-logos/`:
+```
+client/public/amc-logos/
+├── sbi.png
+├── icici.png
+├── hdfc.png
+├── nippon.png
+├── kotak.png
+├── absl.png
+├── uti.png
+├── axis.png
+├── tata.png
+└── mirae.png
+```
+
+If logos are not available, the component falls back to styled initials.
+
+#### Testing Checklist
+- ✅ All 10 AMCs have unique color schemes
+- ✅ AMC detection works based on fund_house field
+- ✅ Fallback to default emerald theme for unknown AMCs
+- ✅ Logo fallback to initials working
+- ✅ Responsive design on mobile/tablet/desktop
+- ✅ Invest button color matches AMC branding
+- ✅ NAV history table uses AMC accent colors
+
 ### Bug Fixes & Code Quality (Jan 15-16, 2026)
 - **LoanAdvancedCalculator.jsx:** Fixed missing closing tags (</div>, );, }) causing JSX parse errors
 - **FDCumulativeCalculator.jsx:** Removed extra closing brace )}}} causing syntax error

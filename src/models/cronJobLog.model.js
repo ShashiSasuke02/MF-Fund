@@ -27,7 +27,9 @@ export const cronJobLogModel = {
                 log.start_time || Date.now()
             ]
         );
-        return result.lastInsertRowid;
+        const logId = Number(result.lastInsertRowid);
+        console.log(`[CronJobLog] Created log entry ID: ${logId} for job: ${log.job_name}`);
+        return logId;
     },
 
     /**
@@ -61,12 +63,18 @@ export const cronJobLogModel = {
             values.push(updates.error_details);
         }
 
-        if (fields.length === 0) return;
+        if (fields.length === 0) {
+            console.log(`[CronJobLog] No fields to update for log ID: ${id}`);
+            return;
+        }
 
         values.push(id);
 
         const query = `UPDATE cron_job_logs SET ${fields.join(', ')} WHERE id = ?`;
-        return db.run(query, values);
+        console.log(`[CronJobLog] Updating log ID: ${id} with status: ${updates.status}`);
+        const result = await db.run(query, values);
+        console.log(`[CronJobLog] Update result for ID ${id}: ${result.changes} row(s) affected`);
+        return result;
     },
 
     /**

@@ -122,7 +122,8 @@ export const initSchedulerJobs = () => {
             // To match previous behavior exactly, we might need to hardcode options for now or update registry.
 
             let options = {};
-            if (job.name.includes('Fund Sync')) {
+            // Apply IST timezone for all scheduled jobs
+            if (job.name.includes('Fund Sync') || job.name === 'Daily Transaction Scheduler') {
                 options = { timezone: 'Asia/Kolkata' };
             }
 

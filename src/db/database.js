@@ -17,7 +17,7 @@ function createPool() {
     port: parseInt(process.env.DB_PORT || '3306'),
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'mfselection',
+    database: process.env.DB_NAME || 'mf_selection_app',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,

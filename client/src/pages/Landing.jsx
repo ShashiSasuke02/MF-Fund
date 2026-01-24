@@ -9,7 +9,7 @@ export default function Landing() {
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Check for reduced motion preference
-  const prefersReducedMotion = typeof window !== 'undefined' && 
+  const prefersReducedMotion = typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Carousel timing: 3 seconds display + 0.4 seconds transition
@@ -40,21 +40,21 @@ export default function Landing() {
             </svg>
             <span className="text-sm font-semibold text-emerald-700">100% Risk-Free Learning Platform</span>
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-6 bg-gradient-to-r from-gray-900 via-emerald-900 to-teal-900 bg-clip-text text-transparent">
+          <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-4 sm:mb-6 bg-gradient-to-r from-gray-900 via-emerald-900 to-teal-900 bg-clip-text text-transparent px-2">
             Practice Investing Without the Risk
           </h1>
-          <p className="text-lg sm:text-xl md:text-2xl text-gray-600 mb-10 leading-relaxed">
+          <p className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-6 sm:mb-10 leading-relaxed px-2 sm:px-4">
             Master mutual fund investing with real market data and zero financial risk. Create your portfolio, track returns, and build confidence before investing real money.
           </p>
-          <div className="flex justify-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-center gap-4 px-4">
             <Link
               to={isAuthenticated ? "/portfolio" : "/register"}
-              className="inline-flex items-center px-10 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 text-lg"
+              className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 text-lg w-full sm:w-auto"
             >
               <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
-              Start Free Practice Account
+              Start Practice Account
             </Link>
           </div>
           <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm text-gray-600">
@@ -238,24 +238,23 @@ export default function Landing() {
       </div>
 
       {/* Animated Carousel Section */}
-      <section className="relative pt-20 pb-24 md:pt-32 md:pb-40 overflow-hidden min-h-[650px] md:min-h-[700px]">
+      <section className="relative pt-16 pb-20 sm:pt-20 sm:pb-24 md:pt-32 md:pb-40 overflow-hidden min-h-[550px] sm:min-h-[600px] md:min-h-[700px]">
         {/* Animated decorative blobs */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-cyan-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="absolute top-0 left-0 w-64 sm:w-96 h-64 sm:h-96 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute top-0 right-0 w-64 sm:w-96 h-64 sm:h-96 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-0 left-1/2 w-64 sm:w-96 h-64 sm:h-96 bg-cyan-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative z-10">
           {/* Progress Indicators */}
           <div className="flex justify-center gap-3 mb-8">
             {sections.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setActiveSection(index)}
-                className={`h-2.5 rounded-full transition-all duration-300 shadow-sm ${
-                  activeSection === index 
-                    ? 'w-12 bg-gradient-to-r from-emerald-500 to-teal-600' 
-                    : 'w-2.5 bg-gray-300 hover:bg-gray-400'
-                }`}
+                className={`h-2.5 rounded-full transition-all duration-300 shadow-sm ${activeSection === index
+                  ? 'w-12 bg-gradient-to-r from-emerald-500 to-teal-600'
+                  : 'w-2.5 bg-gray-300 hover:bg-gray-400'
+                  }`}
                 aria-label={`Go to section ${index + 1}`}
               />
             ))}
@@ -294,7 +293,7 @@ export default function Landing() {
       <section id="faq" className="py-16 md:py-20 bg-gradient-to-br from-gray-50 to-emerald-50/30 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-200 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
-        
+
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-12 md:mb-16">
             <div className="inline-flex items-center px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-emerald-200 mb-4">
@@ -307,7 +306,7 @@ export default function Landing() {
               Frequently Asked Questions
             </h2>
           </div>
-          
+
           <div className="space-y-6">
             <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl hover:border-emerald-200 transition-all duration-300">
               <div className="flex items-start">
@@ -379,7 +378,7 @@ export default function Landing() {
       {/* Final CTA Section */}
       <section className="relative py-16 md:py-20 bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-600 overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE2YzAgNC40MTgtMy41ODIgOC04IDhzLTgtMy41ODItOC04IDMuNTgyLTggOC04IDggMy41ODIgOCA4eiIvPjwvZz48L2c+PC9zdmc+')] opacity-30"></div>
-        
+
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full shadow-lg mb-6">
             <svg className="w-5 h-5 text-white mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -402,7 +401,7 @@ export default function Landing() {
             </svg>
             Create Free Account Now
           </Link>
-          
+
           <div className="mt-12 flex flex-wrap justify-center gap-8 text-white">
             <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
