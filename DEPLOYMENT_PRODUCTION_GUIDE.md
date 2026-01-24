@@ -69,7 +69,36 @@
 
 ### 1. Server Provisioning
 
-#### Option A: Cloud Deployment (AWS/Azure/GCP/DigitalOcean)
+#### Option A: Docker Deployment (Recommended)
+This is the simplest method, as it handles dependencies, database, and usage limits automatically.
+
+**Prerequisites:**
+- Install Docker Engine & Docker Compose (v2.0+)
+
+**Steps:**
+1.  **Clone Repository:**
+    ```bash
+    git clone https://github.com/YOUR_USERNAME/trymutualfunds.git app
+    cd app
+    ```
+2.  **Configure Environment:**
+    ```bash
+    # Create production .env from example
+    cp .env.example .env
+    # Edit .env and set secure passwords and API keys
+    nano .env
+    ```
+3.  **Deploy:**
+    ```bash
+    # Build and start services in background
+    docker compose up -d --build
+    ```
+4.  **Verify:**
+    - The `sync-job` container will automatically run full data synchronization once the backend is healthy.
+    - Check logs: `docker compose logs -f`
+    - Application available at http://localhost:4000 (or configured port).
+
+#### Option B: Cloud Deployment (AWS/Azure/GCP/DigitalOcean)
 
 **AWS EC2 Example:**
 ```bash

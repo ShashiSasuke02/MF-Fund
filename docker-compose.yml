@@ -78,6 +78,13 @@ services:
       ENABLE_FULL_SYNC: ${ENABLE_FULL_SYNC:-true}
       ENABLE_INCREMENTAL_SYNC: ${ENABLE_INCREMENTAL_SYNC:-true}
       ENABLE_MFAPI_FALLBACK: "true"
+      
+      # Email / SMTP Configuration
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM}
     ports:
       - "${APP_PORT:-4000}:4000"
     networks:
