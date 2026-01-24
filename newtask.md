@@ -1323,7 +1323,69 @@ Login → Check portfolio data exists
 
 ---
 
+### Post-Job Notification System (Jan 24, 2026)
+**Automated email notifications after cron jobs complete with status summary**
+
+#### Feature Overview
+Implemented an automated email notification system that sends a daily summary report after all cron jobs complete. The email includes job statuses, error details for failures, and transaction metrics.
+
+#### Implementation Details
+
+**Files Created:**
+- `src/services/cronNotification.service.js` (168 lines)
+  - Tracks job completions in memory
+  - Aggregates results for daily report
+  - Triggers email after Daily Transaction Scheduler completes
+
+**Files Modified:**
+- `src/services/email.service.js` - Added `sendCronJobReport()` with HTML template
+- `src/jobs/scheduler.job.js` - Integrated notification calls after each job
+- `.env.example` - Added ENABLE_CRON_REPORTS and CRON_REPORT_EMAIL
+
+#### Email Report Features
+1. **Summary Section:** Success/Failed counts, total transactions
+2. **Job Details Table:** Each job with status badge, duration, and metrics
+3. **Error Reporting:** Failed jobs show error details inline
+4. **Transaction Count:** Shows number of SIP/SWP transactions executed
+5. **Professional Design:** Gradient header, status icons, responsive layout
+
+#### Configuration
+```bash
+# Add to .env
+ENABLE_CRON_REPORTS=true
+CRON_REPORT_EMAIL=shashidhar02april@gmail.com
+```
+
+#### Email Template Preview
+```
+Subject: ✅ Cron Jobs Report - All Successful - Friday, January 24, 2026
+
+╔═══════════════════════════════════════════╗
+   📊 Nightly Batch Process Report
+═══════════════════════════════════════════════
+
+Summary: 3 Successful | 0 Failed | 1,254 Transactions
+
+✅ Daily Transaction Scheduler  SUCCESS  Duration: 45s | Transactions: 1,254
+✅ Full Fund Sync               SUCCESS  Duration: 2m 30s | Records: 18,750
+✅ Incremental Fund Sync        SUCCESS  Duration: 1m 15s | Records: 350
+
+Total Run Time: 4m 30s
+╚═══════════════════════════════════════════╝
+```
+
+#### Trigger Logic
+- Email sent after **Daily Transaction Scheduler** (6 AM IST) completes
+- Report includes status from all 3 tracked jobs:
+  - Daily Transaction Scheduler
+  - Full Fund Sync
+  - Incremental Fund Sync
+- Falls back to database logs if in-memory results unavailable
+
+---
+
 ## Production Readiness Report (Jan 16, 2026)
+
 
 ### Code Quality & Testing Status
 
