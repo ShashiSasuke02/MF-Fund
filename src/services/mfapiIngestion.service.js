@@ -266,6 +266,11 @@ export const mfapiIngestionService = {
             await fundNavHistoryModel.deleteOldRecords(schemeCode, NAV_RETENTION_COUNT);
 
             stats.navInserted++;
+
+            // Log every 100 NAV inserts
+            if (stats.navInserted % 100 === 0) {
+              console.log(`[MFAPI Ingestion] NAV progress: ${stats.navInserted}/${schemeCodes.length} records inserted`);
+            }
           } else {
             stats.errors++;
             stats.errorDetails.push({
