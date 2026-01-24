@@ -18,7 +18,7 @@ services:
     image: mysql:8.0
     container_name: mf-investments-db
     restart: unless-stopped
-    command: --max_allowed_packet=67108864 --innodb_buffer_pool_size=256M --innodb_log_file_size=64M
+    command: --max-allowed-packet=67108864
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-mf_root_secret_2024}
       MYSQL_DATABASE: ${DB_NAME:-mf_selection_app}
