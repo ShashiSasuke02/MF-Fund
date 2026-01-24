@@ -15,6 +15,7 @@ import demoRoutes from './routes/demo.routes.js';
 import calculatorRoutes from './routes/calculator.routes.js';
 import schedulerRoutes from './routes/scheduler.routes.js';
 import ingestionRoutes from './routes/ingestion.routes.js';
+import cronRoutes from './routes/cron.routes.js';
 
 // Middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -85,6 +86,7 @@ app.use('/api/funds', fundRoutes);
 app.use('/api/calculator', calculatorRoutes);
 app.use('/api/scheduler', schedulerRoutes);
 app.use('/api/ingestion', ingestionRoutes);
+app.use('/api/cron', cronRoutes);
 app.use('/api/health', healthRoutes);
 
 // Root route - API info

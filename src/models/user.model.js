@@ -19,18 +19,18 @@ export const userModel = {
          VALUES (?, ?, ?, ?)`,
         [trimmedFullName, trimmedEmailId, legacyUsername, passwordHash]
       );
-      
+
       const userId = userResult.lastInsertRowid;
-      
+
       console.log('[User Model] User creation result:', {
         lastInsertRowid: userId,
         type: typeof userId,
         changes: userResult.changes
       });
-      
+
       // Convert to number and validate
       const userIdNum = Number(userId);
-      
+
       if (isNaN(userIdNum) || userIdNum <= 0) {
         console.error('[User Model] Invalid userId:', {
           original: userId,
@@ -39,17 +39,17 @@ export const userModel = {
         });
         throw new Error(`Failed to create user: Invalid user ID (${userId})`);
       }
-      
+
       console.log('[User Model] Created user with ID:', userIdNum);
-      
+
       // Create demo account with ₹1,00,00,000 (1 crore) starting balance
       const demoResult = await run(
         `INSERT INTO demo_accounts (user_id, balance) VALUES (?, ?)`,
         [userIdNum, 10000000.00]
       );
-      
+
       console.log('[User Model] Created demo account for user:', userIdNum, 'result:', demoResult);
-      
+
       // Return with consistent camelCase property names
       return {
         id: userIdNum,
@@ -76,7 +76,7 @@ export const userModel = {
   async findByEmail(emailId) {
     const normalized = (emailId || '').trim().toLowerCase();
     return await queryOne(
-      `SELECT id, full_name, email_id, username, password_hash, created_at 
+      `SELECT id, full_name, email_id, username, password_hash, role, created_at 
        FROM users WHERE LOWER(email_id) = ?`,
       [normalized]
     );
@@ -90,7 +90,7 @@ export const userModel = {
       return null;
     }
     return await queryOne(
-      `SELECT id, full_name, email_id, username, created_at 
+      `SELECT id, full_name, email_id, username, role, created_at 
        FROM users WHERE id = ?`,
       [id]
     );

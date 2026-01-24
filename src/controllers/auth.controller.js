@@ -81,7 +81,7 @@ export const authController = {
 
       // Generate JWT token
       const token = jwt.sign(
-        { userId: user.id, emailId: user.emailId },
+        { userId: user.id, emailId: user.emailId, role: 'user' }, // Default role for new users
         JWT_SECRET,
         { expiresIn: JWT_EXPIRES_IN }
       );
@@ -145,7 +145,7 @@ export const authController = {
 
       // Get demo account (create if doesn't exist)
       let demoAccount = await demoAccountModel.findByUserId(user.id);
-      
+
       if (!demoAccount) {
         // Create demo account for existing user
         const { run } = await import('../db/database.js');
@@ -158,7 +158,7 @@ export const authController = {
 
       // Generate JWT token
       const token = jwt.sign(
-        { userId: user.id, emailId: user.email_id },
+        { userId: user.id, emailId: user.email_id, role: user.role || 'user' },
         JWT_SECRET,
         { expiresIn: JWT_EXPIRES_IN }
       );
@@ -169,7 +169,7 @@ export const authController = {
       try {
         const portfolio = await demoService.getPortfolio(user.id);
         portfolioSummary = portfolio.summary;
-        
+
         // Get timestamp of latest NAV update if holdings exist
         if (portfolio.holdings && portfolio.holdings.length > 0) {
           lastNavUpdate = portfolio.holdings[0]?.last_nav_date || new Date().toISOString().split('T')[0];
@@ -187,7 +187,8 @@ export const authController = {
             id: user.id,
             fullName: user.full_name,
             emailId: user.email_id,
-            username: user.username
+            username: user.username,
+            role: user.role || 'user'
           },
           demoAccount: {
             balance: demoAccount.balance
@@ -224,7 +225,7 @@ export const authController = {
 
       // Get demo account (create if doesn't exist)
       let demoAccount = await demoAccountModel.findByUserId(userId);
-      
+
       if (!demoAccount) {
         // Create demo account for existing user
         const { run } = await import('../db/database.js');

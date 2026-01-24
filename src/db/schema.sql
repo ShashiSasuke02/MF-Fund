@@ -144,3 +144,20 @@ CREATE TABLE IF NOT EXISTS fund_sync_log (
     INDEX idx_fund_sync_log_start_time (start_time),
     INDEX idx_fund_sync_log_type (sync_type)
 );
+
+-- Cron Job Logs table for generic job execution tracking
+CREATE TABLE IF NOT EXISTS cron_job_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    job_name VARCHAR(255) NOT NULL,
+    status ENUM('RUNNING', 'SUCCESS', 'FAILED') NOT NULL DEFAULT 'RUNNING',
+    start_time BIGINT NOT NULL,
+    end_time BIGINT,
+    duration_ms INT,
+    message TEXT,
+    error_details TEXT,
+    triggered_by ENUM('SCHEDULE', 'MANUAL') NOT NULL DEFAULT 'SCHEDULE',
+    created_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000),
+    INDEX idx_cron_logs_job_name (job_name),
+    INDEX idx_cron_logs_status (status),
+    INDEX idx_cron_logs_start_time (start_time)
+);

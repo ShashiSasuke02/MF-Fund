@@ -55,7 +55,7 @@ export const fundSyncLogModel = {
    */
   async completeSyncSuccess(syncId, finalStats) {
     const now = Date.now();
-    
+
     const query = `
       UPDATE fund_sync_log 
       SET sync_status = ?,
@@ -208,7 +208,7 @@ export const fundSyncLogModel = {
   async getSyncStatistics(days = 30) {
     const startTime = Date.now() - (days * 24 * 60 * 60 * 1000);
 
-    const [stats] = await db.execute(
+    const stats = await db.query(
       `SELECT 
         COUNT(*) as total_syncs,
         SUM(CASE WHEN sync_status = 'SUCCESS' THEN 1 ELSE 0 END) as successful_syncs,
@@ -279,7 +279,7 @@ export const fundSyncLogModel = {
 
     query += ' ORDER BY end_time DESC LIMIT 1';
 
-    const [rows] = await db.execute(query, params);
+    const [rows] = await db.query(query, params);
     return rows[0] || null;
   },
 
@@ -290,7 +290,7 @@ export const fundSyncLogModel = {
    */
   async cleanupOldLogs(daysToKeep = 90) {
     const cutoffTime = Date.now() - (daysToKeep * 24 * 60 * 60 * 1000);
-    
+
     return db.run(
       'DELETE FROM fund_sync_log WHERE start_time < ?',
       [cutoffTime]
