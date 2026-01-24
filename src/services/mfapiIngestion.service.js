@@ -56,26 +56,33 @@ export const mfapiIngestionService = {
       console.log(`[MFAPI Ingestion] Whitelisted funds (10 AMCs): ${whitelistedFunds.length}`);
       stats.totalFetched = whitelistedFunds.length;
 
-      // Step 3: Upsert funds to database with error handling
+      // Step 3: Upsert funds to database (BATCH PROCESSING)
       console.log('[MFAPI Ingestion] Upserting funds to database...');
-      for (const fund of whitelistedFunds) {
-        try {
-          const transformed = this.transformFundData(fund);
-          await fundModel.upsertFund(transformed);
-          stats.inserted++;
 
-          // Log progress every 500 funds
-          if (stats.inserted % 500 === 0) {
-            console.log(`[MFAPI Ingestion] Progress: ${stats.inserted}/${whitelistedFunds.length} funds`);
-          }
+      const FUND_UPSERT_BATCH_SIZE = 500;
+      for (let i = 0; i < whitelistedFunds.length; i += FUND_UPSERT_BATCH_SIZE) {
+        const batch = whitelistedFunds.slice(i, i + FUND_UPSERT_BATCH_SIZE);
+        try {
+          // Transform batch
+          const transformedBatch = batch.map(fund => this.transformFundData(fund));
+
+          // Bulk Upsert
+          await fundModel.bulkUpsertFunds(transformedBatch);
+
+          stats.inserted += batch.length;
+          console.log(`[MFAPI Ingestion] Progress: ${stats.inserted}/${whitelistedFunds.length} funds`);
         } catch (error) {
-          stats.errors++;
-          stats.errorDetails.push({
-            schemeCode: fund.schemeCode,
-            error: error.message,
-            step: 'fund_upsert'
-          });
-          console.error(`[MFAPI Ingestion] Fund upsert failed for ${fund.schemeCode}:`, error.message);
+          console.error(`[MFAPI Ingestion] Batch upsert failed (Batch ${i / FUND_UPSERT_BATCH_SIZE + 1}):`, error.message);
+          // Fallback to sequential upsert for this batch to save what we can
+          for (const fund of batch) {
+            try {
+              await fundModel.upsertFund(this.transformFundData(fund));
+              stats.inserted++;
+            } catch (innerErr) {
+              stats.errors++;
+              stats.errorDetails.push({ schemeCode: fund.schemeCode, error: innerErr.message });
+            }
+          }
         }
       }
 
