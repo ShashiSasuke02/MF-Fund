@@ -29,6 +29,8 @@ const RATE_LIMIT_DELAY = 1000; // 1s delay between batches for connection cleanu
 export const mfapiIngestionService = {
   /**
    * Full sync: Fetch all funds from 10 AMCs + latest NAV
+   * OPTIMIZED: Uses /mf/latest endpoint to get funds with NAV in one call
+   * Filters to only include funds with NAV updated in current month
    * Run this at 2:00 AM IST daily
    */
   async runFullSync() {
@@ -39,28 +41,33 @@ export const mfapiIngestionService = {
       updated: 0,
       navInserted: 0,
       errors: 0,
+      skippedInactive: 0,
       errorDetails: []
     };
 
     try {
-      console.log('[MFAPI Ingestion] Starting full sync for 10 AMCs...');
+      console.log('[MFAPI Ingestion] Starting OPTIMIZED full sync for 10 AMCs...');
       syncId = await fundSyncLogModel.startSync('FULL');
 
-      // Step 1: Fetch all funds from MFAPI
-      console.log('[MFAPI Ingestion] Fetching all funds from MFAPI...');
-      const allFunds = await this.fetchAllFunds();
-      console.log(`[MFAPI Ingestion] Total funds fetched from MFAPI: ${allFunds.length}`);
+      // Step 1: Fetch all funds with NAV data from /mf/latest (single API call)
+      console.log('[MFAPI Ingestion] Fetching all funds with NAV from /mf/latest...');
+      const allFundsWithNav = await this.fetchAllFundsWithNav();
+      console.log(`[MFAPI Ingestion] Total funds fetched from MFAPI: ${allFundsWithNav.length}`);
 
-      // Step 2: Filter by AMC whitelist
-      const whitelistedFunds = this.filterByWhitelist(allFunds);
-      console.log(`[MFAPI Ingestion] Whitelisted funds (10 AMCs): ${whitelistedFunds.length}`);
+      // Step 2: Filter by current month NAV update (active funds only)
+      const currentMonthFunds = this.filterByCurrentMonth(allFundsWithNav);
+      console.log(`[MFAPI Ingestion] Funds with NAV updated this month: ${currentMonthFunds.length}`);
+      stats.skippedInactive = allFundsWithNav.length - currentMonthFunds.length;
+
+      // Step 3: Filter by AMC whitelist
+      const whitelistedFunds = this.filterByWhitelistWithNav(currentMonthFunds);
+      console.log(`[MFAPI Ingestion] Whitelisted funds (10 AMCs, current month): ${whitelistedFunds.length}`);
       stats.totalFetched = whitelistedFunds.length;
 
-      // Step 3: Upsert funds to database (BATCH PROCESSING)
+      // Step 4: Upsert funds to database (BATCH PROCESSING)
       console.log('[MFAPI Ingestion] Upserting funds to database...');
       const upsertStartTime = Date.now();
 
-      // Reduced batch size to avoid MySQL max_allowed_packet issues
       const FUND_UPSERT_BATCH_SIZE = 100;
       const totalBatches = Math.ceil(whitelistedFunds.length / FUND_UPSERT_BATCH_SIZE);
 
@@ -69,22 +76,44 @@ export const mfapiIngestionService = {
         const batchNum = Math.floor(i / FUND_UPSERT_BATCH_SIZE) + 1;
 
         try {
-          // Transform batch
-          const transformedBatch = batch.map(fund => this.transformFundData(fund));
+          // Transform batch with enriched data from /mf/latest
+          const transformedBatch = batch.map(fund => this.transformFullFundData(fund));
 
-          // Bulk Upsert
+          // Bulk Upsert Funds
           await fundModel.bulkUpsertFunds(transformedBatch);
-
           stats.inserted += batch.length;
-          console.log(`[MFAPI Ingestion] Fund upsert batch ${batchNum}/${totalBatches}: ${stats.inserted}/${whitelistedFunds.length} funds`);
+
+          // Upsert NAV records (already have NAV data from /mf/latest!)
+          for (const fund of batch) {
+            if (fund.nav && fund.date) {
+              try {
+                await fundNavHistoryModel.upsertNavRecord(
+                  fund.schemeCode,
+                  fund.date,
+                  parseFloat(fund.nav)
+                );
+                stats.navInserted++;
+              } catch (navError) {
+                stats.errors++;
+                stats.errorDetails.push({ schemeCode: fund.schemeCode, error: navError.message, step: 'nav_upsert' });
+              }
+            }
+          }
+
+          console.log(`[MFAPI Ingestion] Batch ${batchNum}/${totalBatches}: ${stats.inserted}/${whitelistedFunds.length} funds, ${stats.navInserted} NAVs`);
         } catch (error) {
           console.error(`[MFAPI Ingestion] Batch ${batchNum} failed:`, error.message);
           console.log(`[MFAPI Ingestion] Falling back to sequential upsert for batch ${batchNum}...`);
-          // Fallback to sequential upsert for this batch to save what we can
+
           for (const fund of batch) {
             try {
-              await fundModel.upsertFund(this.transformFundData(fund));
+              await fundModel.upsertFund(this.transformFullFundData(fund));
               stats.inserted++;
+
+              if (fund.nav && fund.date) {
+                await fundNavHistoryModel.upsertNavRecord(fund.schemeCode, fund.date, parseFloat(fund.nav));
+                stats.navInserted++;
+              }
             } catch (innerErr) {
               stats.errors++;
               stats.errorDetails.push({ schemeCode: fund.schemeCode, error: innerErr.message });
@@ -95,16 +124,9 @@ export const mfapiIngestionService = {
       }
 
       const upsertDuration = ((Date.now() - upsertStartTime) / 1000).toFixed(2);
-      console.log(`[MFAPI Ingestion] Fund upsert complete in ${upsertDuration}s. Success: ${stats.inserted}, Errors: ${stats.errors}`);
-
-      console.log(`[MFAPI Ingestion] Funds upserted: ${stats.inserted}, Errors: ${stats.errors}`);
-
-      // Step 4: Fetch NAV for each fund (batch processing)
-      console.log('[MFAPI Ingestion] Fetching NAV data...');
-      const schemeCodes = whitelistedFunds.map(f => f.schemeCode);
-      await this.batchFetchNavs(schemeCodes, stats);
-
-      console.log(`[MFAPI Ingestion] NAV records inserted: ${stats.navInserted}`);
+      console.log(`[MFAPI Ingestion] Fund + NAV upsert complete in ${upsertDuration}s`);
+      console.log(`[MFAPI Ingestion] Funds: ${stats.inserted}, NAVs: ${stats.navInserted}, Errors: ${stats.errors}`);
+      console.log(`[MFAPI Ingestion] Skipped inactive (old NAV): ${stats.skippedInactive}`);
 
       // Step 5: Complete sync
       await fundSyncLogModel.completeSyncSuccess(syncId, stats);
@@ -113,7 +135,8 @@ export const mfapiIngestionService = {
         success: true,
         syncId,
         ...stats,
-        errorSummary: stats.errorDetails.slice(0, 10) // First 10 errors
+        optimization: 'Used /mf/latest endpoint - no individual NAV API calls needed!',
+        errorSummary: stats.errorDetails.slice(0, 10)
       };
 
       console.log('[MFAPI Ingestion] Full sync completed successfully');
@@ -135,6 +158,7 @@ export const mfapiIngestionService = {
       };
     }
   },
+
 
   /**
    * Incremental sync: Update NAV only for existing active funds
@@ -210,6 +234,86 @@ export const mfapiIngestionService = {
   },
 
   /**
+   * OPTIMIZED: Fetch all funds WITH NAV data from /mf/latest
+   * Single API call returns funds with their latest NAV and date
+   * @returns {Promise<Array>} Array of fund objects with NAV data
+   */
+  async fetchAllFundsWithNav() {
+    try {
+      // MFAPI endpoint: GET https://api.mfapi.in/mf/latest
+      const response = await mfApiService.getLatestNAVAll();
+      return response || [];
+    } catch (error) {
+      console.error('[MFAPI Ingestion] Failed to fetch all funds with NAV:', error);
+      throw new Error(`MFAPI /mf/latest fetch failed: ${error.message}`);
+    }
+  },
+
+  /**
+   * Filter funds to only include those with NAV updated in current month
+   * This effectively filters out inactive/closed funds
+   * @param {Array} funds - All funds with NAV data
+   * @returns {Array} Funds with recent NAV updates
+   */
+  filterByCurrentMonth(funds) {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // 1-indexed
+
+    return funds.filter(fund => {
+      if (!fund.date) return false;
+
+      // Parse date format: DD-MM-YYYY
+      const parts = fund.date.split('-');
+      if (parts.length !== 3) return false;
+
+      const navYear = parseInt(parts[2], 10);
+      const navMonth = parseInt(parts[1], 10);
+
+      // Include if NAV is from current month or this year (within last 30 days logic)
+      return navYear === currentYear && navMonth === currentMonth;
+    });
+  },
+
+  /**
+   * Filter funds by AMC whitelist (for /mf/latest data structure)
+   * @param {Array} funds - All funds from /mf/latest
+   * @returns {Array} Filtered funds
+   */
+  filterByWhitelistWithNav(funds) {
+    return funds.filter(fund => {
+      // /mf/latest has fundHouse field directly
+      const fundHouse = (fund.fundHouse || '').toLowerCase();
+      const schemeName = (fund.schemeName || '').toLowerCase();
+
+      return AMC_WHITELIST.some(amc => {
+        const amcLower = amc.toLowerCase();
+        return fundHouse.includes(amcLower) || schemeName.includes(amcLower);
+      });
+    });
+  },
+
+  /**
+   * Transform full fund data from /mf/latest to database schema
+   * This has more complete data than the basic /mf endpoint
+   * @param {Object} mfapiData - Raw fund data from /mf/latest
+   * @returns {Object} Transformed fund data for database
+   */
+  transformFullFundData(mfapiData) {
+    return {
+      scheme_code: mfapiData.schemeCode,
+      scheme_name: mfapiData.schemeName,
+      scheme_category: mfapiData.schemeCategory || null,
+      scheme_type: mfapiData.schemeType || this.extractSchemeType(mfapiData.schemeName),
+      fund_house: mfapiData.fundHouse || this.extractFundHouse(mfapiData.schemeName),
+      amc_code: null,
+      launch_date: null,
+      isin: mfapiData.isinGrowth || mfapiData.isinDivReinvestment || null,
+      is_active: true
+    };
+  },
+
+  /**
    * Filter funds by AMC whitelist
    * @param {Array} funds - All funds from MFAPI
    * @returns {Array} Filtered funds
@@ -220,6 +324,7 @@ export const mfapiIngestionService = {
       return AMC_WHITELIST.some(amc => fundName.includes(amc.toLowerCase()));
     });
   },
+
 
   /**
    * Batch fetch NAV for multiple funds with rate limiting
