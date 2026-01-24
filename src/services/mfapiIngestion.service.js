@@ -58,10 +58,16 @@ export const mfapiIngestionService = {
 
       // Step 3: Upsert funds to database (BATCH PROCESSING)
       console.log('[MFAPI Ingestion] Upserting funds to database...');
+      const upsertStartTime = Date.now();
 
-      const FUND_UPSERT_BATCH_SIZE = 500;
+      // Reduced batch size to avoid MySQL max_allowed_packet issues
+      const FUND_UPSERT_BATCH_SIZE = 100;
+      const totalBatches = Math.ceil(whitelistedFunds.length / FUND_UPSERT_BATCH_SIZE);
+
       for (let i = 0; i < whitelistedFunds.length; i += FUND_UPSERT_BATCH_SIZE) {
         const batch = whitelistedFunds.slice(i, i + FUND_UPSERT_BATCH_SIZE);
+        const batchNum = Math.floor(i / FUND_UPSERT_BATCH_SIZE) + 1;
+
         try {
           // Transform batch
           const transformedBatch = batch.map(fund => this.transformFundData(fund));
@@ -70,9 +76,10 @@ export const mfapiIngestionService = {
           await fundModel.bulkUpsertFunds(transformedBatch);
 
           stats.inserted += batch.length;
-          console.log(`[MFAPI Ingestion] Progress: ${stats.inserted}/${whitelistedFunds.length} funds`);
+          console.log(`[MFAPI Ingestion] Fund upsert batch ${batchNum}/${totalBatches}: ${stats.inserted}/${whitelistedFunds.length} funds`);
         } catch (error) {
-          console.error(`[MFAPI Ingestion] Batch upsert failed (Batch ${i / FUND_UPSERT_BATCH_SIZE + 1}):`, error.message);
+          console.error(`[MFAPI Ingestion] Batch ${batchNum} failed:`, error.message);
+          console.log(`[MFAPI Ingestion] Falling back to sequential upsert for batch ${batchNum}...`);
           // Fallback to sequential upsert for this batch to save what we can
           for (const fund of batch) {
             try {
@@ -83,8 +90,12 @@ export const mfapiIngestionService = {
               stats.errorDetails.push({ schemeCode: fund.schemeCode, error: innerErr.message });
             }
           }
+          console.log(`[MFAPI Ingestion] Batch ${batchNum} sequential fallback complete`);
         }
       }
+
+      const upsertDuration = ((Date.now() - upsertStartTime) / 1000).toFixed(2);
+      console.log(`[MFAPI Ingestion] Fund upsert complete in ${upsertDuration}s. Success: ${stats.inserted}, Errors: ${stats.errors}`);
 
       console.log(`[MFAPI Ingestion] Funds upserted: ${stats.inserted}, Errors: ${stats.errors}`);
 
