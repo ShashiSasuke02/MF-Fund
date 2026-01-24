@@ -48,6 +48,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: mf-investments-app
     container_name: mf-investments-app
     restart: unless-stopped
     depends_on:
@@ -98,6 +99,9 @@ services:
   # Sync Job (Runs once after backend is up)
   # ---------------------------------------------------------------------------
   sync-job:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: mf-investments-app # Re-use built image
     container_name: mf-investments-sync
     restart: "no"
