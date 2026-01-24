@@ -140,6 +140,21 @@ export function saveDatabase() {
 export const getDb = getDatabase;
 export const closeDb = closeDatabase;
 
+// Escape function for SQL values
+export function escape(value) {
+  if (value === null || value === undefined) {
+    return 'NULL';
+  }
+  if (typeof value === 'number') {
+    return value.toString();
+  }
+  if (typeof value === 'boolean') {
+    return value ? 'true' : 'false';
+  }
+  // Escape strings for SQL
+  return "'" + String(value).replace(/'/g, "''").replace(/\\/g, '\\\\') + "'";
+}
+
 export default {
   initializeDatabase,
   getDatabase,
@@ -149,5 +164,6 @@ export default {
   run,
   closeDatabase,
   closeDb,
-  saveDatabase
+  saveDatabase,
+  escape
 };
