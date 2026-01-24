@@ -18,7 +18,7 @@ export const localFundService = {
     async getSchemeDetails(schemeCode) {
         try {
             // Get fund from local DB
-            const fund = await fundModel.getBySchemeCode(schemeCode);
+            const fund = await fundModel.findBySchemeCode(schemeCode);
 
             if (!fund) {
                 return null;
@@ -41,7 +41,7 @@ export const localFundService = {
                     isin_div_reinvestment: null
                 },
                 latestNav: latestNav ? {
-                    nav: latestNav.nav,
+                    nav: latestNav.nav_value,
                     date: latestNav.nav_date
                 } : null,
                 navHistory: navHistory.map(n => ({
@@ -71,7 +71,7 @@ export const localFundService = {
             }
 
             return {
-                nav: parseFloat(navRecord.nav),
+                nav: parseFloat(navRecord.nav_value),
                 date: navRecord.nav_date,
                 dataSource: 'LOCAL_DB'
             };
@@ -160,11 +160,11 @@ export const localFundService = {
           f.scheme_type,
           f.scheme_category,
           f.fund_house,
-          nav.nav,
+          nav.nav_value as nav,
           nav.nav_date
         FROM funds f
         LEFT JOIN (
-          SELECT scheme_code, nav, nav_date
+          SELECT scheme_code, nav_value, nav_date
           FROM fund_nav_history fnh1
           WHERE nav_date = (
             SELECT MAX(nav_date) 
@@ -198,7 +198,7 @@ export const localFundService = {
      */
     async getFundWithNav(schemeCode) {
         try {
-            const fund = await fundModel.getBySchemeCode(schemeCode);
+            const fund = await fundModel.findBySchemeCode(schemeCode);
             const latestNav = await fundNavHistoryModel.getLatestNav(schemeCode);
 
             return {

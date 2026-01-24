@@ -260,28 +260,7 @@ export const fundSyncLogModel = {
     const row = await db.queryOne(query, params);
     return row || null;
   },
-  /**
-   * Get last successful sync
-   * @param {string} syncType - Optional sync type filter
-   * @returns {Promise<Object|null>} Last successful sync record or null
-   */
-  async getLastSuccessfulSync(syncType = null) {
-    let query = `
-      SELECT * FROM fund_sync_log 
-      WHERE sync_status IN ('SUCCESS', 'PARTIAL')
-    `;
-    const params = [];
 
-    if (syncType) {
-      query += ' AND sync_type = ?';
-      params.push(syncType);
-    }
-
-    query += ' ORDER BY end_time DESC LIMIT 1';
-
-    const [rows] = await db.query(query, params);
-    return rows[0] || null;
-  },
 
   /**
    * Clean up old sync logs

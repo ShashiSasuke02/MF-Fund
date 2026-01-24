@@ -31,10 +31,10 @@ export const fundModel = {
         updated_at = VALUES(updated_at),
         last_synced_at = VALUES(last_synced_at)
     `;
-    
+
     const now = Date.now();
-    
-      return db.run(query, [
+
+    return db.run(query, [
       fundData.scheme_code,
       fundData.scheme_name,
       fundData.scheme_category || null,
@@ -58,7 +58,7 @@ export const fundModel = {
     if (fundsArray.length === 0) return { affectedRows: 0 };
 
     const now = Date.now();
-    const values = fundsArray.map(fund => 
+    const values = fundsArray.map(fund =>
       `(${fund.scheme_code}, ${db.escape(fund.scheme_name)}, ${db.escape(fund.scheme_category || null)}, ${db.escape(fund.scheme_type || null)}, ${db.escape(fund.fund_house)}, ${db.escape(fund.amc_code || null)}, ${db.escape(fund.launch_date || null)}, ${db.escape(fund.isin || null)}, ${fund.is_active !== undefined ? fund.is_active : true}, ${now}, ${now})`
     ).join(',');
 
@@ -82,7 +82,7 @@ export const fundModel = {
         last_synced_at = VALUES(last_synced_at)
     `;
 
-      return db.run(query);
+    return db.run(query);
   },
 
   /**
@@ -114,7 +114,7 @@ export const fundModel = {
       params.push(options.limit);
     }
 
-      return db.query(query, params);
+    return db.query(query, params);
   },
 
   /**
@@ -144,7 +144,7 @@ export const fundModel = {
       params.push(filters.limit);
     }
 
-      return db.query(query, params);
+    return db.query(query, params);
   },
 
   /**
@@ -168,7 +168,7 @@ export const fundModel = {
       params.push(options.limit);
     }
 
-      return db.query(query, params);
+    return db.query(query, params);
   },
 
   /**
@@ -186,7 +186,7 @@ export const fundModel = {
       WHERE scheme_code IN (${placeholders})
     `;
 
-      return db.run(query, [Date.now(), ...schemeCodes]);
+    return db.run(query, [Date.now(), ...schemeCodes]);
   },
 
   /**
@@ -204,7 +204,7 @@ export const fundModel = {
       WHERE scheme_code IN (${placeholders})
     `;
 
-      return db.run(query, [Date.now(), ...schemeCodes]);
+    return db.run(query, [Date.now(), ...schemeCodes]);
   },
 
   /**
@@ -249,7 +249,43 @@ export const fundModel = {
       params.push(filters.fundHouse);
     }
 
-      const row = await db.queryOne(query, params);
-      return row ? row.total : 0;
+    const row = await db.queryOne(query, params);
+    return row ? row.total : 0;
+  },
+
+  /**
+   * Update fund metadata (category, ISIN, etc.)
+   * @param {number} schemeCode - Scheme code
+   * @param {Object} meta - Metadata key-values
+   * @returns {Promise} Execution result
+   */
+  async updateMeta(schemeCode, meta) {
+    const fields = [];
+    const values = [];
+
+    if (meta.scheme_category !== undefined) {
+      fields.push('scheme_category = ?');
+      values.push(meta.scheme_category);
+    }
+    if (meta.isin !== undefined) {
+      fields.push('isin = ?');
+      values.push(meta.isin);
+    }
+    if (meta.fund_house !== undefined) {
+      fields.push('fund_house = ?');
+      values.push(meta.fund_house);
+    }
+
+    if (fields.length === 0) return { affectedRows: 0 };
+
+    // Update timestamp
+    fields.push('updated_at = ?');
+    values.push(Date.now());
+
+    // Where clause
+    values.push(schemeCode);
+
+    const query = `UPDATE funds SET ${fields.join(', ')} WHERE scheme_code = ?`;
+    return db.run(query, values);
   }
 };

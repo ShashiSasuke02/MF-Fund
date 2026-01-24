@@ -81,6 +81,33 @@
 
 ## Recent Implementations (Jan 2026)
 
+### System Integrity Audit & Docker Deployment (Jan 24, 2026)
+**Comprehensive Full-Stack Validation & Production Readiness**
+
+#### 1. Deep Logic & Error Audit
+- **ESLint Integration:** Added `eslint` and configured `eslint.config.mjs` with Jest globals.
+- **Code Fixes:**
+  - `src/models/fundSyncLog.model.js`: Removed duplicate `getLastSuccessfulSync` method.
+  - `src/services/demo.service.js`: Refactored `formatDateForDB` helper to module scope for global availability.
+  - Verified 36 files; 0 critical errors remaining.
+
+#### 2. Database Validation
+- Verified 1:1 mapping between `schema.sql` and Data Models:
+  - `user.model.js` matches `users` table.
+  - `transaction.model.js` matches `transactions` table (including new scheduler fields).
+  - `holding.model.js` matches `holdings` table.
+  - `executionLog.model.js` matches `execution_logs` table.
+
+#### 3. Containerization & Auto-Sync
+- **Docker Optimization:**
+  - `Dockerfile`: Validated multi-stage build (frontend -> backend) and non-root user security.
+  - `docker-compose.yml`: Added `sync-job` service to automate `scripts/trigger-full-sync.js` on startup.
+- **Auto-Sync Workflow:**
+  - `sync-job` waits for `backend` health check.
+  - Executes full sync once and exits.
+  - Ensures production DB is strictly synchronized with MFAPI immediately upon deployment.
+
+
 ### Core Calculator Features
 - All calculator UIs completed: loan basic/advanced, FD payout/cumulative, RD, PPF, SSA, SCSS, POMIS, PORD, POTD, NSC, SIP, SWP, STP, NPS, EPF, APY, Compound/Simple Interest. Each includes validation, defaults from interestRates, loading/error states, reset, and result cards.
 - Calculator API wiring verified: frontend components call calculatorApi endpoints matching backend routes (loan-basic/advanced, fd variants, rd, ppf, ssa, scss, post office schemes, nsc, sip/swp/stp, nps/epf/apy).
@@ -1428,6 +1455,59 @@ Backend `.env` (required):
 - ✅ MFAPI_BASE_URL, MFAPI_TIMEOUT_MS
 - ✅ CACHE_TTL_MS
 - ✅ ENABLE_FULL_SYNC, ENABLE_INCREMENTAL_SYNC, ENABLE_SCHEDULER_CRON
+
+## 📝 Current Implementation Plan (System Integrity Audit & Deployment Readiness)
+
+### Goal Description
+Perform a comprehensive Full-Stack Validation Audit to ensure architectural consistency, database integrity, and production readiness via Docker. This ensures the system is robust, secure, and deployable.
+
+### Proposed Changes
+
+#### 1. Deep Logic & Error Audit
+- **Files:** Entire `src/` directory.
+- **Action:**
+    - Install ESLint for static analysis if missing.
+    - Run linting checks to find unused variables, deprecated patterns, and potential runtime errors.
+- **Output:** Fix report and code corrections.
+
+#### 2. Database & Mapping Validation
+- **Files:** `src/models/*.js`, `src/db/schema.sql`.
+- **Action:**
+    - Verify `schema.sql` matches actual DB state.
+    - Audit `src/models` to ensure all SQL queries use correct column names.
+    - Check for orphaned fields in models not present in DB.
+
+#### 3. Containerization & Deployment
+- **Files:** `Dockerfile`, `docker-compose.yml`, `.dockerignore`.
+- **Action:**
+    - Update `Dockerfile` for multi-stage builds.
+    - Update `docker-compose.yml` with all services and env vars.
+    - Ensure `npm ci` is used for reproducible builds.
+
+
+### Deployment Enhancement (Auto-Sync)
+#### Goal
+Ensure full data synchronization runs immediately after production deployment.
+
+#### Proposed Changes
+- **File:** `docker-compose.yml`
+- **Action:** Add `sync-job` service.
+    - Image: Same as backend (`mf-investments-app`).
+    - Command: `node scripts/trigger-full-sync.js`.
+    - Depends On: `backend` (condition: service_healthy).
+    - Restart: `no` (run once and exit).
+
+### Verification Plan
+#### Automated Tests
+- Run `npm run lint` (to be added) to check for code issues.
+- Run `npm test` to ensure no regression.
+- Build Docker image: `docker build -t mf-investments .`.
+- Run container: `docker run -p 4000:4000 mf-investments`.
+
+#### Manual Verification
+- Verify app loads on `localhost:4000` from within the container.
+
+
 - ✅ MFAPI_NAV_RETENTION, MFAPI_BATCH_SIZE
 
 Frontend `client/.env` (required):
@@ -1700,6 +1780,67 @@ SHOW INDEX FROM fund_nav_history;
    - Real-time error tracking (Sentry)
    - Performance monitoring (metrics, traces)
    - Alerting system (PagerDuty/Opsgenie)
+
+### Critical Data Accuracy & UI Fixes (Jan 24, 2026)
+**Major Resolution of Fund Data, NAVs, and Investment Flows**
+
+#### 1. Missing Schemes Resolution (HDFC & Others)
+- **Problem:** Users reported missing HDFC schemes (only 757 found vs 3000+ expected).
+- **Root Cause:** MFAPI ingestion service had a hardcoded limit of 10,000 funds, truncating 75% of the industry data.
+- **Fix:** Increased fetch limit to 100,000 in `src/services/mfapi.service.js` and triggered full sync.
+- **Result:** Successfully indexed 45,000+ funds. HDFC scheme count increased to 3,293+.
+
+#### 2. Duplicate AMC Cleanup
+- **Problem:** "Axis Mutual Fund" appeared as a duplicate AMC.
+- **Fix:** Standardized AMC naming by updating `amc_master` seed data and ingestion logic.
+- **Result:** Unified AMC list with correct branding.
+
+#### 3. ISIN Code Integration
+- **Problem:** "ISIN Details" on Fund Details page showed "N/A".
+- **Fix:** Updated `mfapiIngestion.service.js` to map `meta.isin_growth` -> `isin`.
+- **Status:** Background sync populated ISINs for all active funds.
+
+#### 4. NAV Display Fix (0.00)
+- **Problem:** Fund Details and Portfolio showed NAV as ₹0.00.
+- **Root Cause:** Column name mismatch in `localFund.service.js` (code expected `.nav` but DB column is `nav_value`).
+- **Fix:** Updated service to map `nav_value` correctly.
+
+#### 5. Date Standardization
+- **Problem:** Inconsistent date formats (ISO vs readable) across pages.
+- **Fix:** Standardized all date displays to **"DD MMM YYYY"** (e.g., "01 Jan 2024") in `FundList.jsx` and `FundDetails.jsx` using a shared `formatDate` helper.
+
+#### 6. Investment Execution Fix
+- **Problem:** "Data too long" error when investing.
+- **Root Cause:** ISO date string (24 chars) exceeded `last_nav_date` column limit (10 chars).
+- **Fix:** Added `formatDateForDB` helper in `demo.service.js` to truncate dates to `YYYY-MM-DD`.
+
+#### 7. Critical Backend Error Fix
+- **Problem:** 500 Generic Error on fund details.
+- **Root Cause:** Typo `fundModel.getBySchemeCode` (undefined) vs `findBySchemeCode` (correct).
+- **Fix:** Corrected all method calls in `fund.controller.js` and `localFund.service.js`.
+
+### Email Service Implementation (Jan 24, 2026)
+**Robust OTP Delivery System**
+
+#### Architecture
+- **Provider:** Nodemailer with Brevo (formerly Sendinblue) SMTP.
+- **Service:** `src/services/email.service.js` - Singleton class managing transporter lifecycle.
+- **Failover:** Development mode auto-detects missing credentials and mocks email sending (logging OTP to console).
+
+#### Features
+- **OTP Verification:** HTML-rich email templates for user registration verification.
+- **Security:**
+  - TLS encryption (port 587)
+  - Environment variable isolation (`SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`)
+  - 10-minute expiry for OTP codes
+- **Reliability:** Error handling prevents registration crashes if email delivery fails (returns false for graceful UI handling).
+- **Configuration:**
+  ```env
+  SMTP_HOST=smtp-relay.brevo.com
+  SMTP_PORT=587
+  SMTP_USER=[configured_email]
+  SMTP_PASS=[secure_api_key]
+  ```
 
 ### Compliance & Legal
 

@@ -63,7 +63,7 @@ export const mfapiIngestionService = {
           const transformed = this.transformFundData(fund);
           await fundModel.upsertFund(transformed);
           stats.inserted++;
-          
+
           // Log progress every 500 funds
           if (stats.inserted % 500 === 0) {
             console.log(`[MFAPI Ingestion] Progress: ${stats.inserted}/${whitelistedFunds.length} funds`);
@@ -90,7 +90,7 @@ export const mfapiIngestionService = {
 
       // Step 5: Complete sync
       await fundSyncLogModel.completeSyncSuccess(syncId, stats);
-      
+
       const summary = {
         success: true,
         syncId,
@@ -104,7 +104,7 @@ export const mfapiIngestionService = {
       return summary;
     } catch (error) {
       console.error('[MFAPI Ingestion] Full sync failed:', error);
-      
+
       if (syncId) {
         await fundSyncLogModel.completeSyncFailure(syncId, error);
       }
@@ -162,7 +162,7 @@ export const mfapiIngestionService = {
       return summary;
     } catch (error) {
       console.error('[MFAPI Ingestion] Incremental sync failed:', error);
-      
+
       if (syncId) {
         await fundSyncLogModel.completeSyncFailure(syncId, error);
       }
@@ -216,7 +216,7 @@ export const mfapiIngestionService = {
     for (let i = 0; i < schemeCodes.length; i += batchSize) {
       const batch = schemeCodes.slice(i, i + batchSize);
       const batchNumber = Math.floor(i / batchSize) + 1;
-      
+
       console.log(`[MFAPI Ingestion] Batch ${batchNumber}/${totalBatches}: Processing ${batch.length} funds...`);
 
       // Process batch with concurrency limit
@@ -224,20 +224,29 @@ export const mfapiIngestionService = {
         try {
           // Fetch latest NAV from MFAPI
           const navData = await mfApiService.getLatestNAV(schemeCode);
-          
+
           if (navData && navData.data && navData.data.length > 0) {
             const latestNav = navData.data[0];
-            
+
             // Upsert NAV record
             await fundNavHistoryModel.upsertNavRecord(
               schemeCode,
               latestNav.date,
               parseFloat(latestNav.nav)
             );
-            
+
+            // Update Fund Metadata (Category, ISIN) from Meta
+            if (navData.meta) {
+              await fundModel.updateMeta(schemeCode, {
+                scheme_category: navData.meta.scheme_category,
+                fund_house: navData.meta.fund_house, // Ensure fund house is accurate from source
+                isin: navData.meta.isin_growth || navData.meta.isin_div_reinvestment
+              });
+            }
+
             // Auto-cleanup: Keep only latest 30 records
             await fundNavHistoryModel.deleteOldRecords(schemeCode, NAV_RETENTION_COUNT);
-            
+
             stats.navInserted++;
           } else {
             stats.errors++;
@@ -315,10 +324,10 @@ export const mfapiIngestionService = {
     if (!schemeName) return null;
 
     const nameLower = schemeName.toLowerCase();
-    
+
     if (nameLower.includes('direct')) return 'DIRECT';
     if (nameLower.includes('regular')) return 'REGULAR';
-    
+
     return null;
   },
 

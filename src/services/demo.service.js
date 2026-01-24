@@ -18,6 +18,28 @@ const logError = (...args) => {
   if (!isTestEnv) console.error(...args);
 };
 
+// Helper to format date for DB (YYYY-MM-DD)
+const formatDateForDB = (date) => {
+  if (!date) return null;
+  // If it's already a Date object
+  if (date instanceof Date) {
+    return date.toISOString().split('T')[0];
+  }
+  // If string, try to parse
+  if (typeof date === 'string') {
+    // If it's already short enough, return as is (assuming valid)
+    if (date.length <= 10) return date;
+    // If ISO string
+    if (date.includes('T')) return date.split('T')[0];
+    try {
+      return new Date(date).toISOString().split('T')[0];
+    } catch (e) {
+      return date.substring(0, 10);
+    }
+  }
+  return null;
+};
+
 export const demoService = {
   /**
    * Execute a transaction (SIP, STP, Lump Sum, SWP)
@@ -127,6 +149,10 @@ export const demoService = {
         log('[Demo Service] Transaction pending - balance not updated yet');
       }
 
+
+
+      // ... existing code ...
+
       // Update or create holding only if transaction is executed immediately (not pending)
       if (transactionStatus === 'SUCCESS') {
         const existingHolding = await holdingModel.findByScheme(userId, schemeCode);
@@ -140,7 +166,7 @@ export const demoService = {
             investedAmount: existingHolding.invested_amount + amount,
             currentValue: (existingHolding.total_units + units) * latestNav,
             lastNav: latestNav,
-            lastNavDate: fundDetails.latestNav?.date
+            lastNavDate: formatDateForDB(fundDetails.latestNav?.date)
           });
         } else {
           await holdingModel.upsert({
@@ -151,7 +177,7 @@ export const demoService = {
             investedAmount: amount,
             currentValue: units * latestNav,
             lastNav: latestNav,
-            lastNavDate: fundDetails.latestNav?.date
+            lastNavDate: formatDateForDB(fundDetails.latestNav?.date)
           });
         }
       } else {
@@ -274,7 +300,7 @@ export const demoService = {
               userId,
               holding.scheme_code,
               latestNav,
-              latestData.date
+              formatDateForDB(latestData.date)
             );
 
             // Calculate invested NAV (average purchase price per unit)

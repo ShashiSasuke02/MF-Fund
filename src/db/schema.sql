@@ -20,7 +20,13 @@ CREATE TABLE IF NOT EXISTS api_cache (
 INSERT IGNORE INTO amc_master (fund_house, display_name, display_order) VALUES
     ('SBI Mutual Fund', 'SBI Mutual Fund', 1),
     ('ICICI Prudential Mutual Fund', 'ICICI Prudential Mutual Fund', 2),
-    ('HDFC Mutual Fund', 'HDFC Mutual Fund', 3);
+    ('HDFC Mutual Fund', 'HDFC Mutual Fund', 3),
+    ('Nippon India Mutual Fund', 'Nippon India Mutual Fund', 4),
+    ('Kotak Mahindra Mutual Fund', 'Kotak Mahindra Mutual Fund', 5),
+    ('Aditya Birla Sun Life Mutual Fund', 'Aditya Birla Sun Life Mutual Fund', 6),
+    ('Axis Mutual Fund', 'Axis Mutual Fund', 7),
+    ('UTI Mutual Fund', 'UTI Mutual Fund', 8),
+    ('Mirae Asset Mutual Fund', 'Mirae Asset Mutual Fund', 9);
 
 -- Users table for demo account holders
 CREATE TABLE IF NOT EXISTS users (

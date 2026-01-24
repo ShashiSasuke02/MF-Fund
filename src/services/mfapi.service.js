@@ -37,13 +37,13 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
  */
 async function fetchWithRetry(fetchFn, maxRetries = 3, baseDelayMs = 1000) {
   let lastError;
-  
+
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       return await fetchFn();
     } catch (error) {
       lastError = error;
-      
+
       // Handle rate limiting (429) with longer delay
       if (error.response && error.response.status === 429) {
         if (attempt < maxRetries - 1) {
@@ -55,12 +55,12 @@ async function fetchWithRetry(fetchFn, maxRetries = 3, baseDelayMs = 1000) {
         // On final attempt, throw error with helpful message
         throw new Error('API rate limit exceeded. Please try again in a few moments.');
       }
-      
+
       // Don't retry on other client errors (4xx)
       if (error.response && error.response.status >= 400 && error.response.status < 500) {
         throw error;
       }
-      
+
       // Exponential backoff for server errors and network issues
       if (attempt < maxRetries - 1) {
         const delay = baseDelayMs * Math.pow(2, attempt);
@@ -69,7 +69,7 @@ async function fetchWithRetry(fetchFn, maxRetries = 3, baseDelayMs = 1000) {
       }
     }
   }
-  
+
   throw lastError;
 }
 
@@ -85,19 +85,19 @@ class MFApiService {
   async searchSchemes(query) {
     const cacheKey = `search_${query.toLowerCase()}`;
     const cached = await cacheService.get(cacheKey);
-    
+
     if (cached) {
       console.log(`[MFApi] Cache hit for search: ${query}`);
       return cached;
     }
-    
+
     const data = await fetchWithRetry(async () => {
       const response = await apiClient.get('/mf/search', {
         params: { q: query }
       });
       return response.data;
     });
-    
+
     // Cache search results for 1 hour
     await cacheService.set(cacheKey, data, CACHE_TTL_LATEST_NAV);
     return data;
@@ -112,19 +112,19 @@ class MFApiService {
   async getSchemes(limit = 1000, offset = 0) {
     const cacheKey = `schemes_${limit}_${offset}`;
     const cached = await cacheService.get(cacheKey);
-    
+
     if (cached) {
       console.log(`[MFApi] Cache hit for schemes list`);
       return cached;
     }
-    
+
     const data = await fetchWithRetry(async () => {
       const response = await apiClient.get('/mf', {
         params: { limit, offset }
       });
       return response.data;
     });
-    
+
     await cacheService.set(cacheKey, data, CACHE_TTL_LATEST_NAV);
     return data;
   }
@@ -138,19 +138,19 @@ class MFApiService {
   async getLatestNAVAll(limit = 10000, offset = 0) {
     const cacheKey = `latest_nav_all_${limit}_${offset}`;
     const cached = await cacheService.get(cacheKey);
-    
+
     if (cached) {
       console.log(`[MFApi] Cache hit for latest NAV all`);
       return cached;
     }
-    
+
     const data = await fetchWithRetry(async () => {
       const response = await apiClient.get('/mf/latest', {
         params: { limit, offset }
       });
       return response.data;
     });
-    
+
     await cacheService.set(cacheKey, data, CACHE_TTL_LATEST_NAV);
     return data;
   }
@@ -163,17 +163,17 @@ class MFApiService {
   async getLatestNAV(schemeCode) {
     const cacheKey = `latest_nav_${schemeCode}`;
     const cached = await cacheService.get(cacheKey);
-    
+
     if (cached) {
       console.log(`[MFApi] Cache hit for latest NAV: ${schemeCode}`);
       return cached;
     }
-    
+
     const data = await fetchWithRetry(async () => {
       const response = await apiClient.get(`/mf/${schemeCode}/latest`);
       return response.data;
     });
-    
+
     await cacheService.set(cacheKey, data, CACHE_TTL_SCHEME_DETAILS);
     return data;
   }
@@ -188,21 +188,21 @@ class MFApiService {
   async getNAVHistory(schemeCode, startDate = null, endDate = null) {
     const cacheKey = `nav_history_${schemeCode}_${startDate || 'all'}_${endDate || 'all'}`;
     const cached = await cacheService.get(cacheKey);
-    
+
     if (cached) {
       console.log(`[MFApi] Cache hit for NAV history: ${schemeCode}`);
       return cached;
     }
-    
+
     const params = {};
     if (startDate) params.startDate = startDate;
     if (endDate) params.endDate = endDate;
-    
+
     const data = await fetchWithRetry(async () => {
       const response = await apiClient.get(`/mf/${schemeCode}`, { params });
       return response.data;
     });
-    
+
     await cacheService.set(cacheKey, data, CACHE_TTL_NAV_HISTORY);
     return data;
   }
@@ -216,13 +216,13 @@ class MFApiService {
   async getSchemesByFundHouse(fundHouse) {
     // Fetch all latest NAV (cached)
     const allSchemes = await this.getLatestNAVAll(10000, 0);
-    
+
     // Filter by fund house (case-insensitive partial match)
-    const filtered = allSchemes.filter(scheme => 
-      scheme.fundHouse && 
+    const filtered = allSchemes.filter(scheme =>
+      scheme.fundHouse &&
       scheme.fundHouse.toLowerCase().includes(fundHouse.toLowerCase())
     );
-    
+
     return filtered;
   }
 
@@ -234,29 +234,29 @@ class MFApiService {
   async getSchemeDetails(schemeCode) {
     // Get latest NAV
     const latestData = await this.getLatestNAV(schemeCode);
-    
+
     // Get NAV history for last 180 days for performance calculation
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 180);
-    
+
     const formatDate = (d) => d.toISOString().split('T')[0];
-    
+
     let historyData;
     try {
       historyData = await this.getNAVHistory(
-        schemeCode, 
-        formatDate(startDate), 
+        schemeCode,
+        formatDate(startDate),
         formatDate(endDate)
       );
     } catch (e) {
       console.log(`[MFApi] Could not fetch history for ${schemeCode}:`, e.message);
       historyData = null;
     }
-    
+
     // Compute performance metrics
     const performance = this.computePerformance(historyData?.data || []);
-    
+
     return {
       meta: latestData.meta,
       latestNAV: latestData.data?.[0] || null,
@@ -275,28 +275,28 @@ class MFApiService {
     if (!navData || navData.length < 2) {
       return { oneMonth: null, threeMonth: null, sixMonth: null };
     }
-    
+
     const latestNAV = parseFloat(navData[0]?.nav);
     if (isNaN(latestNAV)) {
       return { oneMonth: null, threeMonth: null, sixMonth: null };
     }
-    
+
     // Parse date from DD-MM-YYYY format
     const parseDate = (dateStr) => {
       const [day, month, year] = dateStr.split('-').map(Number);
       return new Date(year, month - 1, day);
     };
-    
+
     const latestDate = parseDate(navData[0].date);
-    
+
     // Find NAV closest to target days ago
     const findNAVDaysAgo = (daysAgo) => {
       const targetDate = new Date(latestDate);
       targetDate.setDate(targetDate.getDate() - daysAgo);
-      
+
       let closest = null;
       let minDiff = Infinity;
-      
+
       for (const item of navData) {
         const itemDate = parseDate(item.date);
         const diff = Math.abs(itemDate - targetDate);
@@ -305,23 +305,23 @@ class MFApiService {
           closest = item;
         }
       }
-      
+
       // Only return if within 7 days of target
       if (minDiff <= 7 * 24 * 60 * 60 * 1000) {
         return parseFloat(closest.nav);
       }
       return null;
     };
-    
+
     const nav1m = findNAVDaysAgo(30);
     const nav3m = findNAVDaysAgo(90);
     const nav6m = findNAVDaysAgo(180);
-    
+
     const calcReturn = (oldNAV) => {
       if (!oldNAV) return null;
       return ((latestNAV - oldNAV) / oldNAV * 100).toFixed(2);
     };
-    
+
     return {
       oneMonth: calcReturn(nav1m),
       threeMonth: calcReturn(nav3m),
@@ -334,7 +334,7 @@ class MFApiService {
    * @returns {Promise<Array>} - Array of all fund objects
    */
   async getAllFunds() {
-    return this.getSchemes(10000, 0);
+    return this.getSchemes(100000, 0);
   }
 }
 

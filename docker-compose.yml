@@ -95,6 +95,41 @@ services:
           memory: 256M
 
   # ---------------------------------------------------------------------------
+  # Sync Job (Runs once after backend is up)
+  # ---------------------------------------------------------------------------
+  sync-job:
+    image: mf-investments-app # Re-use built image
+    container_name: mf-investments-sync
+    restart: "no"
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: ["node", "scripts/trigger-full-sync.js"]
+    environment:
+      # Server (Required for DB access)
+      NODE_ENV: production
+      
+      # Database
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${DB_USER:-mf_user}
+      DB_PASSWORD: ${DB_PASSWORD:-mf_password_2024}
+      DB_NAME: ${DB_NAME:-mf_selection_app}
+      
+      # MFAPI Configuration
+      MFAPI_BASE_URL: https://api.mfapi.in
+      MFAPI_TIMEOUT_MS: 15000
+      ENABLE_FULL_SYNC: "true"
+      
+    networks:
+      - mf-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+
+  # ---------------------------------------------------------------------------
   # Nginx Reverse Proxy (Optional - for production with SSL)
   # ---------------------------------------------------------------------------
   nginx:

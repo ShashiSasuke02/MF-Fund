@@ -249,3 +249,31 @@ When user's prompt is NOT in English:
 | Playwright | `.agent/skills/webapp-testing/scripts/playwright_runner.py` |
 
 ---
+## 📝 PROJECT PROTOCOL: NEWTASK-FIRST
+> **Priority Rule:** The file `newtask.md` in the root directory is the Source of Truth.
+
+1. **Discovery:** Before any implementation, READ `newtask.md` to find the existing structure and project state.
+2. **Strategy:** Plan your implementation strategy first and write it into the "Implementation Plan" section of `newtask.md`.
+3. **Execution:** Implement code ONLY after the plan is recorded.
+4. **Synchronization:** After every change, UPDATE `newtask.md` with:
+   - New Data Structures (DB schemas, JSON shapes).
+   - Implementation details (Logic flow, new files).
+   - Updated system state.
+
+## 🔍 Existing Structure & UI Standards
+- **DB Schema:** [e.g., mf_selection.users]
+- **Design Tokens:** [e.g., Primary Green: #24D17E, Font: Inter]
+- **Key Files:** [List core controllers/routes]
+
+## 📝 Current Implementation Plan
+## ✅ Completed Implementation Details
+- **New Logic:** - **Data Structures:**
+- **UI Changes:** ```
+
+### 🔍 Audit & Deploy Phase
+1. **Validation:** Before declaring a task "Done," cross-verify SQL queries against the schema in `db/`.
+2. **Schema Mapping:** Ensure `models/` and `controllers/` use identical field names as the DB.
+3. **Container Update:** If a new library or env variable is added, update the `Dockerfile` immediately.
+4. **Final Sync:** Document any schema changes in the "Implementation Details" of `newtask.md`.
+
+---

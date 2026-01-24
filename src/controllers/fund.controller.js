@@ -66,7 +66,7 @@ export const fundController = {
       }
 
       // Get fund info from local DB
-      const fund = await fundModel.getBySchemeCode(code);
+      const fund = await fundModel.findBySchemeCode(code);
 
       // Get latest NAV from LOCAL DATABASE
       const navData = await localFundService.getLatestNAV(code);
@@ -126,7 +126,7 @@ export const fundController = {
       }
 
       // Get fund info
-      const fund = await fundModel.getBySchemeCode(code);
+      const fund = await fundModel.findBySchemeCode(code);
 
       // Get NAV history from LOCAL DATABASE
       const limitNum = limit ? parseInt(limit, 10) : 30;

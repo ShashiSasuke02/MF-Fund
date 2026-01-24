@@ -41,19 +41,52 @@ export function AuthProvider({ children }) {
     try {
       // Clear any existing auth state before registration
       logout();
-      
+
       const response = await authApi.register(userData);
-      if (response.success) {
-        // Set token first to ensure it's available for subsequent API calls
+
+      // If verification is required (Stage 1 success)
+      if (response.success && response.data?.step === 'VERIFICATION_REQUIRED') {
+        return {
+          success: true,
+          step: 'VERIFICATION_REQUIRED',
+          emailId: response.data.emailId
+        };
+      }
+
+      // Fallback for immediate registration (legacy or testing)
+      if (response.success && response.data?.token) {
         setAuthToken(response.data.token);
-        
-        // Then update state
         setUser(response.data.user);
         setDemoAccount(response.data.demoAccount);
         setIsAuthenticated(true);
-        
+        return { success: true, step: 'COMPLETE' };
+      }
+
+      return { success: false, error: 'Unexpected response from server' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  };
+
+  const verifyOtp = async (emailId, otp) => {
+    try {
+      const response = await authApi.verifyOtp({ emailId, otp });
+      if (response.success) {
+        setAuthToken(response.data.token);
+        setUser(response.data.user);
+        setDemoAccount(response.data.demoAccount);
+        setIsAuthenticated(true);
         return { success: true };
       }
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  };
+
+  const resendOtp = async (emailId) => {
+    try {
+      const response = await authApi.resendOtp({ emailId });
+      return { success: response.success, message: response.message };
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -63,21 +96,21 @@ export function AuthProvider({ children }) {
     try {
       // Clear any existing auth state before login
       logout();
-      
+
       const response = await authApi.login(credentials);
       if (response.success) {
         // Set token first to ensure it's available for subsequent API calls
         setAuthToken(response.data.token);
-        
+
         // Then update state
         setUser(response.data.user);
         setDemoAccount(response.data.demoAccount);
         setPortfolioSummary(response.data.portfolio); // Store portfolio summary from login
         setIsAuthenticated(true);
-        
-        return { 
-          success: true, 
-          portfolio: response.data.portfolio 
+
+        return {
+          success: true,
+          portfolio: response.data.portfolio
         };
       }
     } catch (error) {
@@ -111,6 +144,8 @@ export function AuthProvider({ children }) {
     loading,
     isAuthenticated,
     register,
+    verifyOtp,
+    resendOtp,
     login,
     logout,
     refreshBalance
