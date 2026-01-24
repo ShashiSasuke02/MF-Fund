@@ -11,7 +11,7 @@ const createAdminUser = async () => {
   try {
     console.log('[Admin Setup] Initializing database...');
     await initializeDatabase();
-    
+
     console.log('[Admin Setup] Starting admin user creation...');
 
     const username = 'Shashi';
@@ -41,9 +41,9 @@ const createAdminUser = async () => {
     // Insert user
     console.log('[Admin Setup] Creating user...');
     const userResult = await run(
-      `INSERT INTO users (username, email_id, full_name, password_hash) 
-       VALUES (?, ?, ?, ?)`,
-      [username, email, fullName, passwordHash]
+      `INSERT INTO users (username, email_id, full_name, password_hash, role) 
+       VALUES (?, ?, ?, ?, ?)`,
+      [username, email, fullName, passwordHash, 'admin']
     );
 
     const userId = userResult.lastInsertRowid;

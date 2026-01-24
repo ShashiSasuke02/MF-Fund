@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
     email_id VARCHAR(255) NOT NULL,
     username VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'user',
     created_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000),
     updated_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000),
     INDEX idx_users_username (username),
