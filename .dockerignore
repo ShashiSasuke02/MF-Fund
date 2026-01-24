@@ -40,12 +40,6 @@ tests/
 coverage/
 .nyc_output/
 
-# Scripts not needed at runtime
-scripts/
-debug-*.js
-trigger-sync.js
-update-admin-password.js
-
 # OS files
 .DS_Store
 Thumbs.db
