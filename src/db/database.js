@@ -19,7 +19,7 @@ function createPool() {
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'mf_selection_app',
     waitForConnections: true,
-    connectionLimit: 10,
+    connectionLimit: 30,
     queueLimit: 0,
     enableKeepAlive: true,
     keepAliveInitialDelay: 0

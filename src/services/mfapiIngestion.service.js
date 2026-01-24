@@ -23,8 +23,8 @@ const AMC_WHITELIST = [
 ];
 
 const NAV_RETENTION_COUNT = 30; // Keep latest 30 NAV records per fund
-const BATCH_SIZE = parseInt(process.env.MFAPI_BATCH_SIZE) || 50;
-const RATE_LIMIT_DELAY = 500; // 500ms delay between batches
+const BATCH_SIZE = parseInt(process.env.MFAPI_BATCH_SIZE) || 10; // Reduced to prevent DB connection pool exhaustion
+const RATE_LIMIT_DELAY = 1000; // 1s delay between batches for connection cleanup
 
 export const mfapiIngestionService = {
   /**
