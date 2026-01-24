@@ -39,26 +39,26 @@ export async function initializeDatabase() {
     // Test connection
     const connection = await pool.getConnection();
     console.log('MySQL database connected successfully');
-    
+
     // Read and execute schema
     const schemaPath = path.join(__dirname, 'schema.sql');
     const schema = fs.readFileSync(schemaPath, 'utf-8');
-    
+
     // Split schema into individual statements and execute
     const statements = schema
       .split(';')
       .map(stmt => stmt.trim())
       .filter(stmt => stmt.length > 0);
-    
+
     for (const statement of statements) {
       if (statement) {
         await connection.query(statement);
       }
     }
-    
+
     connection.release();
     console.log('Database schema initialized successfully');
-    
+
     return pool;
   } catch (error) {
     console.error('Database initialization error:', error);
@@ -82,7 +82,7 @@ export function getDatabase() {
 export async function query(sql, params = []) {
   const database = getDatabase();
   try {
-    const [rows] = await database.execute(sql, params);
+    const [rows] = await database.query(sql, params);
     return rows;
   } catch (error) {
     console.error('Query error:', error);
@@ -106,8 +106,8 @@ export async function queryOne(sql, params = []) {
 export async function run(sql, params = []) {
   const database = getDatabase();
   try {
-    const [result] = await database.execute(sql, params);
-    
+    const [result] = await database.query(sql, params);
+
     return {
       changes: result.affectedRows || 0,
       lastInsertRowid: result.insertId || 0
