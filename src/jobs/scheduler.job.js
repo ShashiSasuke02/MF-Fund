@@ -5,6 +5,8 @@ export { cronRegistry };
 import { cronJobLogModel } from '../models/cronJobLog.model.js';
 import { schedulerService } from '../services/scheduler.service.js';
 import { mfapiIngestionService } from '../services/mfapiIngestion.service.js';
+import { cronNotificationService } from '../services/cronNotification.service.js';
+
 
 /**
  * executeJobWrapper
@@ -43,6 +45,10 @@ const executeJobWrapper = async (jobName, handler, triggeredBy = 'SCHEDULE') => 
                 message: result ? JSON.stringify(result) : 'Completed successfully'
             });
         }
+
+        // Notify for daily report
+        await cronNotificationService.onJobComplete(jobName, 'SUCCESS', result, null, duration);
+
         return { success: true, result };
 
     } catch (error) {
@@ -58,9 +64,14 @@ const executeJobWrapper = async (jobName, handler, triggeredBy = 'SCHEDULE') => 
                 error_details: error.message + '\n' + error.stack
             });
         }
+
+        // Notify for daily report (even on failure)
+        await cronNotificationService.onJobComplete(jobName, 'FAILED', null, error.message, duration);
+
         throw error;
     }
 };
+
 
 /**
  * Initialize Scheduler Jobs
