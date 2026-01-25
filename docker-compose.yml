@@ -144,6 +144,34 @@ services:
         limits:
           memory: 256M
 
+  # ---------------------------------------------------------------------------
+  # Seed Admin Job (Creates default admin user after fresh install)
+  # ---------------------------------------------------------------------------
+  seed-admin-job:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mf-investments-app
+    container_name: mf-investments-seed-admin
+    restart: "no"
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: ["node", "scripts/seed-admin.js"]
+    environment:
+      NODE_ENV: production
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${DB_USER:-mf_user}
+      DB_PASSWORD: ${DB_PASSWORD:-mf_password_2024}
+      DB_NAME: ${DB_NAME:-mf_selection_app}
+    networks:
+      - mf-network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
 
   # ---------------------------------------------------------------------------
   # Nginx Reverse Proxy (Optional - for production with SSL)
