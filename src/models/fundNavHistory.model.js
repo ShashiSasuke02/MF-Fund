@@ -81,7 +81,7 @@ export const fundNavHistoryModel = {
    */
   async getNavByDate(schemeCode, navDate) {
     const formattedDate = this.formatDateForDB(navDate);
-      return db.queryOne(`SELECT * FROM fund_nav_history WHERE scheme_code = ? AND nav_date = ?`, [schemeCode, formattedDate]);
+    return db.queryOne(`SELECT * FROM fund_nav_history WHERE scheme_code = ? AND nav_date = ?`, [schemeCode, formattedDate]);
   },
 
   /**
@@ -161,18 +161,18 @@ export const fundNavHistoryModel = {
    */
   formatDateForDB(date) {
     if (!date) return null;
-    
+
     // If already in YYYY-MM-DD format, return as is
     if (date.match(/^\d{4}-\d{2}-\d{2}$/)) {
       return date;
     }
-    
+
     // Convert DD-MM-YYYY to YYYY-MM-DD
     if (date.match(/^\d{2}-\d{2}-\d{4}$/)) {
       const [day, month, year] = date.split('-');
       return `${year}-${month}-${day}`;
     }
-    
+
     return date;
   }
 };

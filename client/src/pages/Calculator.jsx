@@ -20,7 +20,7 @@ import POTDCalculator from '../components/calculators/POTDCalculator';
 import NSCCalculator from '../components/calculators/NSCCalculator';
 import SIPCalculator from '../components/calculators/SIPCalculator';
 import SWPCalculator from '../components/calculators/SWPCalculator';
-import STPCalculator from '../components/calculators/STPCalculator';
+
 import NPSCalculator from '../components/calculators/NPSCalculator';
 import EPFCalculator from '../components/calculators/EPFCalculator';
 import APYCalculator from '../components/calculators/APYCalculator';
@@ -58,7 +58,7 @@ const CALCULATOR_CATEGORIES = {
     calculators: [
       { id: 'sip', name: 'SIP Calculator', component: SIPCalculator },
       { id: 'swp', name: 'SWP Calculator', component: SWPCalculator },
-      { id: 'stp', name: 'STP Calculator', component: STPCalculator }
+
     ]
   },
   retirement: {
@@ -117,7 +117,7 @@ export default function Calculator() {
         {/* Decorative blob */}
         <div className="absolute top-0 -left-4 w-72 h-72 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob pointer-events-none"></div>
         <div className="absolute top-0 -right-4 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000 pointer-events-none"></div>
-        
+
         <div className="relative">
           <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center">
             <svg className="w-10 h-10 mr-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,11 +147,10 @@ export default function Calculator() {
                 <button
                   key={key}
                   onClick={() => setSelectedCategory(key)}
-                  className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
-                    selectedCategory === key
-                      ? 'bg-emerald-600 text-white shadow-lg'
-                      : 'bg-white text-gray-700 hover:bg-emerald-50'
-                  }`}
+                  className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${selectedCategory === key
+                    ? 'bg-emerald-600 text-white shadow-lg'
+                    : 'bg-white text-gray-700 hover:bg-emerald-50'
+                    }`}
                 >
                   <span className="text-xl">{category.icon}</span>
                   <span className="text-sm sm:text-base">{category.name}</span>
@@ -172,10 +171,10 @@ export default function Calculator() {
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors">
                     {calculator.name}
                   </h3>
-                  <svg 
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 group-hover:translate-x-1 transition-transform" 
-                    fill="none" 
-                    stroke="currentColor" 
+                  <svg
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 group-hover:translate-x-1 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

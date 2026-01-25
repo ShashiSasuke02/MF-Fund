@@ -206,20 +206,32 @@ export const demoService = {
         throw new Error('Insufficient units for withdrawal');
       }
 
-      // Determine transaction status based on start date
-      let transactionStatus = 'SUCCESS';
-
-      // For SWP transactions with future start date, set status to PENDING
-      if (startDate) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Reset time to start of day
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
-
-        if (start > today) {
-          transactionStatus = 'PENDING';
-        }
+      // SWP Constraints: Frequency must be MONTHLY or QUARTERLY
+      if (frequency !== 'MONTHLY' && frequency !== 'QUARTERLY') {
+        throw new Error('SWP frequency must be MONTHLY or QUARTERLY');
       }
+
+      // SWP Constraints: Start Date must be Next Month or later
+      if (!startDate) {
+        throw new Error('Start date is required for SWP');
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+
+      // Calculate first day of next month for validation
+      const nextMonth = new Date(today);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      nextMonth.setDate(1); // Set to 1st of next month
+
+      if (start < nextMonth) {
+        throw new Error('SWP start date must be from next month onwards');
+      }
+
+      // Status is ALWAYS PENDING for SWP as immediate execution is disabled
+      const transactionStatus = 'PENDING';
 
       // Create transaction record
       const transaction = await transactionModel.create({
@@ -234,26 +246,17 @@ export const demoService = {
         startDate,
         endDate,
         installments,
-        status: transactionStatus
+        status: transactionStatus,
+        nextExecutionDate: startDate // Schedule for the specific start date
       });
 
-      // Update demo balance and holdings only if transaction is executed immediately (not pending)
-      let newBalance = currentBalance;
-      if (transactionStatus === 'SUCCESS') {
-        // Update demo balance (credit)
-        newBalance = currentBalance + amount;
-        await demoAccountModel.updateBalance(userId, newBalance);
-
-        // Update holding (remove units)
-        await holdingModel.removeUnits(userId, schemeCode, requiredUnits, amount);
-      } else {
-        log('[Demo Service] SWP transaction pending - balance and holdings not updated yet');
-      }
+      // No immediate balance/holding update needed for PENDING
+      log('[Demo Service] SWP scheduled - pending execution on ' + startDate);
 
       return {
         transaction,
-        newBalance,
-        holding: transactionStatus === 'SUCCESS' ? await holdingModel.findByScheme(userId, schemeCode) : holding
+        newBalance: currentBalance, // Balance unchanged
+        holding // Holding unchanged
       };
     } else {
       throw new Error('Invalid transaction type');

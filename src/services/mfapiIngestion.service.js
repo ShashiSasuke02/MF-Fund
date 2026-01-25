@@ -19,7 +19,9 @@ const AMC_WHITELIST = [
   'UTI',
   'Axis',
   'Tata',
-  'Mirae Asset'
+  'Mirae Asset',
+  'DSP',
+  'Bandhan'
 ];
 
 const NAV_RETENTION_COUNT = 30; // Keep latest 30 NAV records per fund

@@ -112,7 +112,17 @@ export const amcController = {
       }
 
       // Fetch schemes from LOCAL DATABASE
-      let schemes = await localFundService.getSchemesByFundHouse(fundHouse);
+      const allSchemes = await localFundService.getSchemesByFundHouse(fundHouse);
+
+      // Extract unique categories from FULL list (before filtering)
+      // This ensures the dropdown options don't disappear when a category is selected
+      const categories = [...new Set(
+        allSchemes
+          .map(s => s.schemeCategory)
+          .filter(Boolean)
+      )].sort();
+
+      let schemes = [...allSchemes];
 
       // Apply search filter
       if (search) {
@@ -151,19 +161,12 @@ export const amcController = {
         }
       }
 
-      // Get unique categories for filter options
-      const categories = [...new Set(
-        schemes
-          .map(s => s.schemeCategory)
-          .filter(Boolean)
-      )].sort();
-
       res.json({
         success: true,
         data: {
           fundHouse,
           totalCount: schemes.length,
-          categories,
+          categories, // Returns FULL list of categories
           schemes: schemes.map(s => ({
             schemeCode: s.schemeCode,
             schemeName: s.schemeName,

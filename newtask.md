@@ -81,6 +81,71 @@
 
 ## Recent Implementations (Jan 2026)
 
+
+### Motivational SWP Notifications & Constraints (Jan 25, 2026)
+**Enhanced User Experience for Systematic Withdrawals**
+
+#### 1. "Store & Forward" Notification Architecture
+- **Problem:** Users missed SWP executions happening in background (scheduler).
+- **Solution:** Implemented `user_notifications` table to store alerts.
+- **Motivational Alerts:** System now generates enthusiastic notifications on success:
+  > *"Passive Income Alert! 🎉 High Five! Your SWP from [Scheme] executed successfully. ₹[Amount] credited."*
+- **Database Schema:** Added `user_notifications` table with fields: `title`, `message`, `type` (SUCCESS/ERROR/INFO), `is_read`.
+
+#### 2. Strict SWP Validation & Constraints
+- **Future Start Date:** Immediate execution disabled. Start dates enforced to be "Next Month" onwards.
+- **Frequency Restrictions:** Restricted SWP to `MONTHLY` and `QUARTERLY` (removed Daily/Weekly).
+- **Yearly Support:** Added `YEARLY` frequency support to scheduler logic.
+- **Edge Case Handling:** Specific notifications for "Insufficient Units" vs generic errors.
+
+#### 3. UI Refinements (Invest Page)
+- **Dynamic Labels:** Changed label to **"Withdrawal Amount"** when SWP selected.
+- **Smart Navigation:** Clicking "Load" with empty scheme code redirects to AMC Browse page.
+- **Cleanup:** Removed "Important Information" card for cleaner interface.
+
+#### 4. Backend Implementation
+- **New Model:** `src/models/notification.model.js`
+- **Updated Service:** `scheduler.service.js` (Notification integration + Yearly logic)
+- **Updated Service:** `demo.service.js` (Future date validation + Frequency constraints)
+
+### Fund Category Dropdown Fix (Jan 25, 2026)
+**Fixed Logic Error in AMC Filter Dropdown**
+- **Issue:** Selecting a category in the Fund List page caused the dropdown to lose all other options (it was filtering based on the *result* set rather than the *source* set).
+- **Fix:** Refactored `src/controllers/amc.controller.js` to extract unique categories from the full scheme list *before* applying filters.
+- **Result:** Users can now switch between categories without needing to clear filters or refresh.
+
+### STP Feature Decommissioning (Soft Removal) (Jan 25, 2026)
+**Frontend-Only Removal of Systematic Transfer Plan**
+- **Strategy:** "Soft Removal" - Hidden from UI, Backend preserved.
+- **Changes:**
+  - Removed "STP" option from **Invest Page**.
+  - Removed **STP Calculator** from Calculators list.
+  - Cleaned up AdSense strategy references.
+- **Reasoning:** Feature is dormant. Can be reactivated by reverting frontend changes.
+
+### Fundamental Data Scraper (Planned Jan 26, 2026)
+**On-Demand ETMoney Data Fetching**
+- **Goal:** Fetch deep fundamental data (Expense Ratio, Lock-in, Tax, etc.) directly from ETMoney.
+- **Architecture:** 
+  - **Service:** `src/services/etmoney.service.js` (Class-based Scraper with Search-then-Scrape logic).
+  - **Frontend:** `FundFundamentalInfo.jsx` (User-initiated "Click-to-Reveal" UI).
+- **Status:** **Reverted** (Jan 26, 2026).
+- **Note:** Feature was fully implemented but removed upon user request to keep the application lightweight.
+- **Reason:** Dormant/Cancelled feature.
+
+### AMC Duplicate Fix (Jan 26, 2026)
+**Database Cleanup for Duplicate Fund Houses**
+- **Issue:** `amc_master` table contained duplicate entries (e.g., "SBI" and "SBI Mutual Fund").
+- **Fix:** Ran cleanup script to delete redundant "Short Name" entries, retaining only official full names.
+
+### Invest Page UX Improvements (Jan 26, 2026)
+**Enhanced Error Handling & Navigation**
+- **Issue:** Clicking "Load" with empty Scheme Code caused 404 error.
+- **Fix:** Implemented auto-redirect to **AMC List (`/browse`)** when Scheme Code is empty.
+- **Benefit:** Smoother flow for users browsing for funds.
+
+
+
 ### System Integrity Audit & Docker Deployment (Jan 24, 2026)
 **Comprehensive Full-Stack Validation & Production Readiness**
 

@@ -43,14 +43,22 @@ export default function Invest() {
   }, [success, navigate]);
 
   const loadFundDetails = async () => {
+    if (!schemeCode) {
+      navigate('/browse');
+      return;
+    }
+
     try {
       setError('');
+      setLoading(true); // Optional: Add loading state interaction
       const response = await fundApi.getDetails(schemeCode);
       if (response && response.data) {
         setFundDetails(response.data);
       }
     } catch (err) {
       setError('Failed to load fund details: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -292,14 +300,14 @@ export default function Invest() {
               Transaction Type *
             </label>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {['LUMP_SUM', 'SIP', 'STP', 'SWP'].map((type) => (
+              {['LUMP_SUM', 'SIP', 'SWP'].map((type) => (
                 <button
                   key={type}
                   type="button"
                   onClick={() => setTransactionType(type)}
                   className={`px-4 py-4 rounded-xl font-semibold text-sm transition-all transform hover:scale-105 ${transactionType === type
-                      ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                    ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
                     }`}
                 >
                   <div className="flex flex-col items-center">
@@ -310,9 +318,7 @@ export default function Invest() {
                       {type === 'SIP' && (
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       )}
-                      {type === 'STP' && (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                      )}
+
                       {type === 'SWP' && (
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                       )}
@@ -330,7 +336,7 @@ export default function Invest() {
               <svg className="w-5 h-5 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
               </svg>
-              Investment Amount *
+              {transactionType === 'SWP' ? 'Withdrawal Amount *' : 'Investment Amount *'}
             </label>
             <div className="relative">
               <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 font-semibold text-lg">₹</span>
@@ -342,7 +348,7 @@ export default function Invest() {
                 value={formData.amount}
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-lg font-semibold"
-                placeholder="Enter investment amount"
+                placeholder={transactionType === 'SWP' ? "Enter withdrawal amount" : "Enter investment amount"}
                 required
               />
             </div>
@@ -372,8 +378,12 @@ export default function Invest() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all appearance-none bg-white"
                   required
                 >
-                  <option value="DAILY">Daily</option>
-                  <option value="WEEKLY">Weekly</option>
+                  {transactionType !== 'SWP' && (
+                    <>
+                      <option value="DAILY">Daily</option>
+                      <option value="WEEKLY">Weekly</option>
+                    </>
+                  )}
                   <option value="MONTHLY">Monthly (Recommended)</option>
                   <option value="QUARTERLY">Quarterly</option>
                 </select>
@@ -480,25 +490,8 @@ export default function Invest() {
             </button>
           </div>
 
-          {/* Info Card */}
-          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-6">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-semibold text-blue-900 mb-2">Important Information</h3>
-                <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-                  <li>This is a demo account with virtual money</li>
-                  <li>Transactions use real NAV data from MFApi</li>
-                  <li>No actual money is invested or withdrawn</li>
-                  <li>Perfect for learning and practicing investment strategies</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+          {/* Info Card - Removed per user request */}
+
         </form>
 
         {/* Bottom Display Ad */}

@@ -168,3 +168,17 @@ CREATE TABLE IF NOT EXISTS cron_job_logs (
     INDEX idx_cron_logs_status (status),
     INDEX idx_cron_logs_start_time (start_time)
 );
+
+-- User Notifications table for async alerts (SWP execution, etc.)
+CREATE TABLE IF NOT EXISTS user_notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    type ENUM('SUCCESS', 'ERROR', 'INFO') DEFAULT 'INFO',
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_notifications_user (user_id, is_read),
+    INDEX idx_notifications_created (created_at)
+);

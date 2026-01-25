@@ -15,7 +15,7 @@ const calculatorFiles = [
   'POTDCalculator.jsx',
   'NSCCalculator.jsx',
   'SWPCalculator.jsx',
-  'STPCalculator.jsx',
+
   'NPSCalculator.jsx',
   'EPFCalculator.jsx',
   'APYCalculator.jsx',
@@ -54,13 +54,13 @@ const calculatorFiles = [
 const adPlacementTemplate = {
   // Import statement to add
   import: "import { BannerAd, DisplayAd } from '../AdSense';",
-  
+
   // Banner ad placement (top of component, after opening <div>)
   topBanner: {
     position: "After return ( <div className=\"space-y-6\">",
     code: `      {/* Top Banner Ad - Google AdSense */}\n      <BannerAd className=\"mb-6\" />\n      `
   },
-  
+
   // Display ad placement (after results section)
   bottomDisplay: {
     position: "After results render block, before closing </div>",

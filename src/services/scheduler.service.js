@@ -2,6 +2,7 @@ import { transactionModel } from '../models/transaction.model.js';
 import { executionLogModel } from '../models/executionLog.model.js';
 import { demoAccountModel } from '../models/demoAccount.model.js';
 import { holdingModel } from '../models/holding.model.js';
+import { notificationModel } from '../models/notification.model.js';
 import { localFundService } from './localFund.service.js';
 
 /**
@@ -202,6 +203,16 @@ export const schedulerService = {
 
         console.log(`[Scheduler] Transaction ${transaction.id} executed successfully. Next execution: ${nextExecutionDate}`);
 
+        // Notification: Success
+        if (transaction.transaction_type === 'SWP') {
+          await notificationModel.create({
+            userId: transaction.user_id,
+            title: 'Passive Income Alert! 🎉',
+            message: `High Five! Your SWP from ${transaction.scheme_name} executed successfully. ₹${transaction.amount} has been credited to your balance. Your portfolio is working for you!`,
+            type: 'SUCCESS'
+          });
+        }
+
       } catch (error) {
         // Execution failed
         console.error(`[Scheduler] Transaction ${transaction.id} failed:`, error.message);
@@ -214,6 +225,23 @@ export const schedulerService = {
           status: 'PENDING',
           failureReason: error.message
         });
+
+        // Notification: Failure (Specific message for Insufficient Units)
+        let failureMessage = `Your ${transaction.transaction_type} for ${transaction.scheme_name} couldn't execute today. Reason: ${error.message}`;
+        let failureTitle = 'Action Needed ⚠️';
+
+        if (error.message.includes('Insufficient units') || error.message.includes('Insufficient balance')) {
+          failureMessage = `⚠️ Low Balance! Your SWP of ₹${transaction.amount} paused. Please top up your ${transaction.scheme_name} holdings to resume.`;
+          failureTitle = 'SWP Paused ⚠️';
+        }
+
+        await notificationModel.create({
+          userId: transaction.user_id,
+          title: failureTitle,
+          message: failureMessage,
+          type: 'ERROR'
+        });
+
       } finally {
         // Always unlock and log
         await transactionModel.unlock(transaction.id);
@@ -383,6 +411,11 @@ export const schedulerService = {
       case 'QUARTERLY':
         next = new Date(current);
         next.setMonth(current.getMonth() + 3);
+        break;
+
+      case 'YEARLY':
+        next = new Date(current);
+        next.setFullYear(current.getFullYear() + 1);
         break;
 
       default:
