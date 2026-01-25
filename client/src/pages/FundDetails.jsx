@@ -5,6 +5,7 @@ import { PageLoader } from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import { useAuth } from '../contexts/AuthContext';
 import { DisplayAd, RectangleAd, BannerAd } from '../components/AdSense';
+import NavChart from '../components/NavChart';
 
 /**
  * AMC Branding Configuration
@@ -534,6 +535,13 @@ export default function FundDetails() {
             </div>
           </div>
         </div>
+
+        {/* NAV Chart */}
+        {navHistory && navHistory.length > 0 && (
+          <div className="mb-8">
+            <NavChart navHistory={navHistory} branding={amcBranding} />
+          </div>
+        )}
 
         {/* Rectangle Ad before NAV History */}
         <div className="mb-8 flex justify-center">

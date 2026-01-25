@@ -128,7 +128,13 @@ export const mfapiIngestionService = {
       console.log(`[MFAPI Ingestion] Funds: ${stats.inserted}, NAVs: ${stats.navInserted}, Errors: ${stats.errors}`);
       console.log(`[MFAPI Ingestion] Skipped inactive (old NAV): ${stats.skippedInactive}`);
 
-      // Step 5: Complete sync
+      // Step 5: Mark inactive funds (funds with no NAV for 7+ days)
+      console.log('[MFAPI Ingestion] Checking for inactive funds...');
+      const inactiveResult = await this.markInactiveFunds();
+      stats.markedInactive = inactiveResult.count || 0;
+      console.log(`[MFAPI Ingestion] Marked ${stats.markedInactive} funds as inactive`);
+
+      // Step 6: Complete sync
       await fundSyncLogModel.completeSyncSuccess(syncId, stats);
 
       const summary = {
@@ -377,12 +383,17 @@ export const mfapiIngestionService = {
               console.log(`[MFAPI Ingestion] NAV progress: ${stats.navInserted}/${schemeCodes.length} records inserted`);
             }
           } else {
+            // No NAV data returned - mark fund for potential inactivation
             stats.errors++;
             stats.errorDetails.push({
               schemeCode,
-              error: 'No NAV data returned',
+              error: 'No NAV data returned - fund may be inactive/closed',
               step: 'nav_fetch'
             });
+
+            // Track for inactive marking (accumulated errors)
+            if (!stats.noNavFunds) stats.noNavFunds = [];
+            stats.noNavFunds.push(schemeCode);
           }
         } catch (error) {
           stats.errors++;
@@ -495,5 +506,49 @@ export const mfapiIngestionService = {
       },
       whitelistedAMCs: AMC_WHITELIST
     };
+  },
+
+  /**
+   * Mark funds as inactive if they haven't received NAV updates
+   * This helps skip stale/closed funds on future syncs
+   * @param {number} daysWithoutNav - Days without NAV update to consider inactive (default 7)
+   * @returns {Object} Result with count of funds marked inactive
+   */
+  async markInactiveFunds(daysWithoutNav = 7) {
+    try {
+      // Find funds without recent NAV
+      const staleFunds = await fundModel.findFundsWithoutRecentNav(daysWithoutNav);
+
+      if (staleFunds.length === 0) {
+        console.log('[MFAPI Ingestion] No inactive funds found');
+        return { count: 0, funds: [] };
+      }
+
+      console.log(`[MFAPI Ingestion] Found ${staleFunds.length} funds without NAV in ${daysWithoutNav} days`);
+
+      // Get scheme codes to mark inactive
+      const schemeCodes = staleFunds.map(f => f.scheme_code);
+
+      // Mark them as inactive
+      await fundModel.markInactive(schemeCodes);
+
+      console.log(`[MFAPI Ingestion] Marked ${schemeCodes.length} funds as inactive:`);
+      staleFunds.forEach(f => {
+        console.log(`  - ${f.scheme_code}: ${f.scheme_name} (Last NAV: ${f.last_nav_date || 'Never'})`);
+      });
+
+      return {
+        count: schemeCodes.length,
+        funds: staleFunds.map(f => ({
+          schemeCode: f.scheme_code,
+          schemeName: f.scheme_name,
+          fundHouse: f.fund_house,
+          lastNavDate: f.last_nav_date
+        }))
+      };
+    } catch (error) {
+      console.error('[MFAPI Ingestion] Failed to mark inactive funds:', error.message);
+      return { count: 0, error: error.message };
+    }
   }
 };

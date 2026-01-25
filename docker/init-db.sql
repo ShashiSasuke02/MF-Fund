@@ -50,6 +50,20 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_users_email (email_id)
 );
 
+-- Pending Registrations table (for OTP verification)
+CREATE TABLE IF NOT EXISTS pending_registrations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(255) NOT NULL,
+    email_id VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    otp_hash VARCHAR(255) NOT NULL,
+    otp_attempts INT DEFAULT 0,
+    expires_at BIGINT NOT NULL,
+    created_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000),
+    INDEX idx_pending_email (email_id),
+    INDEX idx_pending_expires (expires_at)
+);
+
 -- Demo accounts table
 CREATE TABLE IF NOT EXISTS demo_accounts (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -119,7 +133,9 @@ CREATE TABLE IF NOT EXISTS transactions (
     created_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_transactions_user_id (user_id),
-    INDEX idx_transactions_status (status)
+    INDEX idx_transactions_status (status),
+    INDEX idx_transactions_next_execution (next_execution_date, status),
+    INDEX idx_transactions_locked (is_locked, locked_at)
 );
 
 -- Holdings table
@@ -190,5 +206,6 @@ CREATE TABLE IF NOT EXISTS cron_job_logs (
     triggered_by ENUM('SCHEDULE', 'MANUAL') NOT NULL DEFAULT 'SCHEDULE',
     created_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000),
     INDEX idx_cron_logs_job_name (job_name),
-    INDEX idx_cron_logs_status (status)
+    INDEX idx_cron_logs_status (status),
+    INDEX idx_cron_logs_start_time (start_time)
 );

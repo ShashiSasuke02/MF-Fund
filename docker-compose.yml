@@ -77,7 +77,7 @@ services:
       # Enable schedulers in production
       ENABLE_SCHEDULER_CRON: ${ENABLE_SCHEDULER_CRON:-true}
       ENABLE_FULL_SYNC: ${ENABLE_FULL_SYNC:-true}
-      ENABLE_INCREMENTAL_SYNC: ${ENABLE_INCREMENTAL_SYNC:-true}
+      ENABLE_INCREMENTAL_SYNC: ${ENABLE_INCREMENTAL_SYNC:-false}
       ENABLE_MFAPI_FALLBACK: "true"
       
       # Email / SMTP Configuration
@@ -86,6 +86,10 @@ services:
       SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
       SMTP_FROM: ${SMTP_FROM}
+      
+      # Cron Email Reports
+      ENABLE_CRON_REPORTS: ${ENABLE_CRON_REPORTS:-true}
+      CRON_REPORT_EMAIL: ${CRON_REPORT_EMAIL}
     ports:
       - "${APP_PORT:-4000}:4000"
     networks:

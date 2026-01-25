@@ -287,5 +287,37 @@ export const fundModel = {
 
     const query = `UPDATE funds SET ${fields.join(', ')} WHERE scheme_code = ?`;
     return db.run(query, values);
+  },
+
+  /**
+   * Find funds without recent NAV updates (inactive fund detection)
+   * @param {number} days - Number of days without NAV update
+   * @returns {Promise<Array>} Array of scheme_codes
+   */
+  async findFundsWithoutRecentNav(days = 7) {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
+
+    const query = `
+      SELECT f.scheme_code, f.scheme_name, f.fund_house, 
+             MAX(h.nav_date) as last_nav_date
+      FROM funds f
+      LEFT JOIN fund_nav_history h ON f.scheme_code = h.scheme_code
+      WHERE f.is_active = true
+      GROUP BY f.scheme_code, f.scheme_name, f.fund_house
+      HAVING last_nav_date IS NULL OR last_nav_date < ?
+    `;
+
+    return db.query(query, [cutoffDateStr]);
+  },
+
+  /**
+   * Get all active scheme codes for NAV sync
+   * @returns {Promise<Array>} Array of scheme codes
+   */
+  async getActiveSchemeCodesForSync() {
+    const rows = await db.query('SELECT scheme_code FROM funds WHERE is_active = true');
+    return rows.map(r => r.scheme_code);
   }
 };

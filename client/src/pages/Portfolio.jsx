@@ -256,7 +256,7 @@ export default function Portfolio() {
                 {portfolio?.holdings && portfolio.holdings.length > 0 && portfolio.holdings[0]?.last_nav_date && (
                   <p className="text-xs text-gray-500 flex items-center gap-1">
                     <span className={`w-1.5 h-1.5 rounded-full ${portfolio?.navStatus?.unavailable ? 'bg-yellow-400' : 'bg-emerald-400'}`}></span>
-                    NAV: {portfolio?.navStatus?.lastUpdate || portfolio.holdings[0]?.last_nav_date}
+                    NAV: {formatDate(portfolio?.navStatus?.lastUpdate || portfolio.holdings[0]?.last_nav_date)}
                   </p>
                 )}
               </div>
@@ -542,7 +542,7 @@ export default function Portfolio() {
                     </div>
                     <p className="font-bold text-teal-900">₹{parseFloat(holding.last_nav || 0).toFixed(4)}</p>
                     {holding.last_nav_date && (
-                      <p className="text-xs text-teal-600 mt-0.5">{holding.last_nav_date}</p>
+                      <p className="text-xs text-teal-600 mt-0.5">{formatDate(holding.last_nav_date)}</p>
                     )}
                   </div>
                 </div>
@@ -581,9 +581,10 @@ export default function Portfolio() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gradient-to-r from-emerald-50 to-teal-50">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-emerald-900 uppercase tracking-wider">Date</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-emerald-900 uppercase tracking-wider">Created</th>
                       <th className="px-6 py-4 text-left text-xs font-bold text-emerald-900 uppercase tracking-wider">Fund</th>
                       <th className="px-6 py-4 text-left text-xs font-bold text-emerald-900 uppercase tracking-wider">Type</th>
+                      <th className="px-6 py-4 text-center text-xs font-bold text-emerald-900 uppercase tracking-wider">Start Date</th>
                       <th className="px-6 py-4 text-right text-xs font-bold text-emerald-900 uppercase tracking-wider">Amount</th>
                       <th className="px-6 py-4 text-right text-xs font-bold text-emerald-900 uppercase tracking-wider">Units</th>
                       <th className="px-6 py-4 text-right text-xs font-bold text-emerald-900 uppercase tracking-wider">NAV</th>
@@ -603,6 +604,13 @@ export default function Portfolio() {
                           <span className="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg bg-emerald-100 text-emerald-800">
                             {txn.transaction_type}
                           </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                          {txn.start_date ? (
+                            <span className="text-blue-600 font-medium">{formatDate(txn.start_date)}</span>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900">
                           {formatCurrency(txn.amount)}
@@ -654,6 +662,12 @@ export default function Portfolio() {
                         <p className="text-[10px] text-gray-500 uppercase tracking-wider">NAV</p>
                         <p className="text-sm font-medium text-gray-700">₹{parseFloat(txn.nav || 0).toFixed(4)}</p>
                       </div>
+                      {txn.start_date && (
+                        <div className="col-span-2">
+                          <p className="text-[10px] text-gray-500 uppercase tracking-wider">Start Date</p>
+                          <p className="text-sm font-semibold text-blue-600">{formatDate(txn.start_date)}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
