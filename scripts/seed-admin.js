@@ -54,8 +54,12 @@ async function seedAdmin() {
             ]
         );
 
-        const userId = result.insertId;
+        const userId = result.insertId || result.lastInsertRowid;
         console.log(`[Seed Admin] Admin user created with ID: ${userId}`);
+
+        if (!userId) {
+            throw new Error('Failed to retrieve user ID after insertion');
+        }
 
         // Create demo account for admin (1 Crore balance)
         await db.run(

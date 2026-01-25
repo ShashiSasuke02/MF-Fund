@@ -108,8 +108,12 @@ export async function run(sql, params = []) {
   try {
     const [result] = await database.query(sql, params);
 
+    // Debug result structure
+    // console.log('[DB Debug] Run result:', result);
+
     return {
       changes: result.affectedRows || 0,
+      insertId: result.insertId || 0,
       lastInsertRowid: result.insertId || 0
     };
   } catch (error) {
