@@ -44,6 +44,8 @@ Check these models match their tables:
 ### 5. Dependencies Check
 - [ ] Backend: All packages in `package.json`
 - [ ] Client: All packages in `client/package.json`
+- [ ] **CRITICAL:** Verified `package-lock.json` is updated (`npm ci` would pass)
+- [ ] Client: `recharts` is present and installed
 - [ ] New packages added during session are included
 
 ### 6. Fresh Installation Test
