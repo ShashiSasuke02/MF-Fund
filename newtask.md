@@ -106,6 +106,7 @@
   - `sync-job` waits for `backend` health check.
   - Executes full sync once and exits.
   - Ensures production DB is strictly synchronized with MFAPI immediately upon deployment.
+  - **Email Notification:** Configured to trigger immediate email report upon completion (in addition to daily scheduler report).
 
 
 ### Core Calculator Features

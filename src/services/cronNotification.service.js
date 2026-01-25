@@ -168,9 +168,9 @@ export const cronNotificationService = {
     async onJobComplete(jobName, status, result, errorDetails, durationMs) {
         this.recordJobCompletion(jobName, status, result, errorDetails, durationMs);
 
-        // Send report after Daily Transaction Scheduler (6 AM job)
-        if (jobName === 'Daily Transaction Scheduler') {
-            console.log('[CronNotification] Transaction Scheduler complete - sending daily report...');
+        // Send report after Daily Transaction Scheduler (6 AM job) OR Full Fund Sync (2 AM job / Manual)
+        if (jobName === 'Daily Transaction Scheduler' || jobName === 'Full Fund Sync') {
+            console.log(`[CronNotification] ${jobName} complete - sending job report...`);
             await this.sendDailyReport();
         }
     }
