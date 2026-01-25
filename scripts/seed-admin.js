@@ -20,6 +20,9 @@ async function seedAdmin() {
     try {
         console.log('[Seed Admin] Starting admin user creation...');
 
+        // Initialize database connection
+        await db.initializeDatabase();
+
         // Check if admin already exists
         const existingUser = await db.queryOne(
             'SELECT id FROM users WHERE username = ? OR email_id = ?',
@@ -28,6 +31,7 @@ async function seedAdmin() {
 
         if (existingUser) {
             console.log('[Seed Admin] Admin user already exists. Skipping...');
+            await db.closeDb();
             return { success: true, message: 'Admin already exists', userId: existingUser.id };
         }
 
@@ -66,10 +70,15 @@ async function seedAdmin() {
         console.log(`  Username: ${ADMIN_CONFIG.username}`);
         console.log(`  Password: ${ADMIN_CONFIG.password}`);
 
+        // Close connection
+        await db.closeDb();
         return { success: true, userId };
 
     } catch (error) {
         console.error('[Seed Admin] Failed to create admin:', error.message);
+        try {
+            await db.closeDb();
+        } catch (e) { /* ignore */ }
         return { success: false, error: error.message };
     }
 }
