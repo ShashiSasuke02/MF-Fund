@@ -2192,4 +2192,21 @@ With the comprehensive deployment guide, tested codebase, and robust architectur
     - `.env`: Add `ENABLE_FULL_SYNC_REPORT`.
 
 #### 3. Verification
-- **Script:** `scripts/test-sync-email.js` used for visual testing.
+
+### Admin Navigation Fix (Jan 26, 2026)
+**Fixed missing Admin Dashboard access after login/refresh**
+
+#### 1. Backend Enhancement (`src/controllers/auth.controller.js` & `src/middleware/auth.middleware.js`)
+- **Profile Data Consistency:** Updated `getProfile` to include the `role` property in the returned user object.
+- **Middleware Robustness:** Updated `requireAdmin` middleware to include fallbacks (`id === 1`, specific email, or `username === 'admin'`) for compatibility with older session tokens that lack the `role` payload.
+- **Scheduler Stats Fix:** Modified `schedulerController.getStatistics` to provide default date ranges (last 30 days) when parameters are missing, preventing 400 errors on the admin dashboard.
+
+#### 2. Frontend Logic Refactoring
+- **App.jsx:** Updated `AdminRoute` to use a more robust `role === 'admin'` check. Maintained legacy support for `id === 1` and `username === 'admin'` as fallbacks.
+- **Layout.jsx:** Updated navigation link visibility to use the same consolidated admin check pattern for both Desktop and Mobile views.
+
+#### 3. Root Cause Analysis
+- The admin user's `username` in the database was the email address, which failed the previous `username === 'admin'` check.
+- `getProfile` (called on refresh) was stripping the `role` property, causing the admin to be treated as a regular user on reload.
+- **Status:** ✅ **Fixed & Verified.**
+

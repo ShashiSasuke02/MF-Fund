@@ -79,14 +79,16 @@ export const requireAdmin = (req, res, next) => {
       });
     }
 
-    // Check if user has admin role
-    console.log('[Auth Debug] req.user:', JSON.stringify(req.user, null, 2));
-    const isAdmin = req.user.role === 'admin';
+    // Check if user has admin role (with fallbacks for older tokens)
+    const isAdmin = req.user.role === 'admin' ||
+      req.user.username === 'admin' ||
+      req.user.emailId === 'shashidhar02@gmail.com' || // Specific admin email from .env
+      req.user.userId === 1;
 
     if (!isAdmin) {
       return res.status(403).json({
         success: false,
-        message: 'Admin access required. Scheduler endpoints are restricted.'
+        message: 'Admin access required.'
       });
     }
 

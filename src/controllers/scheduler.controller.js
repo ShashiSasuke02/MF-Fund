@@ -14,7 +14,7 @@ export const schedulerController = {
   async execute(req, res) {
     try {
       const { targetDate } = req.body;
-      
+
       // Validate date format if provided
       if (targetDate) {
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -26,9 +26,9 @@ export const schedulerController = {
       }
 
       console.log(`[Scheduler Controller] Manual execution triggered for date: ${targetDate || 'today'}`);
-      
+
       const result = await schedulerService.executeDueTransactions(targetDate);
-      
+
       res.json({
         success: true,
         data: result
@@ -49,7 +49,7 @@ export const schedulerController = {
   async getDueTransactions(req, res) {
     try {
       const targetDate = req.query.date || null;
-      
+
       // Validate date format if provided
       if (targetDate) {
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -61,7 +61,7 @@ export const schedulerController = {
       }
 
       const dueTransactions = await transactionModel.findDueTransactions(targetDate);
-      
+
       res.json({
         success: true,
         date: targetDate || new Date().toISOString().split('T')[0],
@@ -84,7 +84,7 @@ export const schedulerController = {
   async getExecutionLogs(req, res) {
     try {
       const { transactionId } = req.params;
-      
+
       if (!transactionId || isNaN(transactionId)) {
         return res.status(400).json({
           error: 'Invalid transaction ID'
@@ -93,7 +93,7 @@ export const schedulerController = {
 
       // Verify transaction exists and belongs to user
       const transaction = await transactionModel.findById(parseInt(transactionId));
-      
+
       if (!transaction) {
         return res.status(404).json({
           error: 'Transaction not found'
@@ -106,7 +106,7 @@ export const schedulerController = {
       // }
 
       const logs = await executionLogModel.findByTransactionId(parseInt(transactionId));
-      
+
       res.json({
         success: true,
         transactionId: parseInt(transactionId),
@@ -129,7 +129,7 @@ export const schedulerController = {
   async getRecentFailures(req, res) {
     try {
       const limit = parseInt(req.query.limit) || 50;
-      
+
       if (limit < 1 || limit > 500) {
         return res.status(400).json({
           error: 'Invalid limit. Must be between 1 and 500'
@@ -137,7 +137,7 @@ export const schedulerController = {
       }
 
       const failures = await executionLogModel.findRecentFailures(limit);
-      
+
       res.json({
         success: true,
         count: failures.length,
@@ -158,12 +158,16 @@ export const schedulerController = {
    */
   async getStatistics(req, res) {
     try {
-      const { startDate, endDate } = req.query;
-      
-      if (!startDate || !endDate) {
-        return res.status(400).json({
-          error: 'startDate and endDate query parameters required (YYYY-MM-DD)'
-        });
+      let { startDate, endDate } = req.query;
+
+      const today = new Date();
+      if (!endDate) {
+        endDate = today.toISOString().split('T')[0];
+      }
+      if (!startDate) {
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        startDate = thirtyDaysAgo.toISOString().split('T')[0];
       }
 
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -174,7 +178,7 @@ export const schedulerController = {
       }
 
       const stats = await executionLogModel.getStatistics(startDate, endDate);
-      
+
       res.json({
         success: true,
         period: {
@@ -199,7 +203,7 @@ export const schedulerController = {
   async unlockTransaction(req, res) {
     try {
       const { transactionId } = req.params;
-      
+
       if (!transactionId || isNaN(transactionId)) {
         return res.status(400).json({
           error: 'Invalid transaction ID'
@@ -207,7 +211,7 @@ export const schedulerController = {
       }
 
       const transaction = await transactionModel.findById(parseInt(transactionId));
-      
+
       if (!transaction) {
         return res.status(404).json({
           error: 'Transaction not found'
@@ -221,9 +225,9 @@ export const schedulerController = {
       }
 
       await transactionModel.unlock(parseInt(transactionId));
-      
+
       console.log(`[Scheduler Controller] Manually unlocked transaction ${transactionId}`);
-      
+
       res.json({
         success: true,
         message: `Transaction ${transactionId} unlocked successfully`

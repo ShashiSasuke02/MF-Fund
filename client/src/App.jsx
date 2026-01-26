@@ -53,8 +53,8 @@ function AdminRoute({ children }) {
     return <Navigate to="/login" replace />;
   }
 
-  // Check if user is admin (user_id 1 or username 'admin')
-  if (user && (user.id === 1 || user.username === 'admin')) {
+  // Check if user is admin (role 'admin', or fallback to username 'admin'/id 1)
+  if (user && (user.role === 'admin' || user.id === 1 || user.username === 'admin')) {
     return children;
   }
 

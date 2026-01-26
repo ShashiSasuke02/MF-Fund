@@ -350,6 +350,7 @@ export const authController = {
             fullName: user.full_name,
             emailId: user.email_id,
             username: user.username,
+            role: user.role || 'user',
             createdAt: user.created_at
           },
           demoAccount: {

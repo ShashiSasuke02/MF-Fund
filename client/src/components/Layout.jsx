@@ -58,7 +58,7 @@ export default function Layout({ children }) {
                   >
                     Invest
                   </Link>
-                  {(user?.id === 1 || user?.username === 'admin') && (
+                  {(user?.role === 'admin' || user?.id === 1 || user?.username === 'admin') && (
                     <Link
                       to="/admin/dashboard"
                       className="text-gray-700 hover:text-gray-900 font-medium text-base transition-colors"
@@ -191,7 +191,7 @@ export default function Layout({ children }) {
                       Invest
                     </span>
                   </Link>
-                  {(user?.id === 1 || user?.username === 'admin') && (
+                  {(user?.role === 'admin' || user?.id === 1 || user?.username === 'admin') && (
                     <Link
                       to="/admin/dashboard"
                       className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${location.pathname === '/admin/dashboard'
