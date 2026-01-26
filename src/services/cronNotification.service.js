@@ -107,9 +107,11 @@ export const cronNotificationService = {
 
     /**
      * Send the daily cron job report email
+     * @param {Object} options - { jobFilter, reportType: 'SCHEDULER' | 'SYNC' }
      */
-    async sendDailyReport() {
+    async sendDailyReport(options = {}) {
         const recipient = process.env.CRON_REPORT_EMAIL || 'shashidhar02april@gmail.com';
+        const { jobFilter, reportType } = options;
 
         if (process.env.ENABLE_CRON_REPORTS !== 'true') {
             console.log('[CronNotification] Reports disabled (ENABLE_CRON_REPORTS != true)');
@@ -117,7 +119,13 @@ export const cronNotificationService = {
         }
 
         try {
-            const jobResults = await this.getJobResultsForReport();
+            let jobResults = await this.getJobResultsForReport();
+
+            // Filter logic
+            if (jobFilter) {
+                jobResults = jobResults.filter(j => j.jobName === jobFilter);
+            }
+
             const today = new Date().toLocaleDateString('en-IN', {
                 weekday: 'long',
                 year: 'numeric',
@@ -130,9 +138,23 @@ export const cronNotificationService = {
             const successCount = jobResults.filter(j => j.status === 'SUCCESS').length;
             const failedCount = jobResults.filter(j => j.status === 'FAILED').length;
 
-            // Get transaction count from scheduler
-            const schedulerResult = jobResults.find(j => j.jobName === 'Daily Transaction Scheduler');
-            const transactionCount = schedulerResult ? this.getTransactionCount(schedulerResult.result) : 0;
+            // Extra Data Extraction based on Report Type
+            let stats = {};
+
+            if (reportType === 'SCHEDULER') {
+                const schedulerResult = jobResults.find(j => j.jobName === 'Daily Transaction Scheduler');
+                stats.transactionCount = schedulerResult ? this.getTransactionCount(schedulerResult.result) : 0;
+                stats.totalInvested = (schedulerResult && schedulerResult.result) ? (schedulerResult.result.totalInvested || 0) : 0;
+                stats.totalWithdrawn = (schedulerResult && schedulerResult.result) ? (schedulerResult.result.totalWithdrawn || 0) : 0;
+            }
+            else if (reportType === 'SYNC') {
+                const syncResult = jobResults.find(j => j.jobName === 'Full Fund Sync');
+                // stats for sync
+                // Note: 'inserted' = funds inserted/upserted
+                // Note: 'navInserted' = NAVs updated
+                stats.fundsInserted = (syncResult && syncResult.result) ? (syncResult.result.inserted || 0) : 0;
+                stats.navUpdated = (syncResult && syncResult.result) ? (syncResult.result.navInserted || 0) : 0;
+            }
 
             const sent = await emailService.sendCronJobReport({
                 recipient,
@@ -141,7 +163,8 @@ export const cronNotificationService = {
                 totalDuration,
                 successCount,
                 failedCount,
-                transactionCount
+                reportType,
+                ...stats
             });
 
             if (sent) {
@@ -159,19 +182,24 @@ export const cronNotificationService = {
 
     /**
      * Called after each job completes - decides whether to send report
-     * @param {string} jobName 
-     * @param {string} status 
-     * @param {Object} result 
-     * @param {string} errorDetails 
-     * @param {number} durationMs 
      */
     async onJobComplete(jobName, status, result, errorDetails, durationMs) {
         this.recordJobCompletion(jobName, status, result, errorDetails, durationMs);
 
-        // Send report after Daily Transaction Scheduler (6 AM job) OR Full Fund Sync (2 AM job / Manual)
-        if (jobName === 'Daily Transaction Scheduler' || jobName === 'Full Fund Sync') {
-            console.log(`[CronNotification] ${jobName} complete - sending job report...`);
-            await this.sendDailyReport();
+        // 1. Daily Transaction Scheduler (6 AM job)
+        if (jobName === 'Daily Transaction Scheduler') {
+            if (process.env.ENABLE_TRANSACTION_SCHEDULER_REPORT !== 'true') return;
+
+            console.log(`[CronNotification] ${jobName} complete - sending Transaction Scheduler Report...`);
+            await this.sendDailyReport({ jobFilter: 'Daily Transaction Scheduler', reportType: 'SCHEDULER' });
+        }
+
+        // 2. Full Fund Sync (2:30 AM job)
+        if (jobName === 'Full Fund Sync') {
+            if (process.env.ENABLE_FULL_SYNC_REPORT !== 'true') return;
+
+            console.log(`[CronNotification] ${jobName} complete - sending Full Fund Sync Report...`);
+            await this.sendDailyReport({ jobFilter: 'Full Fund Sync', reportType: 'SYNC' });
         }
     }
 };

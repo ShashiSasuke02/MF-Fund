@@ -76,24 +76,46 @@ class EmailService {
     /**
      * Send Cron Job Report Email
      * @param {Object} reportData - Report data
-     * @param {string} reportData.recipient - Email recipient
-     * @param {string} reportData.date - Report date
-     * @param {Array} reportData.jobs - Array of job results
-     * @param {number} reportData.totalDuration - Total duration in ms
-     * @param {number} reportData.successCount - Number of successful jobs
-     * @param {number} reportData.failedCount - Number of failed jobs
-     * @param {number} reportData.transactionCount - Total transactions processed
      */
     async sendCronJobReport(reportData) {
         if (!this.initialized) this.init();
 
         if (!this.transporter) {
             console.log('[EmailService] MOCK: Would send cron report to', reportData.recipient);
-            console.log('[EmailService] Report Data:', JSON.stringify(reportData, null, 2));
+            // console.log('[EmailService] Report Data:', JSON.stringify(reportData, null, 2));
             return true;
         }
 
-        const { recipient, date, jobs, totalDuration, successCount, failedCount, transactionCount } = reportData;
+        const {
+            recipient,
+            date,
+            jobs,
+            totalDuration,
+            successCount,
+            failedCount,
+            // Scheduler Stats
+            transactionCount,
+            totalInvested,
+            totalWithdrawn,
+            // Sync Stats
+            fundsInserted,
+            navUpdated,
+            // Meta
+            reportType
+        } = reportData;
+
+        // Money Formatter
+        const formatMoney = (amount) => {
+            return new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount || 0);
+        };
+
+        const totalInvestedStr = formatMoney(totalInvested);
+        const totalWithdrawnStr = formatMoney(totalWithdrawn);
 
         // Format duration
         const formatDuration = (ms) => {
@@ -102,51 +124,111 @@ class EmailService {
             return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`;
         };
 
+        // Determine Header Title
+        let headerTitle = 'Nightly Batch Process Report';
+        if (reportType === 'SCHEDULER') headerTitle = 'Daily Transaction Report';
+        if (reportType === 'SYNC') headerTitle = 'Full Fund Sync Report';
+
+        // Build Summary Cards HTML
+        let cardsHtml = '';
+
+        if (reportType === 'SCHEDULER') {
+            cardsHtml = `
+            <div style="display: flex; gap: 12px; justify-content: space-between;">
+                <!-- Invested Card -->
+                <div style="flex: 1; background: #ECFDF5; padding: 16px; border-radius: 8px; text-align: center; border: 1px solid #D1FAE5;">
+                    <div style="color: #059669; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Invested</div>
+                    <div style="color: #047857; font-size: 18px; font-weight: 800;">${totalInvestedStr}</div>
+                </div>
+                <!-- Withdrawn Card -->
+                <div style="flex: 1; background: #FFFBEB; padding: 16px; border-radius: 8px; text-align: center; border: 1px solid #FEF3C7;">
+                    <div style="color: #D97706; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Withdrawn</div>
+                    <div style="color: #B45309; font-size: 18px; font-weight: 800;">${totalWithdrawnStr}</div>
+                </div>
+                <!-- Failed Card -->
+                <div style="flex: 1; background: ${failedCount > 0 ? '#FEF2F2' : '#F3F4F6'}; padding: 16px; border-radius: 8px; text-align: center; border: 1px solid ${failedCount > 0 ? '#FEE2E2' : '#E5E7EB'};">
+                     <div style="color: ${failedCount > 0 ? '#DC2626' : '#6B7280'}; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Failed</div>
+                    <div style="color: ${failedCount > 0 ? '#B91C1C' : '#374151'}; font-size: 18px; font-weight: 800;">${failedCount}</div>
+                </div>
+            </div>`;
+        } else if (reportType === 'SYNC') {
+            cardsHtml = `
+            <div style="display: flex; gap: 12px; justify-content: space-between;">
+                <!-- Funds Inserted Card -->
+                <div style="flex: 1; background: #EFF6FF; padding: 16px; border-radius: 8px; text-align: center; border: 1px solid #DBEAFE;">
+                    <div style="color: #2563EB; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Funds Inserted</div>
+                    <div style="color: #1E40AF; font-size: 18px; font-weight: 800;">${fundsInserted || 0}</div>
+                </div>
+                <!-- NAVs Updated Card -->
+                <div style="flex: 1; background: #ECFDF5; padding: 16px; border-radius: 8px; text-align: center; border: 1px solid #D1FAE5;">
+                    <div style="color: #059669; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">NAVs Updated</div>
+                    <div style="color: #047857; font-size: 18px; font-weight: 800;">${navUpdated || 0}</div>
+                </div>
+                <!-- Errors Card -->
+                 <div style="flex: 1; background: ${failedCount > 0 ? '#FEF2F2' : '#F3F4F6'}; padding: 16px; border-radius: 8px; text-align: center; border: 1px solid ${failedCount > 0 ? '#FEE2E2' : '#E5E7EB'};">
+                     <div style="color: ${failedCount > 0 ? '#DC2626' : '#6B7280'}; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Errors</div>
+                    <div style="color: ${failedCount > 0 ? '#B91C1C' : '#374151'}; font-size: 18px; font-weight: 800;">${failedCount}</div>
+                </div>
+            </div>`;
+        }
+
         // Build job rows
         const jobRows = jobs.map(job => {
-            const statusIcon = job.status === 'SUCCESS' ? '✅' : job.status === 'FAILED' ? '❌' : '⏳';
-            const statusColor = job.status === 'SUCCESS' ? '#10B981' : job.status === 'FAILED' ? '#EF4444' : '#F59E0B';
+            const isSuccess = job.status === 'SUCCESS';
+            const statusColor = isSuccess ? '#D1FAE5' : '#FEE2E2'; // Green-100 : Red-100
+            const statusTextColor = isSuccess ? '#065F46' : '#991B1B'; // Green-800 : Red-800
             const duration = formatDuration(job.durationMs || 0);
 
-            let details = `Duration: ${duration}`;
+            let details = `⏱️ ${duration}`;
+
+            // Financial Details for Scheduler
             if (job.jobName === 'Daily Transaction Scheduler' && job.result) {
                 const executed = job.result.executed || 0;
-                details += ` | Transactions: ${executed}`;
+                details = `<div style="margin-bottom: 4px;"><strong>${executed}</strong> Transactions Processed</div>`;
+
+                if (job.result.totalInvested > 0) {
+                    details += `<div style="color: #059669;">⬆️ Invested: <strong>${formatMoney(job.result.totalInvested)}</strong></div>`;
+                }
+                if (job.result.totalWithdrawn > 0) {
+                    details += `<div style="color: #D97706;">⬇️ Withdrawn: <strong>${formatMoney(job.result.totalWithdrawn)}</strong></div>`;
+                }
             }
-            if (job.jobName.includes('Fund Sync') && job.result) {
-                const navs = job.result.navInserted || job.result.inserted || 0;
-                if (navs > 0) details += ` | Records: ${navs}`;
+
+            // Stats Details for Full Fund Sync
+            if (job.jobName === 'Full Fund Sync' && job.result) {
+                const inserted = job.result.inserted || 0;
+                const navs = job.result.navInserted || 0;
+                details = `<div style="margin-bottom: 4px;"><strong>${inserted}</strong> Funds Upserted</div>
+                           <div style="color: #059669;"><strong>${navs}</strong> NAV Records</div>`;
+                if (job.result.skippedInactive) details += `<div style="color: #6B7280; font-size: 10px;">Skipped Inactive: ${job.result.skippedInactive}</div>`;
             }
 
             let errorHtml = '';
             if (job.status === 'FAILED' && job.errorDetails) {
                 const shortError = job.errorDetails.split('\\n')[0].substring(0, 100);
-                errorHtml = `<div style="color: #EF4444; font-size: 12px; margin-top: 4px;">⚠️ ${shortError}</div>`;
+                errorHtml = `<div style="color: #DC2626; font-size: 11px; margin-top: 6px; background: #FEF2F2; padding: 4px; border-radius: 4px;">⚠️ ${shortError}</div>`;
             }
 
             return `
                 <tr>
-                    <td style="padding: 12px 16px; border-bottom: 1px solid #E5E7EB;">
-                        <div style="display: flex; align-items: center;">
-                            <span style="font-size: 18px; margin-right: 8px;">${statusIcon}</span>
-                            <span style="font-weight: 600; color: #1F2937;">${job.jobName}</span>
-                        </div>
+                    <td style="padding: 16px; border-bottom: 1px solid #F3F4F6;">
+                        <div style="font-weight: 600; color: #1F2937; font-size: 14px;">${job.jobName}</div>
                         ${errorHtml}
                     </td>
-                    <td style="padding: 12px 16px; border-bottom: 1px solid #E5E7EB; text-align: center;">
-                        <span style="background-color: ${statusColor}; color: white; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600;">
+                    <td style="padding: 16px; border-bottom: 1px solid #F3F4F6; text-align: center;">
+                        <span style="background-color: ${statusColor}; color: ${statusTextColor}; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
                             ${job.status}
                         </span>
                     </td>
-                    <td style="padding: 12px 16px; border-bottom: 1px solid #E5E7EB; color: #6B7280; font-size: 13px;">
+                    <td style="padding: 16px; border-bottom: 1px solid #F3F4F6; color: #4B5563; font-size: 13px; line-height: 1.4;">
                         ${details}
                     </td>
                 </tr>
             `;
         }).join('');
 
-        const overallStatus = failedCount > 0 ? '⚠️ Issues Detected' : '✅ All Jobs Successful';
-        const headerColor = failedCount > 0 ? '#F59E0B' : '#10B981';
+        const headerColorStart = failedCount > 0 ? '#EF4444' : '#4F46E5'; // Red or Indigo
+        const headerColorEnd = failedCount > 0 ? '#B91C1C' : '#4338CA';
 
         const html = `
 <!DOCTYPE html>
@@ -155,40 +237,28 @@ class EmailService {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #F3F4F6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+<body style="margin: 0; padding: 0; background-color: #F9FAFB; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 20px auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+        
         <!-- Header -->
-        <div style="background: linear-gradient(135deg, ${headerColor} 0%, #0D9488 100%); border-radius: 12px 12px 0 0; padding: 24px; text-align: center;">
-            <h1 style="margin: 0; color: white; font-size: 20px; font-weight: 600;">📊 Nightly Batch Process Report</h1>
-            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">${date}</p>
+        <div style="background: linear-gradient(135deg, ${headerColorStart} 0%, ${headerColorEnd} 100%); padding: 32px 24px; text-align: center;">
+            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">${headerTitle}</h1>
+            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500;">${date}</p>
         </div>
 
-        <!-- Status Summary -->
-        <div style="background: white; padding: 20px 24px; border-bottom: 1px solid #E5E7EB;">
-            <div style="display: flex; justify-content: space-between; text-align: center;">
-                <div style="flex: 1;">
-                    <div style="font-size: 24px; font-weight: 700; color: #10B981;">${successCount}</div>
-                    <div style="font-size: 12px; color: #6B7280; margin-top: 4px;">Successful</div>
-                </div>
-                <div style="flex: 1;">
-                    <div style="font-size: 24px; font-weight: 700; color: #EF4444;">${failedCount}</div>
-                    <div style="font-size: 12px; color: #6B7280; margin-top: 4px;">Failed</div>
-                </div>
-                <div style="flex: 1;">
-                    <div style="font-size: 24px; font-weight: 700; color: #6366F1;">${transactionCount}</div>
-                    <div style="font-size: 12px; color: #6B7280; margin-top: 4px;">Transactions</div>
-                </div>
-            </div>
+        <!-- Summary Cards -->
+        <div style="padding: 24px; background: #FFFFFF; border-bottom: 1px solid #F3F4F6;">
+            ${cardsHtml}
         </div>
 
-        <!-- Job Details Table -->
-        <div style="background: white; padding: 0;">
+        <!-- Table -->
+        <div style="padding: 0;">
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
-                    <tr style="background-color: #F9FAFB;">
-                        <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase;">Job</th>
-                        <th style="padding: 12px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase;">Status</th>
-                        <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase;">Details</th>
+                    <tr style="background-color: #F9FAFB; border-bottom: 1px solid #E5E7EB;">
+                        <th style="padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; color: #6B7280; text-transform: uppercase;">Job Name</th>
+                        <th style="padding: 12px 16px; text-align: center; font-size: 11px; font-weight: 700; color: #6B7280; text-transform: uppercase;">Status</th>
+                        <th style="padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; color: #6B7280; text-transform: uppercase;">Details</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -198,13 +268,12 @@ class EmailService {
         </div>
 
         <!-- Footer -->
-        <div style="background: #F9FAFB; border-radius: 0 0 12px 12px; padding: 16px 24px; text-align: center;">
-            <p style="margin: 0; color: #6B7280; font-size: 13px;">
-                Total Run Time: <strong>${formatDuration(totalDuration)}</strong> | 
-                Report Generated: ${new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
+        <div style="background: #F9FAFB; padding: 24px; text-align: center; border-top: 1px solid #E5E7EB;">
+            <p style="margin: 0; color: #9CA3AF; font-size: 12px;">
+                Generated automatically by TryMutualFunds Scheduler.
             </p>
-            <p style="margin: 8px 0 0; color: #9CA3AF; font-size: 11px;">
-                TryMutualFunds - Automated Cron Job Monitor
+            <p style="margin: 4px 0 0; color: #D1D5DB; font-size: 11px;">
+                ${new Date().getFullYear()} © All rights reserved.
             </p>
         </div>
     </div>
@@ -213,8 +282,8 @@ class EmailService {
         `;
 
         const subject = failedCount > 0
-            ? `⚠️ Cron Jobs Report - ${failedCount} Failed - ${date}`
-            : `✅ Cron Jobs Report - All Successful - ${date}`;
+            ? `⚠️ ${headerTitle} - Issues Detected (${date})`
+            : `✅ ${headerTitle} - Successful (${date})`;
 
         try {
             const info = await this.transporter.sendMail({
@@ -234,4 +303,3 @@ class EmailService {
 }
 
 export const emailService = new EmailService();
-

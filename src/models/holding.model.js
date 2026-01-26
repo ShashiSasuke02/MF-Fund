@@ -7,7 +7,7 @@ export const holdingModel = {
    */
   async upsert({ userId, schemeCode, schemeName, units, investedAmount, currentValue, lastNav, lastNavDate }) {
     const existing = await this.findByScheme(userId, schemeCode);
-    
+
     if (existing) {
       // Update existing holding
       await run(
@@ -27,7 +27,7 @@ export const holdingModel = {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [userId, schemeCode, schemeName, units, investedAmount, currentValue, lastNav, lastNavDate]
       );
-      
+
       return await this.findById(result.lastInsertRowid);
     }
   },
@@ -76,11 +76,11 @@ export const holdingModel = {
    */
   async addUnits(userId, schemeCode, units, amount) {
     const holding = await this.findByScheme(userId, schemeCode);
-    
+
     if (holding) {
-      const newUnits = holding.total_units + units;
-      const newInvestedAmount = holding.invested_amount + amount;
-      
+      const newUnits = parseFloat(holding.total_units) + parseFloat(units);
+      const newInvestedAmount = parseFloat(holding.invested_amount) + parseFloat(amount);
+
       await run(
         `UPDATE holdings 
          SET total_units = ?, invested_amount = ?, updated_at = ? 
@@ -95,18 +95,18 @@ export const holdingModel = {
    */
   async removeUnits(userId, schemeCode, units, amount) {
     const holding = await this.findByScheme(userId, schemeCode);
-    
+
     if (holding) {
-      const newUnits = Math.max(0, holding.total_units - units);
-      const newInvestedAmount = Math.max(0, holding.invested_amount - amount);
-      
+      const newUnits = Math.max(0, parseFloat(holding.total_units) - parseFloat(units));
+      const newInvestedAmount = Math.max(0, parseFloat(holding.invested_amount) - parseFloat(amount));
+
       await run(
         `UPDATE holdings 
          SET total_units = ?, invested_amount = ?, updated_at = ? 
          WHERE user_id = ? AND scheme_code = ?`,
         [newUnits, newInvestedAmount, Date.now(), userId, schemeCode]
       );
-      
+
       // Delete holding if no units remain
       if (newUnits === 0) {
         await run(
@@ -122,10 +122,10 @@ export const holdingModel = {
    */
   async updateCurrentValue(userId, schemeCode, currentNav, navDate) {
     const holding = await this.findByScheme(userId, schemeCode);
-    
+
     if (holding) {
       const currentValue = holding.total_units * currentNav;
-      
+
       await run(
         `UPDATE holdings 
          SET current_value = ?, last_nav = ?, last_nav_date = ?, updated_at = ? 

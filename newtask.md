@@ -81,6 +81,15 @@
 
 ## Recent Implementations (Jan 2026)
 
+### Admin Dashboard Enhancement (Planned Jan 26, 2026)
+**Performance Optimization & Live Server Logs**
+- **Goal:** Simplify dashboard and provide real-time monitoring without SSH.
+- **Changes:**
+  - Remove expensive financial aggregate queries.
+  - Implement Live Terminal (in-memory buffer, no DB writes).
+  - Cleanup UI (Remove Quick Actions).
+- **Status:** Planning Completed.
+
 
 ### Motivational SWP Notifications & Constraints (Jan 25, 2026)
 **Enhanced User Experience for Systematic Withdrawals**
@@ -2086,5 +2095,65 @@ With the comprehensive deployment guide, tested codebase, and robust architectur
 **Documentation: Comprehensive guides provided**  
 **Next Steps: Follow deployment guide and launch!**
 
+### Daily Transaction Scheduler Fixes (Jan 26, 2026)
+**Critical Logic Corrections for SIP/SWP Execution**
+
+#### 1. Core Logic Fixes (`src/services/scheduler.service.js`)
+- **Holding Model Integration:**
+  - **SIP:** Replaced non-existent `updateUnits`/`create` with correct `holdingModel.addUnits` and `holdingModel.upsert`.
+  - **SWP:** Fixed method call mismatch (changed `findByUserAndScheme` to `findByScheme`) and property usage (`holding.units` to `holding.total_units`).
+- **Math Safety:** Implemented explicit `parseFloat` for all financial calculations to prevent string concatenation bugs.
+- **Status Workflow Update:**
+  - **SIP:** Successful execution now transitions transaction status to `RECURRING` (previously PENDING).
+  - **SWP:** successful execution retains `PENDING` status.
+
+#### 2. Model Layer Robustness (`src/models/holding.model.js`) 
+- **Type Safety:** Added `parseFloat` safeguards in `addUnits` and `removeUnits` queries to ensure atomic updates handle `invested_amount` correctly as numbers.
+
+#### 3. Database Schema Update (`src/db/schema.sql`)
+- **Transactions Table:** Updated `status` ENUM to include `'RECURRING'` option.
+- **Patch Strategy:** Live DB patch applied via verification logic.
+
+#### 4. Verification
+- **Automated Script:** Created `scripts/verify-scheduler-logic.js` to validate end-to-end flow.
+- **Test Scenarios:**
+  - Validated SIP execution creates/updates holdings and sets RECURRING status.
+  - Validated SWP execution deduclts units/invested amount and stays PENDING.
+  - Confirmed NAV and Date handling.
 
 
+
+### Scheduler Email Notifications (Jan 26, 2026)
+**Automated Daily Reporting (Transaction Scheduler Only)**
+
+#### 1. Planning & Architecture
+- **Plan Document:** `documents/PLAN-scheduler-email-notifications.md` (Approved)
+- **Scope:** Strictly limited to "Daily Transaction Scheduler".
+- **Feature Flag:** `ENABLE_TRANSACTION_SCHEDULER_REPORT`
+
+#### 2. Implementation Details
+- **Service Enhancements:**
+    - `scheduler.service.js`: Calculate `totalInvested` (SIP) and `totalWithdrawn` (SWP).
+    - `cronNotification.service.js`: Filter non-scheduler jobs and enforce env var.
+    - `email.service.js`: New professional HTML template with financial summary cards.
+
+#### 3. Verification
+- **Script:** `scripts/test-email-notification.js` used for visual testing.
+
+
+### Full Fund Sync Email Notifications (Jan 26, 2026)
+**Automated Daily Reporting (2:30 AM Sync Job)**
+
+#### 1. Planning & Architecture
+- **Plan Document:** `documents/PLAN-full-sync-email-notifications.md` (Approved)
+- **Scope:** "Full Fund Sync" (2:30 AM).
+- **Feature Flag:** `ENABLE_FULL_SYNC_REPORT`
+
+#### 2. Implementation Details
+- **Service Enhancements:**
+    - `cronNotification.service.js`: Add logic to trigger report for 'Full Fund Sync'.
+    - `email.service.js`: Enhance template to support 'SYNC' mode (Funds Inserted / NAVs Updated cards).
+    - `.env`: Add `ENABLE_FULL_SYNC_REPORT`.
+
+#### 3. Verification
+- **Script:** `scripts/test-sync-email.js` used for visual testing.

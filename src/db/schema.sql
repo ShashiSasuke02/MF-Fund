@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     execution_count INT NOT NULL DEFAULT 0,
     next_execution_date VARCHAR(10),
     last_execution_date VARCHAR(10),
-    status ENUM('PENDING', 'SUCCESS', 'FAILED', 'CANCELLED') NOT NULL DEFAULT 'SUCCESS',
+    status ENUM('PENDING', 'SUCCESS', 'FAILED', 'CANCELLED', 'RECURRING') NOT NULL DEFAULT 'SUCCESS',
     failure_reason TEXT,
     is_locked BOOLEAN NOT NULL DEFAULT FALSE,
     locked_at BIGINT,

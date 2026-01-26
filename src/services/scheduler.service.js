@@ -76,11 +76,30 @@ export const schedulerService = {
     }
 
     results.durationMs = Date.now() - startTime;
+    results.totalInvested = 0;
+    results.totalWithdrawn = 0;
+
+    // Calculate Financials
+    for (const detail of results.details) {
+      if (detail.status === 'SUCCESS') {
+        const txn = dueTransactions.find(t => t.id === detail.transactionId);
+        if (txn) {
+          const amt = parseFloat(txn.amount);
+          if (txn.transaction_type === 'SIP') {
+            results.totalInvested += amt;
+          } else if (txn.transaction_type === 'SWP') {
+            results.totalWithdrawn += amt;
+          }
+        }
+      }
+    }
 
     console.log(`[Scheduler] Execution complete:`, {
       executed: results.executed,
       failed: results.failed,
       skipped: results.skipped,
+      invested: results.totalInvested,
+      withdrawn: results.totalWithdrawn,
       totalDurationMs: results.durationMs
     });
 
@@ -193,8 +212,17 @@ export const schedulerService = {
           transaction.frequency
         );
 
+        // Status Logic:
+        // SIP -> RECURRING (User Request)
+        // SWP -> PENDING (Default)
+        // Others -> PENDING
+        let newStatus = 'PENDING';
+        if (transaction.transaction_type === 'SIP') {
+          newStatus = 'RECURRING';
+        }
+
         await transactionModel.updateExecutionStatus(transaction.id, {
-          status: 'PENDING', // Keep PENDING for recurring transactions
+          status: newStatus,
           nextExecutionDate,
           lastExecutionDate: executionDate,
           executionCount: transaction.execution_count + 1,
@@ -303,22 +331,38 @@ export const schedulerService = {
     await demoAccountModel.updateBalance(transaction.user_id, account.balance - amount);
 
     // Update holdings
-    const existingHolding = await holdingModel.findByUserAndScheme(
+    const existingHolding = await holdingModel.findByScheme(
       transaction.user_id,
       transaction.scheme_code
     );
 
     if (existingHolding) {
-      await holdingModel.updateUnits(
-        existingHolding.id,
-        existingHolding.units + units
+      // Add units and update invested amount
+      await holdingModel.addUnits(
+        transaction.user_id,
+        transaction.scheme_code,
+        units,
+        amount
+      );
+
+      // Update current value with latest NAV
+      await holdingModel.updateCurrentValue(
+        transaction.user_id,
+        transaction.scheme_code,
+        nav,
+        new Date().toISOString().split('T')[0]
       );
     } else {
-      await holdingModel.create({
+      // Create new holding
+      await holdingModel.upsert({
         userId: transaction.user_id,
         schemeCode: transaction.scheme_code,
         schemeName: transaction.scheme_name,
-        units
+        units,
+        investedAmount: amount,
+        currentValue: units * nav,
+        lastNav: nav,
+        lastNavDate: new Date().toISOString().split('T')[0]
       });
     }
 
@@ -349,17 +393,38 @@ export const schedulerService = {
     const unitsToRedeem = amount / nav;
 
     // Check holdings
-    const holding = await holdingModel.findByUserAndScheme(
+    const holding = await holdingModel.findByScheme(
       transaction.user_id,
       transaction.scheme_code
     );
 
-    if (!holding || holding.units < unitsToRedeem) {
-      throw new Error(`Insufficient units. Required: ${unitsToRedeem.toFixed(4)}, Available: ${holding?.units || 0}`);
+    if (!holding || parseFloat(holding.total_units) < unitsToRedeem) {
+      throw new Error(`Insufficient units. Required: ${unitsToRedeem.toFixed(4)}, Available: ${holding?.total_units || 0}`);
     }
 
     // Update holdings
-    await holdingModel.updateUnits(holding.id, holding.units - unitsToRedeem);
+    // Calculate proportionate invested amount to remove
+    // Calculate proportionate invested amount to remove
+    let amountToRemove = 0;
+    if (parseFloat(holding.total_units) > 0 && parseFloat(holding.invested_amount) > 0) {
+      const costPerUnit = parseFloat(holding.invested_amount) / parseFloat(holding.total_units); // Use total_units from DB
+      amountToRemove = costPerUnit * unitsToRedeem;
+    }
+
+    await holdingModel.removeUnits(
+      transaction.user_id,
+      transaction.scheme_code,
+      unitsToRedeem,
+      amountToRemove
+    );
+
+    // Update current value with latest NAV
+    await holdingModel.updateCurrentValue(
+      transaction.user_id,
+      transaction.scheme_code,
+      nav,
+      new Date().toISOString()
+    );
 
     // Credit balance
     const account = await demoAccountModel.findByUserId(transaction.user_id);
