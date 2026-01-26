@@ -1,4 +1,7 @@
-
+  
+      
+           
+           
 ## 🔍 Debug: Category Dropdown Issue
 
 ### 1. Symptom
