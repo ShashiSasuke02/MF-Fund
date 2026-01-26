@@ -19,6 +19,15 @@ export default {
           800: '#065f46',
           900: '#064e3b',
         }
+      },
+      keyframes: {
+        marquee: {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-100%)' },
+        },
+      },
+      animation: {
+        marquee: 'marquee 300s linear infinite',
       }
     },
   },

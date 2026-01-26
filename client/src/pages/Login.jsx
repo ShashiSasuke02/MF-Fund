@@ -12,6 +12,15 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Check for Idle Logout
+  useEffect(() => {
+    const reason = sessionStorage.getItem('logoutReason');
+    if (reason === 'idle') {
+      setError("🛡️ Security Protocol Active: To ensure no data leaks and protect your account from unauthorized access, you have been automatically logged out due to inactivity. Please log in again to continue building your strategies.");
+      sessionStorage.removeItem('logoutReason'); // Clear flag
+    }
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -30,7 +39,7 @@ export default function Login() {
     e.preventDefault();
 
     if (!formData.emailId || !formData.password) {
-      setError('Please enter both email and password');
+      setError("Login Incomplete. We need your credentials to verify your identity. Please fill in both your registered email and password.");
       return;
     }
 
@@ -43,11 +52,14 @@ export default function Login() {
       if (result.portfolio) {
         sessionStorage.setItem('showLoginNotification', 'true');
       }
-      
+
       // Auth state will update, causing PublicOnlyRoute to redirect to /portfolio
       // Notification will show there
     } else {
-      setError(result.error || 'Login failed');
+      const errorMsg = result.error === 'Invalid email or password'
+        ? "Access Denied. The credentials provided don't match our records. Check for typos or use 'Forgot Password'."
+        : result.error || 'Login failed';
+      setError(errorMsg);
     }
   };
 
@@ -61,7 +73,7 @@ export default function Login() {
             <div className="absolute -top-4 -left-4 w-72 h-72 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
             <div className="absolute -top-4 -right-4 w-72 h-72 bg-teal-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
             <div className="absolute -bottom-8 left-20 w-72 h-72 bg-emerald-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-            
+
             {/* Content */}
             <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-emerald-100">
               <div className="flex items-center space-x-3 mb-6">
@@ -72,14 +84,14 @@ export default function Login() {
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900">TryMutualFunds</h3>
               </div>
-              
+
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
                 Welcome Back!
               </h2>
               <p className="text-lg text-gray-600 mb-8">
                 Continue your investment learning journey with real market data and zero risk.
               </p>
-              
+
               <div className="space-y-4">
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center mt-0.5">
@@ -92,7 +104,7 @@ export default function Login() {
                     <p className="text-sm text-gray-600">Monitor your demo investments in real-time</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center mt-0.5">
                     <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,7 +116,7 @@ export default function Login() {
                     <p className="text-sm text-gray-600">Practice with virtual money, real market data</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center mt-0.5">
                     <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,8 +247,8 @@ export default function Login() {
               </div>
 
               <div className="text-center">
-                <Link 
-                  to="/register" 
+                <Link
+                  to="/register"
                   className="inline-flex items-center justify-center w-full py-3 px-4 border-2 border-emerald-500 rounded-xl text-base font-semibold text-emerald-600 bg-white hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-200 transform hover:scale-[1.02] active:scale-95"
                 >
                   Create Free Account

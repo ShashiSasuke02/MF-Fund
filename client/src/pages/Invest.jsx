@@ -82,18 +82,44 @@ export default function Invest() {
     }
 
     if (parseFloat(formData.amount) > demoAccount?.balance) {
-      setError('Insufficient balance');
+      setError(`Transaction Blocked. Your demo balance (${formatCurrency(demoAccount?.balance)}) is less than this investment (${formatCurrency(formData.amount)}). Lower the amount or add funds to your demo account.`);
       return;
     }
 
     if (transactionType !== 'LUMP_SUM') {
       if (!formData.frequency) {
-        setError('Please select a frequency');
+        setError('Frequency Required. SIPs need a schedule to run automatically. Choose Monthly or Quarterly.');
         return;
       }
       if (!formData.startDate) {
-        setError('Please select a start date');
+        setError('Start Date Required. Please select a valid date for your investment plan.');
         return;
+      }
+
+      // Date Validation Logic
+      const selectedDate = new Date(formData.startDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (transactionType === 'SIP') {
+        const selectedTime = selectedDate.getTime();
+        const todayTime = today.getTime();
+        if (selectedTime < todayTime) {
+          setError("Invalid Start Date. You cannot schedule an investment for a past date. Please select today's date or a future date.");
+          return;
+        }
+      }
+
+      if (transactionType === 'SWP') {
+        const nextMonth = new Date();
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        nextMonth.setDate(1);
+        nextMonth.setHours(0, 0, 0, 0);
+
+        if (selectedDate < nextMonth) {
+          setError("Invalid Start Date. SWP cannot start immediately or in the past. Please select a date starting from next month.");
+          return;
+        }
       }
     }
 

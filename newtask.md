@@ -83,12 +83,43 @@
 
 ### Admin Dashboard Enhancement (Planned Jan 26, 2026)
 **Performance Optimization & Live Server Logs**
-- **Goal:** Simplify dashboard and provide real-time monitoring without SSH.
-- **Changes:**
-  - Remove expensive financial aggregate queries.
-  - Implement Live Terminal (in-memory buffer, no DB writes).
-  - Cleanup UI (Remove Quick Actions).
-- **Status:** Planning Completed.
+- **Status:** **Cancelled/On-Hold** (Jan 26, 2026)
+- **Note:** Feature implementation halted per user request ("dont implement"). Original plan involved removing financial aggregates and adding in-memory logs.
+- **Docker Update:** Added `fix-amc-job` to `docker-compose.yml` (Preserved as utility).
+
+### Bulk 30-Day NAV History Sync (Planned Jan 26, 2026)
+**Manual Admin Trigger for History Fetching**
+- **Status:** **Cancelled** (Jan 26, 2026)
+- **Reason:** User requested "dont implement". Feature would have replaced incremental sync with a heavy batch-fetch process.
+
+### Contextual Error Handling & UX (Planned Jan 26, 2026)
+**Framework-Wide Error Auditing & Educational Messaging**
+- **Goal:** Replace generic system alerts with specific, helpful, and educational feedback.
+- **Messaging Standard:** 3-Part Structure (What happened? Why? How to fix it?).
+- **Scope:** Frontend Validation, API Middleware, Backend Controllers.
+- **Status:** **Implemented** (Jan 26, 2026).
+- **Features:** Strict Email Security (Gmail/Outlook only), SIP/SWP Date Logic, Educational Errors.
+- **Audit:** `documents/FRAMEWORK-VALIDATION-AUDIT.md`
+
+### Full Sync Update (Planned Jan 26, 2026)
+**Filter Optimization**
+- **Goal:** Filter out "IDCW" funds and "Equity Scheme - Dividend Yield Fund" category.
+- **Status:** **Implemented** (Jan 26, 2026).
+- **Document:** `documents/PLAN-full-sync-filters.md`
+
+### Session Management Update (Planned Jan 26, 2026)
+**Auto-Termination & Persistence Control**
+- **Goal:** Implement 10-minute idle timeout and switch to SessionStorage.
+- **Status:** **Implemented** (Jan 26, 2026).
+- **Document:** `documents/PLAN-auto-session-termination.md`
+
+### Market Mastery Banner (Planned Jan 26, 2026)
+**Dynamic Educational Disclaimer**
+- **Goal:** High-energy marquee banner with educational and regulatory messaging.
+- **Status:** **Implemented** (Jan 26, 2026).
+- **Document:** `documents/PLAN-market-mastery-banner.md`
+
+
 
 
 ### Motivational SWP Notifications & Constraints (Jan 25, 2026)

@@ -4,6 +4,7 @@ import { amcApi } from '../api';
 import { PageLoader, CardSkeleton } from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import { BannerAd, DisplayAd } from '../components/AdSense';
+import MarketMasteryBanner from '../components/MarketMasteryBanner';
 
 /**
  * AMC List page - displays top AMCs as cards
@@ -53,46 +54,47 @@ export default function AmcList() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-teal-50/30 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-teal-50/30 relative overflow-hidden pb-16">
       {/* Animated decorative blobs */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
       <div className="absolute top-0 right-0 w-96 h-96 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
       <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-cyan-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-      {/* Top Banner Ad */}
-      <div className="mb-8 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-4 border border-gray-200">
-        <BannerAd />
-      </div>
-
-      {/* Header with gradient */}
-      <div className="mb-12 text-center">
-        <div className="inline-flex items-center px-5 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-emerald-200 mb-6">
-          <svg className="w-5 h-5 text-emerald-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-          </svg>
-          <span className="text-sm font-semibold text-emerald-700">India's Leading Fund Houses</span>
+        {/* Top Banner Ad */}
+        <div className="mb-8 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-4 border border-gray-200">
+          <BannerAd />
         </div>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-gray-900 via-emerald-900 to-teal-900 bg-clip-text text-transparent">
-          Top Asset Management Companies
-        </h1>
-        <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
-          Discover and explore mutual fund schemes from India's leading AMCs
-        </p>
-      </div>
 
-      {/* AMC Cards Grid with enhanced spacing */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {amcs.map((amc) => (
-          <AmcCard key={amc.fundHouse} amc={amc} />
-        ))}
-      </div>
+        {/* Header with gradient */}
+        <div className="mb-12 text-center">
+          <div className="inline-flex items-center px-5 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-emerald-200 mb-6">
+            <svg className="w-5 h-5 text-emerald-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <span className="text-sm font-semibold text-emerald-700">India's Leading Fund Houses</span>
+          </div>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-gray-900 via-emerald-900 to-teal-900 bg-clip-text text-transparent">
+            Top Asset Management Companies
+          </h1>
+          <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
+            Discover and explore mutual fund schemes from India's leading AMCs
+          </p>
+        </div>
 
-      {/* Bottom Display Ad */}
-      <div className="mt-12 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-gray-200">
-        <DisplayAd />
+        {/* AMC Cards Grid with enhanced spacing */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {amcs.map((amc) => (
+            <AmcCard key={amc.fundHouse} amc={amc} />
+          ))}
+        </div>
+
+        {/* Bottom Display Ad */}
+        <div className="mt-12 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-gray-200">
+          <DisplayAd />
+        </div>
       </div>
-      </div>
+      <MarketMasteryBanner />
     </div>
   );
 }
@@ -135,7 +137,7 @@ function AmcCard({ amc }) {
       <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:border-emerald-300 hover:scale-[1.02] transform">
         {/* Animated background gradient on hover */}
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 to-teal-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        
+
         <div className="p-6 sm:p-8 relative z-10">
           {/* AMC Avatar and Name */}
           <div className="flex items-center space-x-4 mb-6">

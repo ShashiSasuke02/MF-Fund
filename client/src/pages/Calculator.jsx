@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import { calculatorApi } from '../api';
+import MarketMasteryBanner from '../components/MarketMasteryBanner';
 
 // Import calculator sub-components
 import SimpleInterestCalculator from '../components/calculators/SimpleInterestCalculator';
@@ -111,7 +112,7 @@ export default function Calculator() {
   const SelectedComponent = selectedCalculator?.component;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 pb-20">
       {/* Header with decorative elements */}
       <div className="relative mb-8">
         {/* Decorative blob */}
@@ -210,6 +211,7 @@ export default function Calculator() {
           </div>
         </>
       )}
+      <MarketMasteryBanner />
     </div>
   );
 }

@@ -24,6 +24,10 @@ const AMC_WHITELIST = [
   'Bandhan'
 ];
 
+// Constants for Filtering
+const EXCLUDED_KEYWORDS = ['( IDCW )', '(IDCW)', 'DIVIDEND'];
+const EXCLUDED_CATEGORIES = ['Equity Scheme - Dividend Yield Fund'];
+
 const NAV_RETENTION_COUNT = 30; // Keep latest 30 NAV records per fund
 const BATCH_SIZE = parseInt(process.env.MFAPI_BATCH_SIZE) || 10; // Reduced to prevent DB connection pool exhaustion
 const RATE_LIMIT_DELAY = 1000; // 1s delay between batches for connection cleanup
@@ -66,15 +70,19 @@ export const mfapiIngestionService = {
       console.log(`[MFAPI Ingestion] Whitelisted funds (10 AMCs, current month): ${whitelistedFunds.length}`);
       stats.totalFetched = whitelistedFunds.length;
 
-      // Step 4: Upsert funds to database (BATCH PROCESSING)
+      // Step 4: Apply Exclusion Filters (IDCW, Dividend Yield)
+      const finalFunds = this.filterByExclusions(whitelistedFunds);
+      console.log(`[MFAPI Ingestion] Funds after exclusions: ${finalFunds.length} (Removed: ${whitelistedFunds.length - finalFunds.length})`);
+
+      // Step 5: Upsert funds to database (BATCH PROCESSING)
       console.log('[MFAPI Ingestion] Upserting funds to database...');
       const upsertStartTime = Date.now();
 
       const FUND_UPSERT_BATCH_SIZE = 100;
-      const totalBatches = Math.ceil(whitelistedFunds.length / FUND_UPSERT_BATCH_SIZE);
+      const totalBatches = Math.ceil(finalFunds.length / FUND_UPSERT_BATCH_SIZE);
 
-      for (let i = 0; i < whitelistedFunds.length; i += FUND_UPSERT_BATCH_SIZE) {
-        const batch = whitelistedFunds.slice(i, i + FUND_UPSERT_BATCH_SIZE);
+      for (let i = 0; i < finalFunds.length; i += FUND_UPSERT_BATCH_SIZE) {
+        const batch = finalFunds.slice(i, i + FUND_UPSERT_BATCH_SIZE);
         const batchNum = Math.floor(i / FUND_UPSERT_BATCH_SIZE) + 1;
 
         try {
@@ -102,7 +110,7 @@ export const mfapiIngestionService = {
             }
           }
 
-          console.log(`[MFAPI Ingestion] Batch ${batchNum}/${totalBatches}: ${stats.inserted}/${whitelistedFunds.length} funds, ${stats.navInserted} NAVs`);
+          console.log(`[MFAPI Ingestion] Batch ${batchNum}/${totalBatches}: ${stats.inserted}/${finalFunds.length} funds, ${stats.navInserted} NAVs`);
         } catch (error) {
           console.error(`[MFAPI Ingestion] Batch ${batchNum} failed:`, error.message);
           console.log(`[MFAPI Ingestion] Falling back to sequential upsert for batch ${batchNum}...`);
@@ -280,6 +288,30 @@ export const mfapiIngestionService = {
 
       // Include if NAV is from current month or this year (within last 30 days logic)
       return navYear === currentYear && navMonth === currentMonth;
+    });
+  },
+
+  /**
+   * Filter funds based on exclusion criteria (IDCW, Dividend Yield)
+   * @param {Array} funds - List of funds
+   * @returns {Array} Filtered list
+   */
+  filterByExclusions(funds) {
+    return funds.filter(fund => {
+      const name = (fund.schemeName || '').toUpperCase();
+      const category = (fund.schemeCategory || '').trim();
+
+      // Check Name Exclusions (IDCW, DIVIDEND)
+      if (EXCLUDED_KEYWORDS.some(keyword => name.includes(keyword))) {
+        return false; // Exclude
+      }
+
+      // Check Category Exclusions
+      if (EXCLUDED_CATEGORIES.includes(category)) {
+        return false; // Exclude
+      }
+
+      return true; // Keep
     });
   },
 

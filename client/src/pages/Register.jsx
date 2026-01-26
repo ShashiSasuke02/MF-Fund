@@ -45,17 +45,26 @@ export default function Register() {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
-    else if (formData.fullName.trim().length < 2) newErrors.fullName = 'Min 2 characters';
+    if (!formData.fullName.trim()) newErrors.fullName = 'Name too short. We need your full name for your certificate.';
+    else if (formData.fullName.trim().length < 2) newErrors.fullName = 'Name too short. Please enter at least 2 characters (e.g., "Jo").';
 
+    // Strict Email Domain Whitelist - Shield Protocol 🛡️
+    const trustedDomains = ['gmail.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'yahoo.com', 'proton.me', 'protonmail.com', 'zoho.com', 'aol.com', 'rediffmail.com'];
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.emailId.trim()) newErrors.emailId = 'Email is required';
-    else if (!emailRegex.test(formData.emailId)) newErrors.emailId = 'Invalid email';
+    const emailDomain = formData.emailId.split('@')[1]?.toLowerCase();
 
-    if (!formData.password) newErrors.password = 'Password is required';
-    else if (formData.password.length < 8) newErrors.password = 'Min 8 characters';
+    if (!formData.emailId.trim()) {
+      newErrors.emailId = 'Email format incorrect. The address looks incomplete.';
+    } else if (!emailRegex.test(formData.emailId)) {
+      newErrors.emailId = 'Email format incorrect. Enter a valid format like name@example.com.';
+    } else if (!trustedDomains.includes(emailDomain)) {
+      newErrors.emailId = "Shield Active 🛡️ Spam-free experience guaranteed. We only accept: Gmail, Outlook, Hotmail, iCloud, Yahoo, Proton, Zoho, AOL, Rediffmail.";
+    }
 
-    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords mismatch';
+    if (!formData.password) newErrors.password = 'Password too weak. For your security, we require stronger keys.';
+    else if (formData.password.length < 8) newErrors.password = 'Password too weak. Use at least 8 characters.';
+
+    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords mismatch. Please re-type to confirm.';
 
     return newErrors;
   };
@@ -91,7 +100,7 @@ export default function Register() {
   const handleVerify = async (e) => {
     e.preventDefault();
     if (!otp || otp.length !== 6) {
-      setErrors({ otp: 'Enter a valid 6-digit OTP' });
+      setErrors({ otp: 'OTP format issue. The code should be exactly 6 numbers. Check your email and type again.' });
       return;
     }
 

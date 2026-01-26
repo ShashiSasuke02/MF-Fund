@@ -4,20 +4,20 @@
 const API_BASE = '/api';
 
 /**
- * Get auth token from localStorage
+ * Get auth token from sessionStorage
  */
 function getAuthToken() {
-  return localStorage.getItem('auth_token');
+  return sessionStorage.getItem('auth_token');
 }
 
 /**
- * Set auth token in localStorage
+ * Set auth token in sessionStorage
  */
 export function setAuthToken(token) {
   if (token) {
-    localStorage.setItem('auth_token', token);
+    sessionStorage.setItem('auth_token', token);
   } else {
-    localStorage.removeItem('auth_token');
+    sessionStorage.removeItem('auth_token');
   }
 }
 
