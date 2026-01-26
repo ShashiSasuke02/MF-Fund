@@ -7,6 +7,10 @@ import { seedAMCs } from './seed-amcs.js';
 async function fullSync() {
     console.log('Starting Full Sync Job...');
 
+    // 0. Startup Delay (Allow Docker network to stabilize)
+    console.log('Waiting 5s for network stability...');
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
     // 1. Initialize DB
     await initializeDatabase();
 

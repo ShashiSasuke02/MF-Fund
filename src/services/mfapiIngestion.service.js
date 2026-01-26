@@ -160,10 +160,15 @@ export const mfapiIngestionService = {
 
       return summary;
     } catch (error) {
-      console.error('[MFAPI Ingestion] Full sync failed:', error);
+      console.error('[MFAPI Ingestion] Full sync failed:', error.message);
 
+      // Secondary check to ensure we don't crash if DB connection is lost
       if (syncId) {
-        await fundSyncLogModel.completeSyncFailure(syncId, error);
+        try {
+          await fundSyncLogModel.completeSyncFailure(syncId, error);
+        } catch (dbError) {
+          console.error('[MFAPI Ingestion] Critical: Failed to log sync failure to database:', dbError.message);
+        }
       }
 
       return {
@@ -219,10 +224,14 @@ export const mfapiIngestionService = {
 
       return summary;
     } catch (error) {
-      console.error('[MFAPI Ingestion] Incremental sync failed:', error);
+      console.error('[MFAPI Ingestion] Incremental sync failed:', error.message);
 
       if (syncId) {
-        await fundSyncLogModel.completeSyncFailure(syncId, error);
+        try {
+          await fundSyncLogModel.completeSyncFailure(syncId, error);
+        } catch (dbError) {
+          console.error('[MFAPI Ingestion] Critical: Failed to log incremental sync failure to database:', dbError.message);
+        }
       }
 
       return {

@@ -31,38 +31,49 @@ function createPool() {
 /**
  * Initialize MySQL database
  */
-export async function initializeDatabase() {
-  try {
-    // Create connection pool
-    pool = createPool();
-
-    // Test connection
-    const connection = await pool.getConnection();
-    console.log('MySQL database connected successfully');
-
-    // Read and execute schema
-    const schemaPath = path.join(__dirname, 'schema.sql');
-    const schema = fs.readFileSync(schemaPath, 'utf-8');
-
-    // Split schema into individual statements and execute
-    const statements = schema
-      .split(';')
-      .map(stmt => stmt.trim())
-      .filter(stmt => stmt.length > 0);
-
-    for (const statement of statements) {
-      if (statement) {
-        await connection.query(statement);
+export async function initializeDatabase(retries = 5, interval = 5000) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      // Create connection pool if not exists
+      if (!pool) {
+        pool = createPool();
       }
+
+      // Test connection
+      const connection = await pool.getConnection();
+      console.log(`MySQL database connected successfully (Attempt ${attempt}/${retries})`);
+
+      // Read and execute schema
+      const schemaPath = path.join(__dirname, 'schema.sql');
+      const schema = fs.readFileSync(schemaPath, 'utf-8');
+
+      // Split schema into individual statements and execute
+      const statements = schema
+        .split(';')
+        .map(stmt => stmt.trim())
+        .filter(stmt => stmt.length > 0);
+
+      for (const statement of statements) {
+        if (statement) {
+          await connection.query(statement);
+        }
+      }
+
+      connection.release();
+      console.log('Database schema initialized successfully');
+
+      return pool;
+    } catch (error) {
+      console.error(`Database initialization error (Attempt ${attempt}/${retries}):`, error.message);
+
+      if (attempt === retries) {
+        console.error('Max retries reached. Database initialization failed.');
+        throw error;
+      }
+
+      console.log(`Retrying in ${interval / 1000}s...`);
+      await new Promise(resolve => setTimeout(resolve, interval));
     }
-
-    connection.release();
-    console.log('Database schema initialized successfully');
-
-    return pool;
-  } catch (error) {
-    console.error('Database initialization error:', error);
-    throw error;
   }
 }
 

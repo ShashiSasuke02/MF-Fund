@@ -1,17 +1,26 @@
 import { Router } from 'express';
+import { query } from '../db/database.js';
 import cacheService from '../services/cache.service.js';
-
-const router = Router();
 
 /**
  * @route GET /api/health
  * @desc Health check endpoint
  */
-router.get('/', (req, res) => {
-  res.json({
-    success: true,
+router.get('/', async (req, res) => {
+  let dbStatus = 'connected';
+  try {
+    await query('SELECT 1');
+  } catch (err) {
+    dbStatus = 'disconnected';
+  }
+
+  const isHealthy = dbStatus === 'connected';
+
+  res.status(isHealthy ? 200 : 503).json({
+    success: isHealthy,
     data: {
-      status: 'healthy',
+      status: isHealthy ? 'healthy' : 'unhealthy',
+      database: dbStatus,
       timestamp: new Date().toISOString(),
       uptime: process.uptime()
     }
