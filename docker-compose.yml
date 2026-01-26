@@ -111,9 +111,10 @@ services:
           memory: 512M
 
   # ---------------------------------------------------------------------------
-  # Sync Job (Runs once after backend is up)
+  # Sync Job (Manual Only - Run with: docker compose run --rm sync-job)
   # ---------------------------------------------------------------------------
   sync-job:
+    profiles: ["manual"]
     build:
       context: .
       dockerfile: Dockerfile
@@ -148,9 +149,10 @@ services:
           memory: 512M
 
   # ---------------------------------------------------------------------------
-  # Seed Admin Job (Creates default admin user after fresh install)
+  # Seed Admin Job (Manual Only - Run with: docker compose run --rm seed-admin-job)
   # ---------------------------------------------------------------------------
   seed-admin-job:
+    profiles: ["manual"]
     build:
       context: .
       dockerfile: Dockerfile
