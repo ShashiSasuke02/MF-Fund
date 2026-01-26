@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { query } from '../db/database.js';
 import cacheService from '../services/cache.service.js';
 
+const router = Router();
+
 /**
  * @route GET /api/health
  * @desc Health check endpoint

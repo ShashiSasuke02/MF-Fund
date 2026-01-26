@@ -8,13 +8,13 @@ import { initSchedulerJobs } from './jobs/scheduler.job.js';
 
 const PORT = process.env.PORT || 4000;
 
-// Initialize database before starting server
-try {
-  await initializeDatabase();
-} catch (error) {
-  console.error('[Server] Failed to initialize database:', error.message);
-  process.exit(1);
-}
+// Initialize database in background to allow server to start listening
+// This ensures health checks don't fail with "Connection Refused" while DB is warming up
+initializeDatabase().catch(error => {
+  console.error('[Server] Critical: Database failed to initialize after retries:', error.message);
+  // Optional: Could trigger shutdown here if DB is strictly required for any operation
+  // process.exit(1);
+});
 
 // Start server
 const server = app.listen(PORT, () => {

@@ -102,9 +102,14 @@
 - **Audit:** `documents/FRAMEWORK-VALIDATION-AUDIT.md`
 
 ### Full Sync Update (Planned Jan 26, 2026)
-**Filter Optimization**
-- **Goal:** Filter out "IDCW" funds and "Equity Scheme - Dividend Yield Fund" category.
+**Filter Optimization & Robust Connection Handling**
+- **Goal:** Filter out "IDCW" funds and "Equity Scheme - Dividend Yield Fund" category. Handle transient connection errors in Docker.
 - **Status:** **Implemented** (Jan 26, 2026).
+- **Features:**
+  - Filter Optimization (IDCW/Dividend Yield).
+  - Database Connection Retries (5 attempts, 5s interval).
+  - Sync-Job Startup Delay (5s grace period).
+  - Enhanced Health Check (Verified DB connection status).
 - **Document:** `documents/PLAN-full-sync-filters.md`
 
 ### Session Management Update (Planned Jan 26, 2026)
