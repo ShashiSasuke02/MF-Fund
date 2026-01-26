@@ -17,7 +17,7 @@ export default function SyncActivityChart() {
 
     const fetchChartData = async () => {
         try {
-            const token = localStorage.getItem('auth_token');
+            const token = sessionStorage.getItem('auth_token');
             const res = await axios.get(`${API_URL}/api/admin/sync-chart-data?days=7`, {
                 headers: { Authorization: `Bearer ${token}` }
             });

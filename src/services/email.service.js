@@ -98,8 +98,12 @@ class EmailService {
             totalInvested,
             totalWithdrawn,
             // Sync Stats
+            fundsFetched,
             fundsInserted,
             navUpdated,
+            skippedInactive,
+            markedInactive,
+            errors,
             // Meta
             reportType
         } = reportData;
@@ -153,21 +157,26 @@ class EmailService {
             </div>`;
         } else if (reportType === 'SYNC') {
             cardsHtml = `
-            <div style="display: flex; gap: 12px; justify-content: space-between;">
-                <!-- Funds Inserted Card -->
-                <div style="flex: 1; background: #EFF6FF; padding: 16px; border-radius: 8px; text-align: center; border: 1px solid #DBEAFE;">
-                    <div style="color: #2563EB; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Funds Inserted</div>
-                    <div style="color: #1E40AF; font-size: 18px; font-weight: 800;">${fundsInserted || 0}</div>
+            <div style="display: flex; gap: 8px; justify-content: space-between; flex-wrap: wrap;">
+                <!-- Total Fetched Card -->
+                <div style="flex: 1; min-width: 100px; background: #F3F4F6; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #E5E7EB; margin-bottom: 8px;">
+                    <div style="color: #4B5563; font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Total Found</div>
+                    <div style="color: #1F2937; font-size: 16px; font-weight: 800;">${fundsFetched || 0}</div>
+                </div>
+                <!-- Funds Upserted Card -->
+                <div style="flex: 1; min-width: 100px; background: #EFF6FF; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #DBEAFE; margin-bottom: 8px;">
+                    <div style="color: #2563EB; font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Upserted</div>
+                    <div style="color: #1E40AF; font-size: 16px; font-weight: 800;">${fundsInserted || 0}</div>
                 </div>
                 <!-- NAVs Updated Card -->
-                <div style="flex: 1; background: #ECFDF5; padding: 16px; border-radius: 8px; text-align: center; border: 1px solid #D1FAE5;">
-                    <div style="color: #059669; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">NAVs Updated</div>
-                    <div style="color: #047857; font-size: 18px; font-weight: 800;">${navUpdated || 0}</div>
+                <div style="flex: 1; min-width: 100px; background: #ECFDF5; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #D1FAE5; margin-bottom: 8px;">
+                    <div style="color: #059669; font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">NAVs Fresh</div>
+                    <div style="color: #047857; font-size: 16px; font-weight: 800;">${navUpdated || 0}</div>
                 </div>
                 <!-- Errors Card -->
-                 <div style="flex: 1; background: ${failedCount > 0 ? '#FEF2F2' : '#F3F4F6'}; padding: 16px; border-radius: 8px; text-align: center; border: 1px solid ${failedCount > 0 ? '#FEE2E2' : '#E5E7EB'};">
-                     <div style="color: ${failedCount > 0 ? '#DC2626' : '#6B7280'}; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Errors</div>
-                    <div style="color: ${failedCount > 0 ? '#B91C1C' : '#374151'}; font-size: 18px; font-weight: 800;">${failedCount}</div>
+                <div style="flex: 1; min-width: 100px; background: ${errors > 0 ? '#FEF2F2' : '#F3F4F6'}; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid ${errors > 0 ? '#FEE2E2' : '#E5E7EB'}; margin-bottom: 8px;">
+                     <div style="color: ${errors > 0 ? '#DC2626' : '#6B7280'}; font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Errors</div>
+                    <div style="color: ${errors > 0 ? '#B91C1C' : '#374151'}; font-size: 16px; font-weight: 800;">${errors || 0}</div>
                 </div>
             </div>`;
         }
@@ -195,12 +204,15 @@ class EmailService {
             }
 
             // Stats Details for Full Fund Sync
-            if (job.jobName === 'Full Fund Sync' && job.result) {
+            else if (job.jobName === 'Full Fund Sync' && job.result) {
                 const inserted = job.result.inserted || 0;
                 const navs = job.result.navInserted || 0;
-                details = `<div style="margin-bottom: 4px;"><strong>${inserted}</strong> Funds Upserted</div>
+                const fetched = job.result.totalFetched || 0;
+                details = `<div style="margin-bottom: 4px;"><strong>${inserted} / ${fetched}</strong> Funds Updated</div>
                            <div style="color: #059669;"><strong>${navs}</strong> NAV Records</div>`;
-                if (job.result.skippedInactive) details += `<div style="color: #6B7280; font-size: 10px;">Skipped Inactive: ${job.result.skippedInactive}</div>`;
+                if (job.result.skippedInactive) details += `<div style="color: #6B7280; font-size: 10px;">🛡️ Skipped Inactive: ${job.result.skippedInactive}</div>`;
+                if (job.result.markedInactive) details += `<div style="color: #D97706; font-size: 10px;">💤 Auto-Deactivated: ${job.result.markedInactive}</div>`;
+                if (job.result.errors > 0) details += `<div style="color: #DC2626; font-size: 10px;">❌ Errors Encountered: ${job.result.errors}</div>`;
             }
 
             let errorHtml = '';

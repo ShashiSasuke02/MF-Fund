@@ -18,7 +18,7 @@ export default function QuickActions({ onActionComplete }) {
         setMessage(null);
 
         try {
-            const token = localStorage.getItem('auth_token');
+            const token = sessionStorage.getItem('auth_token');
             const res = await axios.post(`${API_URL}/api/admin/cache/clear`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -36,7 +36,7 @@ export default function QuickActions({ onActionComplete }) {
         const jobName = syncType === 'full' ? 'Full Fund Sync' : 'Incremental Fund Sync';
 
         try {
-            const token = localStorage.getItem('auth_token');
+            const token = sessionStorage.getItem('auth_token');
             await axios.post(`${API_URL}/api/cron/trigger`, { jobName }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -70,8 +70,8 @@ export default function QuickActions({ onActionComplete }) {
                 {/* Message */}
                 {message && (
                     <div className={`mb-4 px-4 py-3 rounded-xl text-sm font-medium ${message.type === 'success'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : 'bg-red-50 text-red-700 border border-red-200'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-red-50 text-red-700 border border-red-200'
                         }`}>
                         {message.text}
                     </div>

@@ -151,9 +151,13 @@ export const cronNotificationService = {
                 const syncResult = jobResults.find(j => j.jobName === 'Full Fund Sync');
                 // stats for sync
                 // Note: 'inserted' = funds inserted/upserted
-                // Note: 'navInserted' = NAVs updated
+                // Note: 'navUpdated' = NAVs updated
+                stats.fundsFetched = (syncResult && syncResult.result) ? (syncResult.result.totalFetched || 0) : 0;
                 stats.fundsInserted = (syncResult && syncResult.result) ? (syncResult.result.inserted || 0) : 0;
                 stats.navUpdated = (syncResult && syncResult.result) ? (syncResult.result.navInserted || 0) : 0;
+                stats.skippedInactive = (syncResult && syncResult.result) ? (syncResult.result.skippedInactive || 0) : 0;
+                stats.markedInactive = (syncResult && syncResult.result) ? (syncResult.result.markedInactive || 0) : 0;
+                stats.errors = (syncResult && syncResult.result) ? (syncResult.result.errors || 0) : 0;
             }
 
             const sent = await emailService.sendCronJobReport({

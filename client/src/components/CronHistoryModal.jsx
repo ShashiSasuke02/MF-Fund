@@ -17,7 +17,7 @@ export default function CronHistoryModal({ jobName, isOpen, onClose }) {
     const fetchHistory = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('auth_token');
+            const token = sessionStorage.getItem('auth_token');
             const response = await axios.get(`${API_URL}/api/cron/${jobName}/history`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -89,8 +89,8 @@ export default function CronHistoryModal({ jobName, isOpen, onClose }) {
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap">
                                                 <span className={`px-2 py-1 text-xs font-bold rounded-full ${log.status === 'SUCCESS' ? 'bg-green-100 text-green-700' :
-                                                        log.status === 'FAILED' ? 'bg-red-100 text-red-700' :
-                                                            'bg-blue-100 text-blue-700'
+                                                    log.status === 'FAILED' ? 'bg-red-100 text-red-700' :
+                                                        'bg-blue-100 text-blue-700'
                                                     }`}>
                                                     {log.status}
                                                 </span>

@@ -18,7 +18,7 @@ export default function SchedulerStats() {
 
     const fetchStats = async () => {
         try {
-            const token = localStorage.getItem('auth_token');
+            const token = sessionStorage.getItem('auth_token');
             const headers = { Authorization: `Bearer ${token}` };
 
             const [statsRes, failuresRes] = await Promise.all([

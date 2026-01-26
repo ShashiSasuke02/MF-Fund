@@ -19,7 +19,7 @@ export default function ActivityLogs() {
     const fetchLogs = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('auth_token');
+            const token = sessionStorage.getItem('auth_token');
             const params = new URLSearchParams();
             if (filter) params.append('type', filter);
             params.append('limit', '30');

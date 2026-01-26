@@ -31,7 +31,7 @@ export default function AdminDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
+      const token = sessionStorage.getItem('auth_token');
       if (!token) {
         navigate('/login');
         return;
@@ -95,7 +95,7 @@ export default function AdminDashboard() {
 
   const handleRunJob = async (jobName) => {
     try {
-      const token = localStorage.getItem('auth_token');
+      const token = sessionStorage.getItem('auth_token');
       const response = await axios.post(
         `${API_URL}/api/cron/trigger`,
         { jobName },
@@ -181,8 +181,8 @@ export default function AdminDashboard() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm whitespace-nowrap transition-all ${activeTab === tab.id
-                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
-                : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+              ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
+              : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
               }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

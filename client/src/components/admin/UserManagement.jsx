@@ -20,7 +20,7 @@ export default function UserManagement() {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('auth_token');
+            const token = sessionStorage.getItem('auth_token');
             const params = new URLSearchParams();
             if (search) params.append('search', search);
             if (roleFilter) params.append('role', roleFilter);
@@ -125,8 +125,8 @@ export default function UserManagement() {
                                         <div className="flex items-center gap-2">
                                             <span className="font-semibold text-gray-900">{user.fullName || user.username}</span>
                                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${user.role === 'admin'
-                                                    ? 'bg-violet-100 text-violet-700'
-                                                    : 'bg-gray-200 text-gray-600'
+                                                ? 'bg-violet-100 text-violet-700'
+                                                : 'bg-gray-200 text-gray-600'
                                                 }`}>
                                                 {user.role}
                                             </span>
