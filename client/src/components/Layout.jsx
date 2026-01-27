@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Footer from './Footer';
+import NotificationCenter from './NotificationCenter';
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -74,7 +75,8 @@ export default function Layout({ children }) {
             <div className="hidden lg:flex items-center space-x-3 flex-shrink-0">
               {isAuthenticated ? (
                 <>
-                  <span className="text-sm text-gray-600">{user?.emailId || user?.email_id}</span>
+                  <NotificationCenter />
+                  <span className="text-sm text-gray-600 hidden xl:inline">{user?.emailId || user?.email_id}</span>
                   <button
                     onClick={logout}
                     className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
@@ -103,12 +105,15 @@ export default function Layout({ children }) {
             {/* Mobile: Auth buttons only */}
             <div className="flex lg:hidden items-center space-x-2">
               {isAuthenticated ? (
-                <button
-                  onClick={logout}
-                  className="px-3 py-1.5 text-xs font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg border border-red-200 transition-all"
-                >
-                  Logout
-                </button>
+                <div className="flex items-center gap-2">
+                  <NotificationCenter />
+                  <button
+                    onClick={logout}
+                    className="px-3 py-1.5 text-xs font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg border border-red-200 transition-all"
+                  >
+                    Logout
+                  </button>
+                </div>
               ) : (
                 <>
                   <Link

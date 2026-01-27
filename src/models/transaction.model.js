@@ -26,9 +26,9 @@ export const transactionModel = {
         frequency, start_date, end_date, installments, status, next_execution_date) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [userId, schemeCode, schemeName, transactionType, amount, units, nav,
-       frequency, startDate, endDate, installments, status, nextExecutionDate]
+        frequency, startDate, endDate, installments, status, nextExecutionDate]
     );
-    
+
     return {
       id: result.lastInsertRowid,
       userId,
@@ -54,7 +54,7 @@ export const transactionModel = {
     // Convert to integers to prevent SQL injection
     const safeLimit = parseInt(limit) || 50;
     const safeOffset = parseInt(offset) || 0;
-    
+
     const results = await query(
       `SELECT * FROM transactions 
        WHERE user_id = ? 
@@ -137,10 +137,10 @@ export const transactionModel = {
     }
 
     console.log(`[Transaction Model] Finding due transactions for date: ${targetDate}`);
-    
+
     const results = await query(
       `SELECT * FROM transactions 
-       WHERE status = 'PENDING'
+       WHERE status IN ('PENDING', 'RECURRING')
        AND next_execution_date IS NOT NULL
        AND next_execution_date <= ?
        AND is_locked = 0
@@ -148,7 +148,7 @@ export const transactionModel = {
        ORDER BY next_execution_date ASC, created_at ASC`,
       [targetDate, targetDate]
     );
-    
+
     console.log(`[Transaction Model] Found ${results.length} due transactions`);
     return results;
   },
@@ -160,14 +160,14 @@ export const transactionModel = {
    */
   async lockForExecution(transactionId) {
     const lockedAt = Date.now();
-    
+
     const result = await run(
       `UPDATE transactions 
        SET is_locked = 1, locked_at = ?
        WHERE id = ? AND is_locked = 0`,
       [lockedAt, transactionId]
     );
-    
+
     const success = result.changes > 0;
     console.log(`[Transaction Model] Lock ${success ? 'acquired' : 'failed'} for transaction ${transactionId}`);
     return success;
@@ -192,12 +192,12 @@ export const transactionModel = {
    * @param {number} transactionId - Transaction ID
    * @param {object} params - Execution details
    */
-  async updateExecutionStatus(transactionId, { 
-    status, 
-    nextExecutionDate = null, 
+  async updateExecutionStatus(transactionId, {
+    status,
+    nextExecutionDate = null,
     lastExecutionDate = null,
     executionCount = null,
-    failureReason = null 
+    failureReason = null
   }) {
     const updates = [];
     const values = [];
@@ -231,7 +231,7 @@ export const transactionModel = {
       `UPDATE transactions SET ${updates.join(', ')} WHERE id = ?`,
       values
     );
-    
+
     console.log(`[Transaction Model] Updated execution status for transaction ${transactionId}:`, { status, nextExecutionDate, executionCount });
   },
 
@@ -253,18 +253,18 @@ export const transactionModel = {
    */
   async releaseStaleAccess() {
     const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
-    
+
     const result = await run(
       `UPDATE transactions 
        SET is_locked = 0, locked_at = NULL
        WHERE is_locked = 1 AND locked_at < ?`,
       [fiveMinutesAgo]
     );
-    
+
     if (result.changes > 0) {
       console.log(`[Transaction Model] Released ${result.changes} stale locks`);
     }
-    
+
     return result.changes;
   }
 };

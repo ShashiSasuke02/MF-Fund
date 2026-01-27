@@ -82,7 +82,6 @@ class EmailService {
 
         if (!this.transporter) {
             console.log('[EmailService] MOCK: Would send cron report to', reportData.recipient);
-            // console.log('[EmailService] Report Data:', JSON.stringify(reportData, null, 2));
             return true;
         }
 
@@ -101,8 +100,6 @@ class EmailService {
             fundsFetched,
             fundsInserted,
             navUpdated,
-            skippedInactive,
-            markedInactive,
             errors,
             // Meta
             reportType
@@ -118,130 +115,106 @@ class EmailService {
             }).format(amount || 0);
         };
 
-        const totalInvestedStr = formatMoney(totalInvested);
-        const totalWithdrawnStr = formatMoney(totalWithdrawn);
-
-        // Format duration
         const formatDuration = (ms) => {
             if (ms < 1000) return `${ms}ms`;
             if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
             return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`;
         };
 
-        // Determine Header Title
-        let headerTitle = 'Nightly Batch Process Report';
-        if (reportType === 'SCHEDULER') headerTitle = 'Daily Transaction Report';
-        if (reportType === 'SYNC') headerTitle = 'Full Fund Sync Report';
+        // --- THEME CONFIGURATION ---
+        // Futuristic Fintech Palette
+        const colors = {
+            bg: '#F8FAFC', // Slate 50
+            card: '#FFFFFF',
+            textPrimary: '#0F172A', // Slate 900
+            textSecondary: '#64748B', // Slate 500
+            border: '#E2E8F0', // Slate 200
+            success: '#10B981', // Emerald 500
+            successDark: '#047857', // Emerald 700
+            successBg: '#ECFDF5', // Emerald 50
+            error: '#EF4444', // Red 500
+            errorDark: '#B91C1C', // Red 700
+            errorBg: '#FEF2F2', // Red 50
+            warning: '#F59E0B', // Amber 500
+            brandGradient: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+            accentGradient: 'linear-gradient(135deg, #3B82F6 0%, #06B6D4 100%)'
+        };
 
-        // Build Summary Cards HTML
-        let cardsHtml = '';
+        let headerTitle = 'Nightly System Report';
+        let subTitle = 'System Audit & Performance Log';
 
         if (reportType === 'SCHEDULER') {
-            cardsHtml = `
-            <div style="display: flex; gap: 12px; justify-content: space-between;">
-                <!-- Invested Card -->
-                <div style="flex: 1; background: #ECFDF5; padding: 16px; border-radius: 8px; text-align: center; border: 1px solid #D1FAE5;">
-                    <div style="color: #059669; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Invested</div>
-                    <div style="color: #047857; font-size: 18px; font-weight: 800;">${totalInvestedStr}</div>
-                </div>
-                <!-- Withdrawn Card -->
-                <div style="flex: 1; background: #FFFBEB; padding: 16px; border-radius: 8px; text-align: center; border: 1px solid #FEF3C7;">
-                    <div style="color: #D97706; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Withdrawn</div>
-                    <div style="color: #B45309; font-size: 18px; font-weight: 800;">${totalWithdrawnStr}</div>
-                </div>
-                <!-- Failed Card -->
-                <div style="flex: 1; background: ${failedCount > 0 ? '#FEF2F2' : '#F3F4F6'}; padding: 16px; border-radius: 8px; text-align: center; border: 1px solid ${failedCount > 0 ? '#FEE2E2' : '#E5E7EB'};">
-                     <div style="color: ${failedCount > 0 ? '#DC2626' : '#6B7280'}; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Failed</div>
-                    <div style="color: ${failedCount > 0 ? '#B91C1C' : '#374151'}; font-size: 18px; font-weight: 800;">${failedCount}</div>
-                </div>
-            </div>`;
+            headerTitle = 'Daily Transaction Report';
+            subTitle = 'Automated Portfolio Execution';
         } else if (reportType === 'SYNC') {
-            cardsHtml = `
-            <div style="display: flex; gap: 8px; justify-content: space-between; flex-wrap: wrap;">
-                <!-- Total Fetched Card -->
-                <div style="flex: 1; min-width: 100px; background: #F3F4F6; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #E5E7EB; margin-bottom: 8px;">
-                    <div style="color: #4B5563; font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Total Found</div>
-                    <div style="color: #1F2937; font-size: 16px; font-weight: 800;">${fundsFetched || 0}</div>
-                </div>
-                <!-- Funds Upserted Card -->
-                <div style="flex: 1; min-width: 100px; background: #EFF6FF; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #DBEAFE; margin-bottom: 8px;">
-                    <div style="color: #2563EB; font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Upserted</div>
-                    <div style="color: #1E40AF; font-size: 16px; font-weight: 800;">${fundsInserted || 0}</div>
-                </div>
-                <!-- NAVs Updated Card -->
-                <div style="flex: 1; min-width: 100px; background: #ECFDF5; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #D1FAE5; margin-bottom: 8px;">
-                    <div style="color: #059669; font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">NAVs Fresh</div>
-                    <div style="color: #047857; font-size: 16px; font-weight: 800;">${navUpdated || 0}</div>
-                </div>
-                <!-- Errors Card -->
-                <div style="flex: 1; min-width: 100px; background: ${errors > 0 ? '#FEF2F2' : '#F3F4F6'}; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid ${errors > 0 ? '#FEE2E2' : '#E5E7EB'}; margin-bottom: 8px;">
-                     <div style="color: ${errors > 0 ? '#DC2626' : '#6B7280'}; font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">Errors</div>
-                    <div style="color: ${errors > 0 ? '#B91C1C' : '#374151'}; font-size: 16px; font-weight: 800;">${errors || 0}</div>
-                </div>
-            </div>`;
+            headerTitle = 'Full Fund Sync Report';
+            subTitle = 'Market Data Ingestion';
         }
 
-        // Build job rows
-        const jobRows = jobs.map(job => {
+        // --- COMPONENTS (Inline CSS Helpers) ---
+
+        const StatCard = (label, value, color = colors.textPrimary, subtext = '') => `
+            <td width="33%" style="padding: 0 8px;">
+                <div style="background: ${colors.card}; border: 1px solid ${colors.border}; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="color: ${colors.textSecondary}; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 8px;">${label}</div>
+                    <div style="color: ${color}; font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">${value}</div>
+                    ${subtext ? `<div style="color: ${colors.textSecondary}; font-size: 11px; margin-top: 4px;">${subtext}</div>` : ''}
+                </div>
+            </td>
+        `;
+
+        const StatusPill = (status) => {
+            const isSuccess = status === 'SUCCESS';
+            const bg = isSuccess ? colors.successBg : colors.errorBg;
+            const text = isSuccess ? colors.successDark : colors.errorDark;
+            return `<span style="background-color: ${bg}; color: ${text}; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">${status}</span>`;
+        };
+
+        // --- BUILD STATS ROW ---
+        let statsRow = '';
+        if (reportType === 'SCHEDULER') {
+            statsRow = `
+                ${StatCard('Executed', transactionCount, colors.textPrimary)}
+                ${StatCard('Invested', formatMoney(totalInvested), colors.success, 'Total Deployment')}
+                ${StatCard('Withdrawn', formatMoney(totalWithdrawn), '#D97706')} // Amber
+             `;
+        } else if (reportType === 'SYNC') {
+            statsRow = `
+                ${StatCard('Total Found', fundsFetched, colors.textPrimary)}
+                ${StatCard('Funds Upserted', fundsInserted, '#3B82F6')} // Blue
+                ${StatCard('NAV Records', navUpdated, colors.success)}
+             `;
+        }
+
+        // --- BUILD JOBS TABLE ---
+        const jobRows = jobs.map((job, index) => {
             const isSuccess = job.status === 'SUCCESS';
-            const statusColor = isSuccess ? '#D1FAE5' : '#FEE2E2'; // Green-100 : Red-100
-            const statusTextColor = isSuccess ? '#065F46' : '#991B1B'; // Green-800 : Red-800
             const duration = formatDuration(job.durationMs || 0);
+            const borderStyle = index === jobs.length - 1 ? '' : `border-bottom: 1px solid ${colors.border};`;
 
-            let details = `⏱️ ${duration}`;
+            let detailsHtml = `<div style="color: ${colors.textSecondary}; font-size: 13px;">⏱️ Duration: ${duration}</div>`;
 
-            // Financial Details for Scheduler
-            if (job.jobName === 'Daily Transaction Scheduler' && job.result) {
-                const executed = job.result.executed || 0;
-                details = `<div style="margin-bottom: 4px;"><strong>${executed}</strong> Transactions Processed</div>`;
-
-                if (job.result.totalInvested > 0) {
-                    details += `<div style="color: #059669;">⬆️ Invested: <strong>${formatMoney(job.result.totalInvested)}</strong></div>`;
-                }
-                if (job.result.totalWithdrawn > 0) {
-                    details += `<div style="color: #D97706;">⬇️ Withdrawn: <strong>${formatMoney(job.result.totalWithdrawn)}</strong></div>`;
-                }
-            }
-
-            // Stats Details for Full Fund Sync
-            else if (job.jobName === 'Full Fund Sync' && job.result) {
-                const inserted = job.result.inserted || 0;
-                const navs = job.result.navInserted || 0;
-                const fetched = job.result.totalFetched || 0;
-                details = `<div style="margin-bottom: 4px;"><strong>${inserted} / ${fetched}</strong> Funds Updated</div>
-                           <div style="color: #059669;"><strong>${navs}</strong> NAV Records</div>`;
-                if (job.result.skippedInactive) details += `<div style="color: #6B7280; font-size: 10px;">🛡️ Skipped Inactive: ${job.result.skippedInactive}</div>`;
-                if (job.result.markedInactive) details += `<div style="color: #D97706; font-size: 10px;">💤 Auto-Deactivated: ${job.result.markedInactive}</div>`;
-                if (job.result.errors > 0) details += `<div style="color: #DC2626; font-size: 10px;">❌ Errors Encountered: ${job.result.errors}</div>`;
-            }
-
-            let errorHtml = '';
-            if (job.status === 'FAILED' && job.errorDetails) {
-                const shortError = job.errorDetails.split('\\n')[0].substring(0, 100);
-                errorHtml = `<div style="color: #DC2626; font-size: 11px; margin-top: 6px; background: #FEF2F2; padding: 4px; border-radius: 4px;">⚠️ ${shortError}</div>`;
+            if (job.errorDetails) {
+                const shortError = job.errorDetails.split('\n')[0].substring(0, 120);
+                detailsHtml += `<div style="margin-top: 8px; background: ${colors.errorBg}; color: ${colors.errorDark}; padding: 8px; border-radius: 6px; font-size: 12px; font-family: monospace;">⚠️ ${shortError}</div>`;
             }
 
             return `
                 <tr>
-                    <td style="padding: 16px; border-bottom: 1px solid #F3F4F6;">
-                        <div style="font-weight: 600; color: #1F2937; font-size: 14px;">${job.jobName}</div>
-                        ${errorHtml}
+                    <td style="padding: 20px; ${borderStyle}">
+                        <div style="font-weight: 700; color: ${colors.textPrimary}; font-size: 15px;">${job.jobName}</div>
                     </td>
-                    <td style="padding: 16px; border-bottom: 1px solid #F3F4F6; text-align: center;">
-                        <span style="background-color: ${statusColor}; color: ${statusTextColor}; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                            ${job.status}
-                        </span>
+                    <td style="padding: 20px; text-align: center; ${borderStyle}">
+                        ${StatusPill(job.status)}
                     </td>
-                    <td style="padding: 16px; border-bottom: 1px solid #F3F4F6; color: #4B5563; font-size: 13px; line-height: 1.4;">
-                        ${details}
+                    <td style="padding: 20px; ${borderStyle}">
+                        ${detailsHtml}
                     </td>
                 </tr>
             `;
         }).join('');
 
-        const headerColorStart = failedCount > 0 ? '#EF4444' : '#4F46E5'; // Red or Indigo
-        const headerColorEnd = failedCount > 0 ? '#B91C1C' : '#4338CA';
-
+        // --- ASSEMBLE HTML ---
         const html = `
 <!DOCTYPE html>
 <html>
@@ -249,57 +222,91 @@ class EmailService {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #F9FAFB; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-    <div style="max-width: 600px; margin: 20px auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-        
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, ${headerColorStart} 0%, ${headerColorEnd} 100%); padding: 32px 24px; text-align: center;">
-            <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">${headerTitle}</h1>
-            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500;">${date}</p>
-        </div>
-
-        <!-- Summary Cards -->
-        <div style="padding: 24px; background: #FFFFFF; border-bottom: 1px solid #F3F4F6;">
-            ${cardsHtml}
-        </div>
-
-        <!-- Table -->
-        <div style="padding: 0;">
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="background-color: #F9FAFB; border-bottom: 1px solid #E5E7EB;">
-                        <th style="padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; color: #6B7280; text-transform: uppercase;">Job Name</th>
-                        <th style="padding: 12px 16px; text-align: center; font-size: 11px; font-weight: 700; color: #6B7280; text-transform: uppercase;">Status</th>
-                        <th style="padding: 12px 16px; text-align: left; font-size: 11px; font-weight: 700; color: #6B7280; text-transform: uppercase;">Details</th>
+<body style="margin: 0; padding: 0; background-color: ${colors.bg}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+    
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+        <tr>
+            <td style="padding: 40px 10px;" align="center">
+                
+                <!-- MAIN CONTAINER -->
+                <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="background: ${colors.card}; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1);">
+                    
+                    <!-- HEADER -->
+                    <tr>
+                        <td style="background: ${colors.brandGradient}; padding: 40px 30px; text-align: center;">
+                             <!-- Logo/Icon Placeholder -->
+                             <div style="font-size: 40px; margin-bottom: 10px;">📊</div>
+                             <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">${headerTitle}</h1>
+                             <p style="margin: 8px 0 0; color: rgba(255,255,255,0.7); font-size: 14px; font-weight: 500;">${date} • ${subTitle}</p>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    ${jobRows}
-                </tbody>
-            </table>
-        </div>
 
-        <!-- Footer -->
-        <div style="background: #F9FAFB; padding: 24px; text-align: center; border-top: 1px solid #E5E7EB;">
-            <p style="margin: 0; color: #9CA3AF; font-size: 12px;">
-                Generated automatically by TryMutualFunds Scheduler.
-            </p>
-            <p style="margin: 4px 0 0; color: #D1D5DB; font-size: 11px;">
-                ${new Date().getFullYear()} © All rights reserved.
-            </p>
-        </div>
-    </div>
+                    <!-- STATS GRID -->
+                    <tr>
+                        <td style="padding: 30px;">
+                            <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                                <tr>${statsRow}</tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- JOB LIST HEADER -->
+                    <tr>
+                        <td style="padding: 0 30px;">
+                            <h3 style="margin: 0 0 16px; color: ${colors.textPrimary}; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Detailed Execution Log</h3>
+                        </td>
+                    </tr>
+
+                    <!-- JOB LIST -->
+                    <tr>
+                        <td style="padding: 0 30px 40px;">
+                            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 1px solid ${colors.border}; border-radius: 12px; overflow: hidden;">
+                                <thead style="background: #F8FAFC;">
+                                    <tr>
+                                        <th style="padding: 12px 20px; text-align: left; font-size: 11px; color: ${colors.textSecondary}; text-transform: uppercase;">Job Name</th>
+                                        <th style="padding: 12px 20px; text-align: center; font-size: 11px; color: ${colors.textSecondary}; text-transform: uppercase;">Status</th>
+                                        <th style="padding: 12px 20px; text-align: left; font-size: 11px; color: ${colors.textSecondary}; text-transform: uppercase;">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${jobRows}
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- FOOTER -->
+                    <tr>
+                        <td style="background: #F1F5F9; padding: 24px; text-align: center;">
+                            <p style="margin: 0; color: ${colors.textSecondary}; font-size: 12px;">This is an automated system report generated by <strong>MF Selection Engine</strong>.</p>
+                            <div style="margin-top: 12px; display: inline-block;">
+                                <span style="display:inline-block; width: 6px; height: 6px; background: ${colors.success}; border-radius: 50%; margin-right: 6px;"></span>
+                                <span style="font-size: 11px; color: ${colors.textSecondary}; font-weight: 600;">System Healthy</span>
+                            </div>
+                        </td>
+                    </tr>
+                
+                </table>
+                <!-- END CONTAINER -->
+                
+                <p style="text-align: center; margin-top: 24px; color: #94A3B8; font-size: 11px;">
+                    © ${new Date().getFullYear()} MF Investments. All rights reserved.
+                </p>
+
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
         `;
 
         const subject = failedCount > 0
-            ? `⚠️ ${headerTitle} - Issues Detected (${date})`
-            : `✅ ${headerTitle} - Successful (${date})`;
+            ? `⚠️ Alert: ${headerTitle} Issues Detected`
+            : `✅ Success: ${headerTitle}`;
 
         try {
             const info = await this.transporter.sendMail({
-                from: `"TryMutualFunds Cron" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+                from: `"MF System Brain" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
                 to: recipient,
                 subject,
                 html

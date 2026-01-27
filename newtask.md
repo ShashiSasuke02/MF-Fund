@@ -124,8 +124,63 @@
 - **Status:** **Implemented** (Jan 26, 2026).
 - **Document:** `documents/PLAN-market-mastery-banner.md`
 
+### SIP Lifecycle & Recurring Status Fix (Planned Jan 27, 2026)
+**Fixing premature SUCCESS transitions and scheduler stalls**
+- **Goal:** Manage SIPs as `RECURRING` until completion.
+- **Status:** **Completed** (Jan 27, 2026).
+- **Document:** `documents/PLAN-sip-recurring-fix.md`
 
+### Global Notification System & SIP Success Alerts (Planned Jan 27, 2026)
+**Motivational feedback for background operations**
+- **Goal:** Notify users of successful background SIP/SWP executions.
+- **Status:** **Completed** (Jan 27, 2026).
+- **Document:** `documents/PLAN-sip-success-alerts.md`
 
+### Email Notification Redesign (Jan 27, 2026)
+**"Fintech Futurism" Aesthetic for System Reports**
+- **Goal:** Modernize email reports with gradients, glass cards, and status pills.
+- **Status:** **Completed** (Jan 27, 2026).
+- **Document:** `documents/PLAN-email-redesign.md`
+
+### SWP Future Logic Update (Jan 27, 2026)
+**Deferred Calculation for Future Systematic Plans**
+- **Goal:** Future SWPs/SIPs created with `units=null` ("TBD") to avoid locking NAV.
+- **Status:** **Completed** (Jan 27, 2026).
+- **Document:** `documents/PLAN-swp-future-execution.md`
+
+### Transaction Execution History (Planned Jan 27, 2026)
+**Frontend UI for Execution Logs**
+- **Goal:** Add "History" button to transactions to show past executions (Date, NAV, Status).
+- **Status:** **Planned** (To be implemented).
+- **Document:** `documents/PLAN-transaction-history.md`
+
+### Fund Detail UX Enhancements (Planned Jan 27, 2026)
+**Riskometer, Insights & Layout Refactor**
+- **Goal:** Transform Fund Details page into a data-rich dashboard.
+- **Status:** **Planned** (To be implemented).
+- **Document:** `documents/PLAN-fund-details-ux.md`
+
+### Market Academy - Educational Content Hub (Planned Jan 26, 2026)
+**High-energy Strategy Lab & "Lovable" fintech learning space**
+- **Goal:** Educate users in 5 minutes and empower them with "Starter Strategies" (Core-Satellite, Income Generator).
+- **Status:** **Planned** (Jan 26, 2026).
+- **Document:** `documents/PLAN-market-academy.md`
+- **Key Features:**
+  - Dedicated `/academy` page with Conductor/Racer analogies.
+  - **Strategy Lab:** Interactive cards for building custom investment systems.
+  - **Strategic AdSense Integration:** Non-intrusive ad slots between theory and practice.
+  - "Academy 🎓" menu item with global visibility.
+  - Interactive "Test this Strategy →" CTAs leading directly to /browse.
+
+- **Key Features:**
+  - `GET /api/notifications` & `PATCH /api/notifications/:id/read` endpoints.
+  - "Wealth Builder Alert" for SIP success.
+  - Custom React `NotificationToast` component.
+
+- **Key Changes:**
+  - Update `transactionModel.findDueTransactions` to include `RECURRING`.
+  - Implement "Auto-Success" logic when installments complete.
+  - Set initial status to `RECURRING` for immediately executed systematic plans.
 
 ### Motivational SWP Notifications & Constraints (Jan 25, 2026)
 **Enhanced User Experience for Systematic Withdrawals**
@@ -2113,7 +2168,6 @@ The TryMutualFunds application is **production-ready** with the following status
 - Deployment guide detailed (100%)
 
 ⚠️ **Before Launch (5%):**
-- Install and run Snyk security scan
 - Add financial disclaimer
 - Setup monitoring and backups
 - Test complete user journey
@@ -2226,4 +2280,6 @@ With the comprehensive deployment guide, tested codebase, and robust architectur
   - **Scheduler Stats Fix:** Added default date ranges to `getStatistics` controller.
 
 - **New Logic:** - **Data Structures:**
-- **UI Changes:** ```
+- **UI Changes:**
+  - Removed misleading "Forgot Password" reference from login error message.
+  - **NavChart Component:** Implemented interactive NAV history chart using `recharts` with gradient fill, 7d/14d/30d time ranges, and performance-based color coding (Green/Red). ```

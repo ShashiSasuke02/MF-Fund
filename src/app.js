@@ -17,6 +17,7 @@ import schedulerRoutes from './routes/scheduler.routes.js';
 import ingestionRoutes from './routes/ingestion.routes.js';
 import cronRoutes from './routes/cron.routes.js';
 import adminRoutes from './routes/admin.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
 
 // Middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -89,6 +90,7 @@ app.use('/api/scheduler', schedulerRoutes);
 app.use('/api/ingestion', ingestionRoutes);
 app.use('/api/cron', cronRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/api/health', healthRoutes);
 
 // Root route - API info

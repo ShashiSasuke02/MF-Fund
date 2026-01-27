@@ -57,7 +57,7 @@ export default function Login() {
       // Notification will show there
     } else {
       const errorMsg = result.error === 'Invalid email or password'
-        ? "Access Denied. The credentials provided don't match our records. Check for typos or use 'Forgot Password'."
+        ? "Access Denied. The credentials provided don't match our records. Check for typos."
         : result.error || 'Login failed';
       setError(errorMsg);
     }

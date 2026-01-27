@@ -424,4 +424,30 @@ export const calculatorApi = {
     })
 };
 
-export default { amcApi, fundApi, healthApi, authApi, demoApi, calculatorApi };
+/**
+ * Notification API functions
+ */
+export const notificationApi = {
+  /**
+   * Get unread notifications
+   */
+  getNotifications: () => fetchApi('/notifications'),
+
+  /**
+   * Mark notification as read
+   */
+  markAsRead: (id) =>
+    fetchApi(`/notifications/${id}/read`, {
+      method: 'PATCH'
+    }),
+
+  /**
+   * Mark all notifications as read
+   */
+  markAllAsRead: () =>
+    fetchApi('/notifications/read-all', {
+      method: 'POST'
+    })
+};
+
+export default { amcApi, fundApi, healthApi, authApi, demoApi, calculatorApi, notificationApi };

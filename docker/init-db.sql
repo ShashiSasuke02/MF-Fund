@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     execution_count INT NOT NULL DEFAULT 0,
     next_execution_date VARCHAR(10),
     last_execution_date VARCHAR(10),
-    status ENUM('PENDING', 'SUCCESS', 'FAILED', 'CANCELLED') NOT NULL DEFAULT 'SUCCESS',
+    status ENUM('PENDING', 'SUCCESS', 'FAILED', 'CANCELLED', 'RECURRING') NOT NULL DEFAULT 'SUCCESS',
     failure_reason TEXT,
     is_locked BOOLEAN NOT NULL DEFAULT FALSE,
     locked_at BIGINT,
@@ -174,9 +174,23 @@ CREATE TABLE IF NOT EXISTS execution_logs (
     INDEX idx_execution_logs_transaction_id (transaction_id)
 );
 
+-- User Notifications table for async alerts (SWP execution, etc.)
+CREATE TABLE IF NOT EXISTS user_notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    type ENUM('SUCCESS', 'ERROR', 'INFO') DEFAULT 'INFO',
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_notifications_user (user_id, is_read),
+    INDEX idx_notifications_created (created_at)
+);
+
 -- Fund Sync Log table
 CREATE TABLE IF NOT EXISTS fund_sync_log (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     sync_type ENUM('FULL', 'INCREMENTAL') NOT NULL DEFAULT 'FULL',
     sync_status ENUM('STARTED', 'SUCCESS', 'PARTIAL', 'FAILED') NOT NULL DEFAULT 'STARTED',
     start_time BIGINT NOT NULL,

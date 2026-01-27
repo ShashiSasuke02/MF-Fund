@@ -239,6 +239,13 @@ export const schedulerService = {
             message: `High Five! Your SWP from ${transaction.scheme_name} executed successfully. ₹${transaction.amount} has been credited to your balance. Your portfolio is working for you!`,
             type: 'SUCCESS'
           });
+        } else if (transaction.transaction_type === 'SIP') {
+          await notificationModel.create({
+            userId: transaction.user_id,
+            title: 'Wealth Builder Alert 🚀',
+            message: `✅ Wealth Builder Alert! Your SIP for ${transaction.scheme_name} of ₹${transaction.amount} was successful.`,
+            type: 'SUCCESS'
+          });
         }
 
       } catch (error) {

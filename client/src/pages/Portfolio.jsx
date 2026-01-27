@@ -616,10 +616,18 @@ export default function Portfolio() {
                           {formatCurrency(txn.amount)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">
-                          {parseFloat(txn.units || 0).toFixed(4)}
+                          {((!txn.units || parseFloat(txn.units) === 0) && (txn.status === 'PENDING' || txn.status === 'RECURRING')) ? (
+                            <span className="text-gray-400 font-medium italic">TBD</span>
+                          ) : (
+                            parseFloat(txn.units || 0).toFixed(4)
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">
-                          ₹{parseFloat(txn.nav || 0).toFixed(4)}
+                          {((!txn.nav || parseFloat(txn.nav) === 0) && (txn.status === 'PENDING' || txn.status === 'RECURRING')) ? (
+                            <span className="text-gray-400 font-medium italic">-</span>
+                          ) : (
+                            `₹${parseFloat(txn.nav || 0).toFixed(4)}`
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg ${txn.status === 'SUCCESS' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
@@ -656,11 +664,15 @@ export default function Portfolio() {
                       </div>
                       <div>
                         <p className="text-[10px] text-gray-500 uppercase tracking-wider">Units</p>
-                        <p className="text-sm font-medium text-gray-700">{parseFloat(txn.units || 0).toFixed(4)}</p>
+                        <p className="text-sm font-medium text-gray-700">
+                          {(txn.units == null || txn.units === 0) && txn.status === 'PENDING' ? '-' : parseFloat(txn.units || 0).toFixed(4)}
+                        </p>
                       </div>
                       <div>
                         <p className="text-[10px] text-gray-500 uppercase tracking-wider">NAV</p>
-                        <p className="text-sm font-medium text-gray-700">₹{parseFloat(txn.nav || 0).toFixed(4)}</p>
+                        <p className="text-sm font-medium text-gray-700">
+                          {(txn.nav == null || txn.nav === 0) && txn.status === 'PENDING' ? 'TBD' : `₹${parseFloat(txn.nav || 0).toFixed(4)}`}
+                        </p>
                       </div>
                       {txn.start_date && (
                         <div className="col-span-2">

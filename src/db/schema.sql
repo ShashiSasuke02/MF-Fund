@@ -42,6 +42,20 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_users_email (email_id)
 );
 
+-- Pending Registrations table (for OTP verification)
+CREATE TABLE IF NOT EXISTS pending_registrations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(255) NOT NULL,
+    email_id VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    otp_hash VARCHAR(255) NOT NULL,
+    otp_attempts INT DEFAULT 0,
+    expires_at BIGINT NOT NULL,
+    created_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000),
+    INDEX idx_pending_email (email_id),
+    INDEX idx_pending_expires (expires_at)
+);
+
 -- Demo accounts table (one per user, fixed starting balance)
 CREATE TABLE IF NOT EXISTS demo_accounts (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -53,6 +67,39 @@ CREATE TABLE IF NOT EXISTS demo_accounts (
     CONSTRAINT chk_user_id CHECK (user_id > 0),
     CONSTRAINT chk_balance CHECK (balance >= 0),
     INDEX idx_demo_accounts_user_id (user_id)
+);
+
+-- Funds Master table
+CREATE TABLE IF NOT EXISTS funds (
+    scheme_code INT PRIMARY KEY,
+    scheme_name VARCHAR(500) NOT NULL,
+    scheme_category VARCHAR(255),
+    scheme_type VARCHAR(100),
+    fund_house VARCHAR(255),
+    amc_code VARCHAR(50),
+    launch_date DATE,
+    isin VARCHAR(50),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000),
+    updated_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000),
+    last_synced_at BIGINT,
+    INDEX idx_funds_scheme_name (scheme_name),
+    INDEX idx_funds_scheme_category (scheme_category),
+    INDEX idx_funds_fund_house (fund_house),
+    INDEX idx_funds_is_active (is_active)
+);
+
+-- Fund NAV History table
+CREATE TABLE IF NOT EXISTS fund_nav_history (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    scheme_code INT NOT NULL,
+    nav_date DATE NOT NULL,
+    nav_value DECIMAL(15,4) NOT NULL,
+    created_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000),
+    UNIQUE KEY unique_scheme_date (scheme_code, nav_date),
+    FOREIGN KEY (scheme_code) REFERENCES funds(scheme_code) ON DELETE CASCADE,
+    INDEX idx_nav_history_scheme_code (scheme_code),
+    INDEX idx_nav_history_scheme_date (scheme_code, nav_date DESC)
 );
 
 -- Transactions table for SIP, STP, Lump Sum, SWP

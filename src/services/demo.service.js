@@ -108,6 +108,8 @@ export const demoService = {
       // Determine transaction status and next execution date based on start date
       let transactionStatus = 'SUCCESS';
       let nextExecutionDate = null;
+      let initialUnits = units;
+      let initialNav = latestNav;
 
       // For SIP/STP transactions with future start date, set status to PENDING
       if ((transactionType === 'SIP' || transactionType === 'STP') && startDate) {
@@ -119,6 +121,10 @@ export const demoService = {
         if (start > today) {
           transactionStatus = 'PENDING';
           nextExecutionDate = startDate; // Set next execution to start date
+          // Future SIP Zero-Allocation: Do not allocate units/NAV yet
+          initialUnits = null;
+          initialNav = null;
+          log('[Demo Service] Future SIP detected. Setting units/NAV to null until execution.');
         }
       }
 
@@ -129,8 +135,8 @@ export const demoService = {
         schemeName,
         transactionType,
         amount,
-        units,
-        nav: latestNav,
+        units: initialUnits,
+        nav: initialNav,
         frequency: transactionType === 'LUMP_SUM' ? null : frequency,
         startDate: transactionType === 'LUMP_SUM' ? null : startDate,
         endDate: transactionType === 'LUMP_SUM' ? null : endDate,
@@ -233,6 +239,19 @@ export const demoService = {
       // Status is ALWAYS PENDING for SWP as immediate execution is disabled
       const transactionStatus = 'PENDING';
 
+      // Future SWP Logic: Defer calculation until execution date
+      let initialUnits = -requiredUnits;
+      let initialNav = latestNav;
+
+      const swpStart = new Date(startDate);
+      swpStart.setHours(0, 0, 0, 0);
+
+      if (swpStart > today) {
+        log('[Demo Service] Future SWP detected. Setting units/NAV to null until execution.');
+        initialUnits = null;
+        initialNav = null;
+      }
+
       // Create transaction record
       const transaction = await transactionModel.create({
         userId,
@@ -240,8 +259,8 @@ export const demoService = {
         schemeName,
         transactionType,
         amount,
-        units: -requiredUnits, // Negative for withdrawal
-        nav: latestNav,
+        units: initialUnits, // Null for future, calculated at execution
+        nav: initialNav,
         frequency,
         startDate,
         endDate,
