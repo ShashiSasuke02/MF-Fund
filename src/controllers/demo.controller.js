@@ -8,7 +8,7 @@ export const demoController = {
   async createTransaction(req, res, next) {
     try {
       const userId = req.user.userId;
-      
+
       // Validate userId first
       if (!userId || userId <= 0) {
         return res.status(400).json({
@@ -16,51 +16,17 @@ export const demoController = {
           message: 'Invalid user ID'
         });
       }
-      
-      const { 
-        schemeCode, 
-        transactionType, 
-        amount, 
-        frequency, 
-        startDate, 
-        endDate, 
-        installments 
+
+      // Validation is handled by middleware
+      const {
+        schemeCode,
+        transactionType,
+        amount,
+        frequency,
+        startDate,
+        endDate,
+        installments
       } = req.body;
-
-      // Validate required fields
-      if (!schemeCode || !transactionType || !amount) {
-        return res.status(400).json({
-          success: false,
-          message: 'Scheme code, transaction type, and amount are required'
-        });
-      }
-
-      // Validate transaction type
-      const validTypes = ['SIP', 'STP', 'LUMP_SUM', 'SWP'];
-      if (!validTypes.includes(transactionType)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid transaction type. Must be one of: SIP, STP, LUMP_SUM, SWP'
-        });
-      }
-
-      // Validate frequency for scheduled transactions
-      if (transactionType !== 'LUMP_SUM') {
-        if (!frequency) {
-          return res.status(400).json({
-            success: false,
-            message: 'Frequency is required for SIP, STP, and SWP'
-          });
-        }
-        
-        const validFrequencies = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY'];
-        if (!validFrequencies.includes(frequency)) {
-          return res.status(400).json({
-            success: false,
-            message: 'Invalid frequency. Must be one of: DAILY, WEEKLY, MONTHLY, QUARTERLY'
-          });
-        }
-      }
 
       // Execute transaction
       const result = await demoService.executeTransaction({
@@ -80,9 +46,9 @@ export const demoController = {
         data: result
       });
     } catch (error) {
-      if (error.message.includes('Insufficient') || 
-          error.message.includes('Invalid') ||
-          error.message.includes('not found')) {
+      if (error.message.includes('Insufficient') ||
+        error.message.includes('Invalid') ||
+        error.message.includes('not found')) {
         return res.status(400).json({
           success: false,
           message: error.message
@@ -98,7 +64,7 @@ export const demoController = {
   async getPortfolio(req, res, next) {
     try {
       const userId = req.user.userId;
-      
+
       // Validate userId
       if (!userId || userId <= 0) {
         return res.status(400).json({
@@ -106,7 +72,7 @@ export const demoController = {
           message: 'Invalid user ID'
         });
       }
-      
+
       const portfolio = await demoService.getPortfolio(userId);
 
       res.json({
@@ -148,9 +114,9 @@ export const demoController = {
   async getBalance(req, res, next) {
     try {
       const userId = req.user.userId;
-      
+
       const account = await demoAccountModel.findByUserId(userId);
-      
+
       if (!account) {
         return res.status(404).json({
           success: false,
@@ -177,9 +143,9 @@ export const demoController = {
   async getSystematicPlans(req, res, next) {
     try {
       const userId = req.user.userId;
-      
+
       const plans = await demoService.getSystematicPlans(userId);
-      
+
       res.json({
         success: true,
         data: {

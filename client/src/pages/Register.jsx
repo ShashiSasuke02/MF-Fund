@@ -58,7 +58,7 @@ export default function Register() {
     } else if (!emailRegex.test(formData.emailId)) {
       newErrors.emailId = 'Email format incorrect. Enter a valid format like name@example.com.';
     } else if (!trustedDomains.includes(emailDomain)) {
-      newErrors.emailId = "Shield Active 🛡️ Spam-free experience guaranteed. We only accept: Gmail, Outlook, Hotmail, iCloud, Yahoo, Proton, Zoho, AOL, Rediffmail.";
+      newErrors.emailId = "Shield Active 🛡️ Spam-free experience guaranteed. We're only accepting signups from well-known email domains to help keep our platform spam-free";
     }
 
     if (!formData.password) newErrors.password = 'Password too weak. For your security, we require stronger keys.';

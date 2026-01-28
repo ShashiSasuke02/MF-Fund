@@ -140,7 +140,7 @@ export const transactionModel = {
 
     const results = await query(
       `SELECT * FROM transactions 
-       WHERE status IN ('PENDING', 'RECURRING')
+       WHERE status IN ('PENDING', 'SUCCESS')
        AND next_execution_date IS NOT NULL
        AND next_execution_date <= ?
        AND is_locked = 0

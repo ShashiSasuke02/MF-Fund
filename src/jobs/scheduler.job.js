@@ -92,9 +92,9 @@ export const initSchedulerJobs = () => {
     // OR we register it unconditionally and let the manual trigger work, but only schedule if enabled.
     // For manual trigger visibility, it's better to register it.
 
-    // 2. Register Full Fund Sync (2:30 PM IST (14:30))
+    // 2. Register Full Fund Sync (2:30 AM IST (02:30))
     // Note: Timezone IS 'Asia/Kolkata' (handled below in line 138 options)
-    cronRegistry.register('Full Fund Sync', '0 30 14 * * *', async () => {
+    cronRegistry.register('Full Fund Sync', '0 30 02 * * *', async () => {
         // NOTE: The previous code had specific TZ logic.
         // Standard cron doesn't do TZ easily without the option. 
         // We'll trust the registry/scheduler loop to handle it or use the string directly.

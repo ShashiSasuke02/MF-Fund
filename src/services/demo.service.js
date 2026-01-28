@@ -40,6 +40,38 @@ const formatDateForDB = (date) => {
   return null;
 };
 
+// Helper to calculate next execution date
+const calculateNextDate = (currentDate, frequency) => {
+  const current = new Date(currentDate);
+  let next;
+
+  switch (frequency) {
+    case 'DAILY':
+      next = new Date(current);
+      next.setDate(current.getDate() + 1);
+      break;
+    case 'WEEKLY':
+      next = new Date(current);
+      next.setDate(current.getDate() + 7);
+      break;
+    case 'MONTHLY':
+      next = new Date(current);
+      next.setMonth(current.getMonth() + 1);
+      break;
+    case 'QUARTERLY':
+      next = new Date(current);
+      next.setMonth(current.getMonth() + 3);
+      break;
+    case 'YEARLY':
+      next = new Date(current);
+      next.setFullYear(current.getFullYear() + 1);
+      break;
+    default:
+      return null;
+  }
+  return next.toISOString().split('T')[0];
+};
+
 export const demoService = {
   /**
    * Execute a transaction (SIP, STP, Lump Sum, SWP)
@@ -111,20 +143,33 @@ export const demoService = {
       let initialUnits = units;
       let initialNav = latestNav;
 
-      // For SIP/STP transactions with future start date, set status to PENDING
-      if ((transactionType === 'SIP' || transactionType === 'STP') && startDate) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Reset time to start of day
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to start of day
 
-        if (start > today) {
-          transactionStatus = 'PENDING';
-          nextExecutionDate = startDate; // Set next execution to start date
-          // Future SIP Zero-Allocation: Do not allocate units/NAV yet
-          initialUnits = null;
-          initialNav = null;
-          log('[Demo Service] Future SIP detected. Setting units/NAV to null until execution.');
+      // For SIP/STP logic
+      if (transactionType === 'SIP' || transactionType === 'STP') {
+        // Check start date if provided
+        if (startDate) {
+          const start = new Date(startDate);
+          start.setHours(0, 0, 0, 0);
+
+          if (start > today) {
+            // Future SIP
+            transactionStatus = 'PENDING';
+            nextExecutionDate = startDate; // Set next execution to start date
+            // Future SIP Zero-Allocation: Do not allocate units/NAV yet
+            initialUnits = null;
+            initialNav = null;
+            log('[Demo Service] Future SIP detected. Setting units/NAV to null until execution.');
+          } else {
+            // Immediate SIP (today or past date): Execute now, schedule next
+            nextExecutionDate = calculateNextDate(today, frequency);
+            log('[Demo Service] Immediate SIP. Next execution scheduled for:', nextExecutionDate);
+          }
+        } else {
+          // No start date provided (defaults to immediate): Execute now, schedule next
+          nextExecutionDate = calculateNextDate(today, frequency);
+          log('[Demo Service] Immediate SIP (No Date). Next execution scheduled for:', nextExecutionDate);
         }
       }
 

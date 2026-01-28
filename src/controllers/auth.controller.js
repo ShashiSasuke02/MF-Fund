@@ -32,6 +32,18 @@ export const authController = {
         });
       }
 
+      // Strict Email Domain Whitelist (Server Side)
+      const trustedDomains = ['gmail.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'yahoo.com', 'proton.me', 'protonmail.com', 'zoho.com', 'aol.com', 'rediffmail.com'];
+      const emailDomain = emailId.split('@')[1]?.toLowerCase();
+
+      if (!trustedDomains.includes(emailDomain)) {
+        return res.status(400).json({
+          success: false,
+          message: "Shield Active 🛡️ Spam-free experience guaranteed. We're only accepting signups from well-known email domains to help keep our platform spam-free",
+          errors: { emailId: 'Email domain not allowed' }
+        });
+      }
+
       // Check if email already registered
       if (await userModel.emailExists(emailId)) {
         return res.status(409).json({

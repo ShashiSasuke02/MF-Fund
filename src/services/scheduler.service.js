@@ -83,13 +83,20 @@ export const schedulerService = {
     for (const detail of results.details) {
       if (detail.status === 'SUCCESS') {
         const txn = dueTransactions.find(t => t.id === detail.transactionId);
-        if (txn) {
-          const amt = parseFloat(txn.amount);
-          if (txn.transaction_type === 'SIP') {
-            results.totalInvested += amt;
-          } else if (txn.transaction_type === 'SWP') {
-            results.totalWithdrawn += amt;
-          }
+
+        // Log if txn not found (should not happen normally)
+        if (!txn) {
+          console.warn(`[Scheduler] Warning: Transaction ${detail.transactionId} not found in due list during stats calculation.`);
+          continue;
+        }
+
+        const amt = parseFloat(txn.amount) || 0;
+        const type = (txn.transaction_type || '').toUpperCase();
+
+        if (type === 'SIP') {
+          results.totalInvested += amt;
+        } else if (type === 'SWP') {
+          results.totalWithdrawn += amt;
         }
       }
     }
@@ -213,13 +220,9 @@ export const schedulerService = {
         );
 
         // Status Logic:
-        // SIP -> RECURRING (User Request)
-        // SWP -> PENDING (Default)
-        // Others -> PENDING
-        let newStatus = 'PENDING';
-        if (transaction.transaction_type === 'SIP') {
-          newStatus = 'RECURRING';
-        }
+        // All active systematic plans (SIP, SWP, STP) remain SUCCESS
+        // This indicates the plan is active and last execution was successful
+        let newStatus = 'SUCCESS';
 
         await transactionModel.updateExecutionStatus(transaction.id, {
           status: newStatus,
@@ -231,19 +234,29 @@ export const schedulerService = {
 
         console.log(`[Scheduler] Transaction ${transaction.id} executed successfully. Next execution: ${nextExecutionDate}`);
 
+        // Helper to format date for message
+        const formatDateForMsg = (dateStr) => {
+          if (!dateStr) return 'N/A';
+          return new Date(dateStr).toLocaleDateString('en-IN', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+          });
+        };
+
         // Notification: Success
         if (transaction.transaction_type === 'SWP') {
           await notificationModel.create({
             userId: transaction.user_id,
             title: 'Passive Income Alert! 🎉',
-            message: `High Five! Your SWP from ${transaction.scheme_name} executed successfully. ₹${transaction.amount} has been credited to your balance. Your portfolio is working for you!`,
+            message: `High Five! Your SWP from ${transaction.scheme_name} executed successfully. ₹${transaction.amount} has been credited to your balance. Next installment: ${formatDateForMsg(nextExecutionDate)}.`,
             type: 'SUCCESS'
           });
         } else if (transaction.transaction_type === 'SIP') {
           await notificationModel.create({
             userId: transaction.user_id,
             title: 'Wealth Builder Alert 🚀',
-            message: `✅ Wealth Builder Alert! Your SIP for ${transaction.scheme_name} of ₹${transaction.amount} was successful.`,
+            message: `✅ Wealth Builder Alert! Your SIP for ${transaction.scheme_name} of ₹${transaction.amount} was successful. Next installment: ${formatDateForMsg(nextExecutionDate)}.`,
             type: 'SUCCESS'
           });
         }

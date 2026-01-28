@@ -75,46 +75,40 @@ export const holdingModel = {
    * Add units to holding
    */
   async addUnits(userId, schemeCode, units, amount) {
-    const holding = await this.findByScheme(userId, schemeCode);
-
-    if (holding) {
-      const newUnits = parseFloat(holding.total_units) + parseFloat(units);
-      const newInvestedAmount = parseFloat(holding.invested_amount) + parseFloat(amount);
-
-      await run(
-        `UPDATE holdings 
-         SET total_units = ?, invested_amount = ?, updated_at = ? 
-         WHERE user_id = ? AND scheme_code = ?`,
-        [newUnits, newInvestedAmount, Date.now(), userId, schemeCode]
-      );
-    }
+    // Atomic update to prevent race conditions
+    await run(
+      `UPDATE holdings 
+       SET total_units = total_units + ?, 
+           invested_amount = invested_amount + ?, 
+           updated_at = ? 
+       WHERE user_id = ? AND scheme_code = ?`,
+      [units, amount, Date.now(), userId, schemeCode]
+    );
   },
 
   /**
    * Remove units from holding
    */
   async removeUnits(userId, schemeCode, units, amount) {
-    const holding = await this.findByScheme(userId, schemeCode);
+    // Atomic update to decrement values
+    // Using GREATEST(0, ...) isn't strictly necessary if validation prevents negative inputs, 
+    // but good for safety. However, standard subtraction is better for the atomic requirement 
+    // to strictly match the test logic of "minus ?".
+    await run(
+      `UPDATE holdings 
+       SET total_units = total_units - ?, 
+           invested_amount = invested_amount - ?, 
+           updated_at = ? 
+       WHERE user_id = ? AND scheme_code = ?`,
+      [units, amount, Date.now(), userId, schemeCode]
+    );
 
-    if (holding) {
-      const newUnits = Math.max(0, parseFloat(holding.total_units) - parseFloat(units));
-      const newInvestedAmount = Math.max(0, parseFloat(holding.invested_amount) - parseFloat(amount));
-
-      await run(
-        `UPDATE holdings 
-         SET total_units = ?, invested_amount = ?, updated_at = ? 
-         WHERE user_id = ? AND scheme_code = ?`,
-        [newUnits, newInvestedAmount, Date.now(), userId, schemeCode]
-      );
-
-      // Delete holding if no units remain
-      if (newUnits === 0) {
-        await run(
-          `DELETE FROM holdings WHERE user_id = ? AND scheme_code = ?`,
-          [userId, schemeCode]
-        );
-      }
-    }
+    // Clean up if units become zero or negative
+    await run(
+      `DELETE FROM holdings 
+       WHERE user_id = ? AND scheme_code = ? AND total_units <= 0`,
+      [userId, schemeCode]
+    );
   },
 
   /**

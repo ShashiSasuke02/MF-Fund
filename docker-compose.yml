@@ -59,6 +59,7 @@ services:
       # Server
       NODE_ENV: production
       PORT: 4000
+      TZ: Asia/Kolkata
       
       # Database (matches mysql service)
       DB_HOST: mysql
@@ -128,6 +129,7 @@ services:
     environment:
       # Server (Required for DB access)
       NODE_ENV: production
+      TZ: Asia/Kolkata
       
       # Database
       DB_HOST: mysql

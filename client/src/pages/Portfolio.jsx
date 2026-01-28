@@ -6,6 +6,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import { RectangleAd, BannerAd } from '../components/AdSense';
 import InvestmentPerformanceNotification from '../components/InvestmentPerformanceNotification';
+import LoginAlerts from '../components/LoginAlerts';
 
 export default function Portfolio() {
   const { user, demoAccount, refreshBalance, loading: authLoading, portfolioSummary } = useAuth();
@@ -110,32 +111,37 @@ export default function Portfolio() {
 
   // Filter by standardized scheme categories from MFAPI
   // API format: "Equity Scheme - Large Cap Fund", "Debt Scheme - Banking and PSU Fund", etc.
+  // We use broader keyword matching to handle data inconsistencies (e.g. "Gilt", "ELSS")
   const getDebtSchemes = () => {
-    return portfolio.holdings?.filter(h =>
-      h.scheme_category?.toLowerCase().includes('debt scheme')
-    ) || [];
+    return portfolio.holdings?.filter(h => {
+      const c = h.scheme_category?.toLowerCase() || '';
+      return c.includes('debt') || c.includes('gilt') || c.includes('bond') || c.includes('liquid');
+    }) || [];
   };
 
   const getEquitySchemes = () => {
-    return portfolio.holdings?.filter(h =>
-      h.scheme_category?.toLowerCase().includes('equity scheme')
-    ) || [];
+    return portfolio.holdings?.filter(h => {
+      const c = h.scheme_category?.toLowerCase() || '';
+      return c.includes('equity') || c.includes('elss');
+    }) || [];
   };
 
   const getHybridSchemes = () => {
-    return portfolio.holdings?.filter(h =>
-      h.scheme_category?.toLowerCase().includes('hybrid scheme')
-    ) || [];
+    return portfolio.holdings?.filter(h => {
+      const c = h.scheme_category?.toLowerCase() || '';
+      return c.includes('hybrid') || c.includes('balanced');
+    }) || [];
   };
 
   const getOtherSchemes = () => {
     return portfolio.holdings?.filter(h => {
-      const category = h.scheme_category?.toLowerCase() || '';
-      // Other schemes include everything not in Debt, Equity, or Hybrid
-      // This includes: Solution Oriented Scheme, Index Funds, FoFs, Commodity, etc.
-      return !category.includes('debt scheme') &&
-        !category.includes('equity scheme') &&
-        !category.includes('hybrid scheme');
+      const c = h.scheme_category?.toLowerCase() || '';
+
+      const isDebt = c.includes('debt') || c.includes('gilt') || c.includes('bond') || c.includes('liquid');
+      const isEquity = c.includes('equity') || c.includes('elss');
+      const isHybrid = c.includes('hybrid') || c.includes('balanced');
+
+      return !isDebt && !isEquity && !isHybrid;
     }) || [];
   };
 
@@ -1182,6 +1188,9 @@ export default function Portfolio() {
           onClose={() => setShowLoginNotification(false)}
         />
       )}
+
+      {/* Critical Login Alerts (SIP/SWP Success/Failure) */}
+      <LoginAlerts />
     </div>
   );
 }

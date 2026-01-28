@@ -1,6 +1,8 @@
 import express from 'express';
 import { demoController } from '../controllers/demo.controller.js';
 import { authenticateToken } from '../middleware/auth.middleware.js';
+import { validate } from '../middleware/validate.middleware.js';
+import { createTransactionSchema } from '../validators/demo.schema.js';
 
 const router = express.Router();
 
@@ -8,7 +10,8 @@ const router = express.Router();
 router.use(authenticateToken);
 
 // Transaction routes
-router.post('/transactions', demoController.createTransaction);
+// Transaction routes
+router.post('/transactions', validate(createTransactionSchema), demoController.createTransaction);
 router.get('/transactions', demoController.getTransactions);
 
 // Systematic plans routes
