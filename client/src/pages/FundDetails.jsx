@@ -354,15 +354,7 @@ export default function FundDetails() {
                     {meta?.scheme_type}
                   </span>
                 </div>
-                <div className="flex items-center text-gray-700">
-                  <AMCLogo branding={amcBranding} size="md" />
-                  <div className="ml-3">
-                    <p className="text-lg font-semibold">{meta?.fund_house}</p>
-                    {amcBranding.tagline && (
-                      <p className="text-sm text-gray-500">{amcBranding.tagline}</p>
-                    )}
-                  </div>
-                </div>
+
               </div>
 
               {/* Current NAV with AMC gradient */}
@@ -433,39 +425,48 @@ export default function FundDetails() {
             <div className="flex items-center gap-3">
               <AMCLogo branding={amcBranding} size="md" />
               <div>
-                <h3 className="text-lg font-bold text-gray-900">About {amcBranding.shortName}</h3>
+                <h3 className="text-lg font-bold text-gray-900">Fund Details</h3>
                 <p className="text-sm text-gray-600">{amcBranding.name}</p>
               </div>
             </div>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className={`p-4 rounded-xl ${amcBranding.bgLight} ${amcBranding.borderColor} border`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <svg className={`w-5 h-5 ${amcBranding.textColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  <span className={`text-sm font-semibold ${amcBranding.textColor}`}>Trusted AMC</span>
-                </div>
-                <p className="text-xs text-gray-600">Trusted Fund House</p>
-              </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className={`p-4 rounded-xl ${amcBranding.bgLight} ${amcBranding.borderColor} border`}>
                 <div className="flex items-center gap-2 mb-2">
                   <svg className={`w-5 h-5 ${amcBranding.textColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                   </svg>
-                  <span className={`text-sm font-semibold ${amcBranding.textColor}`}>SEBI Registered</span>
+                  <span className={`text-sm font-semibold ${amcBranding.textColor}`}>Fund Size (AUM)</span>
                 </div>
-                <p className="text-xs text-gray-600">Regulated by SEBI</p>
+                <p className="text-sm font-bold text-gray-900">N/A</p>
               </div>
               <div className={`p-4 rounded-xl ${amcBranding.bgLight} ${amcBranding.borderColor} border`}>
                 <div className="flex items-center gap-2 mb-2">
                   <svg className={`w-5 h-5 ${amcBranding.textColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
-                  <span className={`text-sm font-semibold ${amcBranding.textColor}`}>Daily NAV</span>
+                  <span className={`text-sm font-semibold ${amcBranding.textColor}`}>Expense Ratio</span>
                 </div>
-                <p className="text-xs text-gray-600">Updated every trading day</p>
+                <p className="text-sm font-bold text-gray-900">N/A</p>
+              </div>
+              <div className={`p-4 rounded-xl ${amcBranding.bgLight} ${amcBranding.borderColor} border`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <svg className={`w-5 h-5 ${amcBranding.textColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                  <span className={`text-sm font-semibold ${amcBranding.textColor}`}>CRISIL Rating</span>
+                </div>
+                <p className="text-sm font-bold text-gray-900">N/A</p>
+              </div>
+              <div className={`p-4 rounded-xl ${amcBranding.bgLight} ${amcBranding.borderColor} border`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <svg className={`w-5 h-5 ${amcBranding.textColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                  </svg>
+                  <span className={`text-sm font-semibold ${amcBranding.textColor}`}>ISIN (Growth)</span>
+                </div>
+                <p className="text-xs font-bold text-gray-900 font-mono tracking-wider">{meta?.isin_growth || 'N/A'}</p>
               </div>
             </div>
           </div>
@@ -475,63 +476,80 @@ export default function FundDetails() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Basic Info */}
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 hover:shadow-2xl hover:border-emerald-200 transition-all duration-300">
-            <div className="p-6 sm:p-8">
-              <div className="flex items-center mb-6">
+            <div className="p-4 sm:p-5">
+              <div className="flex items-center mb-3">
                 <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mr-4 shadow-md"
+                  className="w-10 h-10 rounded-xl flex items-center justify-center mr-3 shadow-md"
                   style={{
                     background: `linear-gradient(135deg, ${amcBranding.primaryColor}20, ${amcBranding.secondaryColor}20)`
                   }}
                 >
-                  <svg className="w-6 h-6" style={{ color: amcBranding.primaryColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" style={{ color: amcBranding.primaryColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Fund Information
+                <h2 className="text-lg font-bold text-gray-900">
+                  Investment Objective
                 </h2>
               </div>
               <dl className="space-y-1">
                 <InfoRow label="Scheme Code" value={meta?.scheme_code} branding={amcBranding} />
-                <InfoRow label="Fund House" value={meta?.fund_house} branding={amcBranding} />
-                <InfoRow label="Category" value={meta?.scheme_category} branding={amcBranding} />
-                <InfoRow label="Type" value={meta?.scheme_type} branding={amcBranding} />
+                <InfoRow label="Fund Start Date" value="N/A" branding={amcBranding} />
               </dl>
+
+              <div className="mt-3 text-center border-t border-gray-100 pt-3">
+                <p className="text-sm text-gray-600 leading-relaxed italic mx-auto max-w-sm">
+                  "The primary objective of the Scheme is to generate income"
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* ISIN Details */}
+          {/* Returns Details */}
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 hover:shadow-2xl hover:border-emerald-200 transition-all duration-300">
-            <div className="p-6 sm:p-8">
-              <div className="flex items-center mb-6">
+            <div className="p-4 sm:p-5">
+              <div className="flex items-center mb-3">
                 <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mr-4 shadow-md"
+                  className="w-10 h-10 rounded-xl flex items-center justify-center mr-3 shadow-md"
                   style={{
                     background: `linear-gradient(135deg, ${amcBranding.primaryColor}20, ${amcBranding.secondaryColor}20)`
                   }}
                 >
-                  <svg className="w-6 h-6" style={{ color: amcBranding.primaryColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                  <svg className="w-5 h-5" style={{ color: amcBranding.primaryColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  ISIN Details
+                <h2 className="text-lg font-bold text-gray-900">
+                  Fund Returns (CAGR)
                 </h2>
               </div>
-              <dl className="space-y-1">
-                <InfoRow
-                  label="ISIN (Growth)"
-                  value={meta?.isin_growth || 'N/A'}
-                  mono
-                  branding={amcBranding}
-                />
-                <InfoRow
-                  label="ISIN (Div Reinvestment)"
-                  value={meta?.isin_div_reinvestment || 'N/A'}
-                  mono
-                  branding={amcBranding}
-                />
-              </dl>
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="text-center p-3 rounded-xl bg-gray-50 border border-gray-100">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">1 Year</p>
+                  <p className="text-lg font-bold text-gray-400">N/A</p>
+                </div>
+                <div className="text-center p-3 rounded-xl bg-gray-50 border border-gray-100">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">3 Years</p>
+                  <p className="text-lg font-bold text-gray-400">N/A</p>
+                </div>
+                <div className="text-center p-3 rounded-xl bg-gray-50 border border-gray-100">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">5 Years</p>
+                  <p className="text-lg font-bold text-gray-400">N/A</p>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-100">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex justify-between items-center p-3 rounded-xl bg-gray-50/50">
+                    <span className="text-sm font-semibold text-gray-600">Min. Lumpsum</span>
+                    <span className="text-sm font-bold text-gray-900">N/A</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 rounded-xl bg-gray-50/50">
+                    <span className="text-sm font-semibold text-gray-600">Min. SIP</span>
+                    <span className="text-sm font-bold text-gray-900">N/A</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

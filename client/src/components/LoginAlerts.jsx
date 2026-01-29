@@ -16,7 +16,7 @@ export default function LoginAlerts() {
                 // Filter for unread alerts (SUCCESS or ERROR)
                 // prioritizing the most recent one
                 const criticalAlert = response.data.find(n =>
-                    n.is_read === 0 &&
+                    !n.is_read &&
                     (n.type === 'SUCCESS' || n.type === 'ERROR')
                 );
 
@@ -64,12 +64,12 @@ export default function LoginAlerts() {
                 >
                     {/* Header */}
                     <div className={`p-6 rounded-t-2xl flex flex-col items-center ${alert.type === 'SUCCESS'
-                            ? 'bg-gradient-to-br from-emerald-50 to-teal-50'
-                            : 'bg-gradient-to-br from-red-50 to-orange-50'
+                        ? 'bg-gradient-to-br from-emerald-50 to-teal-50'
+                        : 'bg-gradient-to-br from-red-50 to-orange-50'
                         }`}>
                         <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-lg ${alert.type === 'SUCCESS'
-                                ? 'bg-gradient-to-br from-emerald-500 to-teal-600'
-                                : 'bg-gradient-to-br from-red-500 to-orange-600'
+                            ? 'bg-gradient-to-br from-emerald-500 to-teal-600'
+                            : 'bg-gradient-to-br from-red-500 to-orange-600'
                             }`}>
                             {alert.type === 'SUCCESS' ? (
                                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,8 +97,8 @@ export default function LoginAlerts() {
                         <button
                             onClick={handleClose}
                             className={`w-full py-3.5 px-6 rounded-xl font-bold text-white shadow-lg transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${alert.type === 'SUCCESS'
-                                    ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-emerald-200'
-                                    : 'bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 shadow-red-200'
+                                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-emerald-200'
+                                : 'bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 shadow-red-200'
                                 }`}
                         >
                             {alert.type === 'SUCCESS' ? 'Awesome!' : 'Review Now'}

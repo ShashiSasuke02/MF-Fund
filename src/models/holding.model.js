@@ -82,7 +82,7 @@ export const holdingModel = {
            invested_amount = invested_amount + ?, 
            updated_at = ? 
        WHERE user_id = ? AND scheme_code = ?`,
-      [units, amount, Date.now(), userId, schemeCode]
+      [parseFloat(units), parseFloat(amount), Date.now(), userId, schemeCode]
     );
   },
 
@@ -96,11 +96,11 @@ export const holdingModel = {
     // to strictly match the test logic of "minus ?".
     await run(
       `UPDATE holdings 
-       SET total_units = total_units - ?, 
-           invested_amount = invested_amount - ?, 
-           updated_at = ? 
+       SET total_units = total_units - ?,
+           invested_amount = invested_amount - ?,
+           updated_at = ?
        WHERE user_id = ? AND scheme_code = ?`,
-      [units, amount, Date.now(), userId, schemeCode]
+      [parseFloat(units), parseFloat(amount), Date.now(), userId, schemeCode]
     );
 
     // Clean up if units become zero or negative
@@ -122,9 +122,9 @@ export const holdingModel = {
 
       await run(
         `UPDATE holdings 
-         SET current_value = ?, last_nav = ?, last_nav_date = ?, updated_at = ? 
+         SET current_value = ?, last_nav = ?, last_nav_date = ?, updated_at = ?
          WHERE user_id = ? AND scheme_code = ?`,
-        [currentValue, currentNav, navDate, Date.now(), userId, schemeCode]
+        [parseFloat(currentValue), parseFloat(currentNav), navDate, Date.now(), userId, schemeCode]
       );
     }
   }

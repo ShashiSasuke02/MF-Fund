@@ -76,7 +76,34 @@ export default function Layout({ children }) {
               {isAuthenticated ? (
                 <>
                   <NotificationCenter />
-                  <span className="text-sm text-gray-600 hidden xl:inline">{user?.emailId || user?.email_id}</span>
+                  {/* User Avatar / Name Badge */}
+                  {(() => {
+                    const name = user?.fullName || user?.full_name || user?.username || user?.emailId?.split('@')[0] || '';
+                    const parts = name.trim().split(/\s+/);
+                    let displayName = '';
+                    let isInitials = false;
+
+                    if (parts.length >= 2) {
+                      // Initials: First letter of first name + First letter of last name
+                      displayName = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                      isInitials = true;
+                    } else if (parts.length === 1 && parts[0]) {
+                      // Single name: Show full name
+                      displayName = parts[0];
+                      isInitials = false;
+                    } else {
+                      // Fallback
+                      displayName = (user?.emailId?.[0] || 'U').toUpperCase();
+                      isInitials = true;
+                    }
+
+                    return (
+                      <div className={`hidden xl:flex items-center justify-center font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 shadow-sm transition-all hover:bg-emerald-200 select-none ${isInitials ? 'w-9 h-9 rounded-full' : 'px-4 py-1.5 rounded-full text-sm'
+                        }`} title={user?.emailId || 'User'}>
+                        {displayName}
+                      </div>
+                    );
+                  })()}
                   <button
                     onClick={logout}
                     className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"

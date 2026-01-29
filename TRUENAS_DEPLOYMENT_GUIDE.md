@@ -152,8 +152,16 @@ ENABLE_INCREMENTAL_SYNC = true
 | `DB_NAME` | Yes | - | Database name |
 | `JWT_SECRET` | Yes | - | JWT signing secret (32+ chars) |
 | `PORT` | No | `4000` | API server port |
-| `ENABLE_SCHEDULER_CRON` | No | `false` | Enable SIP/STP/SWP scheduler |
-| `ENABLE_FULL_SYNC` | No | `false` | Enable nightly fund sync |
+| `TZ` | Yes | `Asia/Kolkata` | Timezone for Scheduler (Crucial for 2:30 AM sync) |
+| `ENABLE_SCHEDULER_CRON` | No | `true` | Enable SIP/STP/SWP scheduler |
+| `ENABLE_FULL_SYNC` | No | `true` | Enable nightly fund sync (2:30 AM) |
+| `ENABLE_INCREMENTAL_SYNC` | No | `true` | Enable market-hour syncs |
+| `SMTP_HOST` | No | - | SMTP Server Host |
+| `SMTP_USER` | No | - | SMTP Username |
+| `SMTP_PASS` | No | - | SMTP Password |
+| `SMTP_FROM` | No | - | Email Sender Address |
+| `ENABLE_CRON_REPORTS` | No | `true` | Enable daily email reports |
+| `CRON_REPORT_EMAIL` | No | - | Recipient for admin reports |
 
 ---
 

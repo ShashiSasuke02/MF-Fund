@@ -26,9 +26,14 @@ export default function Footer() {
               </div>
               <div className="ml-4">
                 <h3 className="text-sm font-bold text-amber-400 mb-2">Investment Disclaimer</h3>
-                <p className="text-xs text-gray-300 leading-relaxed">
-                  Mutual fund investments carry market risks. Investors are advised to carefully review all scheme-related documents before investing. Past performance does not guarantee future results. TryMutualFunds.com is an educational practice platform uses virtual funds to help users learn and experiment with investment strategies without any real financial risk.
-                </p>
+                <div className="text-sm text-gray-300 space-y-2">
+                  <p>
+                    TryMutualFunds.com is an educational and practice-only platform and does not provide any investment advice. Before making any real-world investment decisions, users are strongly advised to consult a SEBI-registered financial advisor or company.
+                  </p>
+                  <p>
+                    All information and simulations available on this platform are intended solely for learning purposes. TryMutualFunds.com shall not be held responsible for any financial decisions, losses, or outcomes arising from the use of this platform or its simulated data.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -426,7 +431,10 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="relative z-10 border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-center">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-gray-400">
+              All rights reserved © 2026
+            </p>
             <p className="text-sm text-gray-400 flex items-center">
               Made with <span className="text-red-500 mx-1">❤️</span> in India
             </p>

@@ -340,15 +340,17 @@ export const schedulerService = {
 
     // Check balance
     const account = await demoAccountModel.findByUserId(transaction.user_id);
-    if (!account || account.balance < amount) {
+    if (!account || parseFloat(account.balance) < amount) {
       throw new Error(`Insufficient balance. Required: ₹${amount}, Available: ₹${account.balance || 0}`);
     }
 
     // Calculate units
-    const units = amount / nav;
+    // Fix: Ensure precision and type matches DB decimal(20, 10) likely
+    const units = parseFloat((amount / nav).toFixed(6));
 
     // Deduct balance
-    await demoAccountModel.updateBalance(transaction.user_id, account.balance - amount);
+    const currentBalance = parseFloat(account.balance);
+    await demoAccountModel.updateBalance(transaction.user_id, currentBalance - amount);
 
     // Update holdings
     const existingHolding = await holdingModel.findByScheme(
@@ -378,7 +380,7 @@ export const schedulerService = {
         userId: transaction.user_id,
         schemeCode: transaction.scheme_code,
         schemeName: transaction.scheme_name,
-        units,
+        units: units,
         investedAmount: amount,
         currentValue: units * nav,
         lastNav: nav,
@@ -410,7 +412,8 @@ export const schedulerService = {
     const amount = parseFloat(transaction.amount);
 
     // Calculate units to redeem
-    const unitsToRedeem = amount / nav;
+    // Fix: Ensure precision and type matches DB decimal(20, 10)
+    const unitsToRedeem = parseFloat((amount / nav).toFixed(6));
 
     // Check holdings
     const holding = await holdingModel.findByScheme(
@@ -424,11 +427,10 @@ export const schedulerService = {
 
     // Update holdings
     // Calculate proportionate invested amount to remove
-    // Calculate proportionate invested amount to remove
     let amountToRemove = 0;
     if (parseFloat(holding.total_units) > 0 && parseFloat(holding.invested_amount) > 0) {
       const costPerUnit = parseFloat(holding.invested_amount) / parseFloat(holding.total_units); // Use total_units from DB
-      amountToRemove = costPerUnit * unitsToRedeem;
+      amountToRemove = parseFloat((costPerUnit * unitsToRedeem).toFixed(2));
     }
 
     await holdingModel.removeUnits(

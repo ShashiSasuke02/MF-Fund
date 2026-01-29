@@ -111,13 +111,12 @@ export default function Invest() {
       }
 
       if (transactionType === 'SWP') {
-        const nextMonth = new Date();
-        nextMonth.setMonth(nextMonth.getMonth() + 1);
-        nextMonth.setDate(1);
-        nextMonth.setHours(0, 0, 0, 0);
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
 
-        if (selectedDate < nextMonth) {
-          setError("Invalid Start Date. SWP cannot start immediately or in the past. Please select a date starting from next month.");
+        if (selectedDate < tomorrow) {
+          setError("Invalid Start Date. SWP must be scheduled for a future date (tomorrow onwards).");
           return;
         }
       }
@@ -405,11 +404,9 @@ export default function Invest() {
                   required
                 >
                   {transactionType !== 'SWP' && (
-                    <>
-                      <option value="DAILY">Daily</option>
-                      <option value="WEEKLY">Weekly</option>
-                    </>
+                    <option value="DAILY">Daily</option>
                   )}
+                  <option value="WEEKLY">Weekly</option>
                   <option value="MONTHLY">Monthly (Recommended)</option>
                   <option value="QUARTERLY">Quarterly</option>
                 </select>
