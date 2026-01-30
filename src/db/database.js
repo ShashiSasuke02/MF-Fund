@@ -31,7 +31,7 @@ function createPool() {
 /**
  * Initialize MySQL database
  */
-export async function initializeDatabase(retries = 5, interval = 5000) {
+export async function initializeDatabase(retries = 30, interval = 5000) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       // Create connection pool if not exists
