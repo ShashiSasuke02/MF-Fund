@@ -43,7 +43,9 @@ async function inspectAndclean() {
             ['Axis', 'Axis Mutual Fund', 7],
             ['UTI', 'UTI Mutual Fund', 8],
             ['Mirae Asset', 'Mirae Asset Mutual Fund', 9],
-            ['Tata', 'Tata Mutual Fund', 10]
+            ['Tata', 'Tata Mutual Fund', 10],
+            ['DSP', 'DSP Mutual Fund', 11],
+            ['Bandhan', 'Bandhan Mutual Fund', 12]
         ];
 
         for (const [fundHouse, displayName, order] of amcs) {
