@@ -26,7 +26,7 @@ const AMC_WHITELIST = [
 ];
 
 // Constants for Filtering
-const EXCLUDED_KEYWORDS = ['( IDCW )', '(IDCW)', 'DIVIDEND'];
+const EXCLUDED_KEYWORDS = ['( IDCW )', '(IDCW)', ' IDCW', '-IDCW', 'DIVIDEND'];
 const EXCLUDED_CATEGORIES = ['Equity Scheme - Dividend Yield Fund'];
 
 const NAV_RETENTION_COUNT = 30; // Keep latest 30 NAV records per fund
