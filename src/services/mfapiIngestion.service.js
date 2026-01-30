@@ -343,7 +343,16 @@ export const mfapiIngestionService = {
 
       return AMC_WHITELIST.some(amc => {
         const amcLower = amc.toLowerCase();
-        return fundHouse.includes(amcLower) || schemeName.includes(amcLower);
+
+        // Fund House check (Loose matching is okay here)
+        if (fundHouse.includes(amcLower)) return true;
+
+        // Scheme Name check (Strict word boundary to avoid "UTI" matching "Distribution")
+        // Escaping special regex chars if any (none in our current whitelist, but good practice)
+        const escapedAmc = amcLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`\\b${escapedAmc}\\b`, 'i');
+
+        return regex.test(schemeName);
       });
     });
   },
