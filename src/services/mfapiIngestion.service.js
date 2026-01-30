@@ -26,8 +26,28 @@ const AMC_WHITELIST = [
 ];
 
 // Constants for Filtering
-const EXCLUDED_KEYWORDS = ['( IDCW )', '(IDCW)', ' IDCW', '-IDCW', 'DIVIDEND'];
-const EXCLUDED_CATEGORIES = ['Equity Scheme - Dividend Yield Fund'];
+const EXCLUDED_KEYWORDS = [
+  'IDCW',
+  'DIVIDEND',
+  'DIV.',
+  'PAYOUT',
+  'PAYMENT',
+  'BONUS',
+  'DAILY ',
+  'WEEKLY',
+  'MONTHLY',
+  'QUARTERLY',
+  'ANNUAL',
+  'PERIODIC',
+  'MIP',
+  'REINVESTMENT',
+  'REINVEST'
+];
+const EXCLUDED_CATEGORIES = [
+  'Equity Scheme - Dividend Yield Fund',
+  'Income',
+  'Fixed Maturity Plan'
+];
 
 const NAV_RETENTION_COUNT = 30; // Keep latest 30 NAV records per fund
 const BATCH_SIZE = parseInt(process.env.MFAPI_BATCH_SIZE) || 10; // Reduced to prevent DB connection pool exhaustion
@@ -314,16 +334,22 @@ export const mfapiIngestionService = {
   filterByExclusions(funds) {
     return funds.filter(fund => {
       const name = (fund.schemeName || '').toUpperCase();
-      const category = (fund.schemeCategory || '').trim();
+      const category = (fund.schemeCategory || '').toUpperCase();
 
-      // Check Name Exclusions (IDCW, DIVIDEND)
-      if (EXCLUDED_KEYWORDS.some(keyword => name.includes(keyword))) {
-        return false; // Exclude
-      }
+      // Check Name Exclusions
+      const matchesExclusion = EXCLUDED_KEYWORDS.some(keyword => {
+        // Use word boundaries for short keywords or those that might be sub-strings
+        // For keywords like IDCW or DIV, we want to be strict.
+        const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`\\b${escaped}\\b|${escaped}\\s|\\(${escaped}\\)`, 'i');
+        return regex.test(name);
+      });
+
+      if (matchesExclusion) return false;
 
       // Check Category Exclusions
-      if (EXCLUDED_CATEGORIES.includes(category)) {
-        return false; // Exclude
+      if (EXCLUDED_CATEGORIES.some(cat => category.includes(cat.toUpperCase()))) {
+        return false;
       }
 
       return true; // Keep
