@@ -20,7 +20,9 @@ export async function seedAMCs(shouldExit = false) {
             ['Axis', 'Axis Mutual Fund', 7, 'axis.png'],
             ['UTI', 'UTI Mutual Fund', 8, 'uti.png'],
             ['Mirae Asset', 'Mirae Asset Mutual Fund', 9, 'mirae.png'],
-            ['Tata', 'Tata Mutual Fund', 10, 'tata.png']
+            ['Tata', 'Tata Mutual Fund', 10, 'tata.png'],
+            ['DSP', 'DSP Mutual Fund', 11, 'dsp.png'],
+            ['Bandhan', 'Bandhan Mutual Fund', 12, 'bandhan.png']
         ];
 
         for (const [fundHouse, displayName, order, logo] of amcs) {

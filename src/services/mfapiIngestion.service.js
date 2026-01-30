@@ -9,7 +9,7 @@ import { fundSyncLogModel } from '../models/fundSyncLog.model.js';
  * Handles nightly data ingestion from MFAPI to MySQL for 10 major AMCs
  */
 
-// 10 AMC Whitelist - ~60% of India's mutual fund AUM
+// 12 AMC Whitelist - ~65% of India's mutual fund AUM
 const AMC_WHITELIST = [
   'SBI',
   'ICICI Prudential',
@@ -55,7 +55,7 @@ const RATE_LIMIT_DELAY = 1000; // 1s delay between batches for connection cleanu
 
 export const mfapiIngestionService = {
   /**
-   * Full sync: Fetch all funds from 10 AMCs + latest NAV
+   * Full sync: Fetch all funds from 12 AMCs + latest NAV
    * OPTIMIZED: Uses /mf/latest endpoint to get funds with NAV in one call
    * Filters to only include funds with NAV updated in current month
    * Run this at 2:00 AM IST daily
@@ -73,7 +73,7 @@ export const mfapiIngestionService = {
     };
 
     try {
-      console.log('[MFAPI Ingestion] Starting OPTIMIZED full sync for 10 AMCs...');
+      console.log('[MFAPI Ingestion] Starting OPTIMIZED full sync for 12 AMCs...');
 
       // Clear cache to ensure fresh data
       console.log('[MFAPI Ingestion] Clearing API cache before full sync...');
@@ -93,7 +93,7 @@ export const mfapiIngestionService = {
 
       // Step 3: Filter by AMC whitelist
       const whitelistedFunds = this.filterByWhitelistWithNav(currentMonthFunds);
-      console.log(`[MFAPI Ingestion] Whitelisted funds (10 AMCs, current month): ${whitelistedFunds.length}`);
+      console.log(`[MFAPI Ingestion] Whitelisted funds (12 AMCs, current month): ${whitelistedFunds.length}`);
       stats.totalFetched = whitelistedFunds.length;
 
       // Step 4: Apply Exclusion Filters (IDCW, Dividend Yield)

@@ -1,6 +1,6 @@
 /**
- * Migration: Seed All 10 Whitelisted AMCs
- * Adds the complete list of 10 whitelisted AMCs to amc_master table
+ * Migration: Seed All 12 Whitelisted AMCs
+ * Adds the complete list of 12 whitelisted AMCs to amc_master table
  * Run: node scripts/seed-all-amcs.js
  */
 
@@ -21,10 +21,12 @@ const ALL_AMCS = [
     { fundHouse: 'Axis Mutual Fund', displayName: 'Axis Mutual Fund', displayOrder: 8 },
     { fundHouse: 'Tata Mutual Fund', displayName: 'Tata Mutual Fund', displayOrder: 9 },
     { fundHouse: 'Mirae Asset Mutual Fund', displayName: 'Mirae Asset Mutual Fund', displayOrder: 10 },
+    { fundHouse: 'DSP Mutual Fund', displayName: 'DSP Mutual Fund', displayOrder: 11 },
+    { fundHouse: 'Bandhan Mutual Fund', displayName: 'Bandhan Mutual Fund', displayOrder: 12 },
 ];
 
 async function seedAMCs() {
-    console.log('=== Seeding All 10 Whitelisted AMCs ===\n');
+    console.log('=== Seeding All 12 Whitelisted AMCs ===\n');
 
     const connection = await mysql.createConnection({
         host: process.env.DB_HOST || 'localhost',
