@@ -9,8 +9,19 @@ const __dirname = path.dirname(__filename);
 
 // Ensure logs directory exists
 const logDir = path.join(__dirname, '../../logs');
-if (!fs.existsSync(logDir)) {
-    fs.mkdirSync(logDir);
+console.log(`[Logger] Initializing logs at: ${logDir}`);
+
+try {
+    if (!fs.existsSync(logDir)) {
+        console.log(`[Logger] Creating log directory: ${logDir}`);
+        fs.mkdirSync(logDir, { recursive: true });
+    } else {
+        console.log(`[Logger] Log directory exists: ${logDir}`);
+    }
+} catch (err) {
+    console.error(`[Logger] Failed to create log directory: ${err.message}`);
+    // Fallback? Or just let it crash but with better info?
+    // If we can't write logs, we probably can't run.
 }
 
 // Custom format for file logging (JSON)

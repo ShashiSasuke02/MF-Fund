@@ -54,6 +54,10 @@ COPY --chown=mfapp:nodejs package*.json ./
 COPY --chown=mfapp:nodejs src/ ./src/
 COPY --chown=mfapp:nodejs scripts/ ./scripts/
 
+# Create logs directory with correct permissions
+# Create logs directory and ensure ownership of /app
+RUN mkdir -p logs && chown -R mfapp:nodejs /app
+
 # Copy built frontend to serve as static files
 COPY --from=frontend-builder --chown=mfapp:nodejs /app/client/dist ./client/dist
 
