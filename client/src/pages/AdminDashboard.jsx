@@ -12,6 +12,7 @@ import SyncActivityChart from '../components/admin/SyncActivityChart';
 import UserManagement from '../components/admin/UserManagement';
 import QuickActions from '../components/admin/QuickActions';
 import ActivityLogs from '../components/admin/ActivityLogs';
+import LogViewer from '../components/admin/LogViewer'; // [NEW]
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -364,7 +365,10 @@ export default function AdminDashboard() {
 
       {/* Logs Tab */}
       {activeTab === 'logs' && (
-        <ActivityLogs />
+        <div className="space-y-6">
+          <LogViewer />
+          <ActivityLogs />
+        </div>
       )}
 
       {/* History Modal */}

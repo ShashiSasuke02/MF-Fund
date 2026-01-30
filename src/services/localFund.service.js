@@ -18,6 +18,7 @@ export const localFundService = {
     async getSchemeDetails(schemeCode) {
         try {
             // Get fund from local DB
+            console.log('DEBUG: fundModel keys:', Object.keys(fundModel));
             const fund = await fundModel.findBySchemeCode(schemeCode);
 
             if (!fund) {
@@ -38,7 +39,21 @@ export const localFundService = {
                     scheme_code: fund.scheme_code,
                     scheme_name: fund.scheme_name,
                     isin_growth: fund.isin || null,
-                    isin_div_reinvestment: null
+                    isin_div_reinvestment: null,
+
+                    // Enrichment Fields
+                    aum: fund.aum,
+                    expense_ratio: fund.expense_ratio,
+                    risk_level: fund.risk_level,
+                    returns_1y: fund.returns_1y,
+                    returns_3y: fund.returns_3y,
+                    returns_5y: fund.returns_5y,
+                    min_lumpsum: fund.min_lumpsum,
+                    min_sip: fund.min_sip,
+                    fund_manager: fund.fund_manager,
+                    investment_objective: fund.investment_objective,
+                    fund_start_date: fund.fund_start_date,
+                    detail_info_synced_at: fund.detail_info_synced_at
                 },
                 latestNav: latestNav ? {
                     nav: latestNav.nav_value,
@@ -54,6 +69,15 @@ export const localFundService = {
             console.error(`[LocalFundService] getSchemeDetails failed for ${schemeCode}:`, error.message);
             throw error;
         }
+    },
+
+    /**
+     * Update enrichment details for a fund
+     * @param {number} schemeCode 
+     * @param {Object} data 
+     */
+    async updateEnrichmentData(schemeCode, data) {
+        return fundModel.updateEnrichmentData(schemeCode, data);
     },
 
     /**

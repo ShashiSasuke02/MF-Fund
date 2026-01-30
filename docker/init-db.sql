@@ -86,6 +86,21 @@ CREATE TABLE IF NOT EXISTS funds (
     launch_date DATE,
     isin VARCHAR(50),
     is_active BOOLEAN DEFAULT TRUE,
+
+    -- Enrichment Columns
+    aum DECIMAL(20, 2) DEFAULT NULL,
+    expense_ratio VARCHAR(20) DEFAULT NULL,
+    risk_level VARCHAR(50) DEFAULT NULL,
+    returns_1y DECIMAL(10, 2) DEFAULT NULL,
+    returns_3y DECIMAL(10, 2) DEFAULT NULL,
+    returns_5y DECIMAL(10, 2) DEFAULT NULL,
+    min_lumpsum DECIMAL(15, 2) DEFAULT NULL,
+    min_sip DECIMAL(15, 2) DEFAULT NULL,
+    fund_manager VARCHAR(255) DEFAULT NULL,
+    investment_objective TEXT DEFAULT NULL,
+    fund_start_date DATE DEFAULT NULL,
+    detail_info_synced_at BIGINT DEFAULT NULL,
+
     created_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000),
     updated_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000),
     last_synced_at BIGINT,

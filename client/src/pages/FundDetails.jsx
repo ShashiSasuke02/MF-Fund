@@ -355,6 +355,13 @@ export default function FundDetails() {
                   </span>
                 </div>
 
+                {/* Investment Objective - Moved here */}
+                {meta?.investment_objective && (
+                  <p className="text-sm text-gray-700 mt-4 leading-relaxed max-w-2xl text-justify">
+                    {meta.investment_objective}
+                  </p>
+                )}
+
               </div>
 
               {/* Current NAV with AMC gradient */}
@@ -432,35 +439,35 @@ export default function FundDetails() {
           </div>
           <div className="p-6">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className={`p-4 rounded-xl ${amcBranding.bgLight} ${amcBranding.borderColor} border`}>
-                <div className="flex items-center gap-2 mb-2">
+              <div className={`p-4 rounded-xl ${amcBranding.bgLight} ${amcBranding.borderColor} border flex flex-col items-center justify-center text-center`}>
+                <div className="flex items-center gap-2 mb-2 justify-center">
                   <svg className={`w-5 h-5 ${amcBranding.textColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                   </svg>
                   <span className={`text-sm font-semibold ${amcBranding.textColor}`}>Fund Size (AUM)</span>
                 </div>
-                <p className="text-sm font-bold text-gray-900">N/A</p>
+                <p className="text-sm font-bold text-gray-900">{meta?.aum ? `₹${meta.aum} Cr` : 'N/A'}</p>
               </div>
-              <div className={`p-4 rounded-xl ${amcBranding.bgLight} ${amcBranding.borderColor} border`}>
-                <div className="flex items-center gap-2 mb-2">
+              <div className={`p-4 rounded-xl ${amcBranding.bgLight} ${amcBranding.borderColor} border flex flex-col items-center justify-center text-center`}>
+                <div className="flex items-center gap-2 mb-2 justify-center">
                   <svg className={`w-5 h-5 ${amcBranding.textColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                   <span className={`text-sm font-semibold ${amcBranding.textColor}`}>Expense Ratio</span>
                 </div>
-                <p className="text-sm font-bold text-gray-900">N/A</p>
+                <p className="text-sm font-bold text-gray-900">{meta?.expense_ratio || 'N/A'}</p>
               </div>
-              <div className={`p-4 rounded-xl ${amcBranding.bgLight} ${amcBranding.borderColor} border`}>
-                <div className="flex items-center gap-2 mb-2">
+              <div className={`p-4 rounded-xl ${amcBranding.bgLight} ${amcBranding.borderColor} border flex flex-col items-center justify-center text-center`}>
+                <div className="flex items-center gap-2 mb-2 justify-center">
                   <svg className={`w-5 h-5 ${amcBranding.textColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                   </svg>
                   <span className={`text-sm font-semibold ${amcBranding.textColor}`}>CRISIL Rating</span>
                 </div>
-                <p className="text-sm font-bold text-gray-900">N/A</p>
+                <p className="text-sm font-bold text-gray-900">{meta?.risk_level || 'N/A'}</p>
               </div>
-              <div className={`p-4 rounded-xl ${amcBranding.bgLight} ${amcBranding.borderColor} border`}>
-                <div className="flex items-center gap-2 mb-2">
+              <div className={`p-4 rounded-xl ${amcBranding.bgLight} ${amcBranding.borderColor} border flex flex-col items-center justify-center text-center`}>
+                <div className="flex items-center gap-2 mb-2 justify-center">
                   <svg className={`w-5 h-5 ${amcBranding.textColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                   </svg>
@@ -489,19 +496,14 @@ export default function FundDetails() {
                   </svg>
                 </div>
                 <h2 className="text-lg font-bold text-gray-900">
-                  Investment Objective
+                  Basic Details
                 </h2>
               </div>
               <dl className="space-y-1">
                 <InfoRow label="Scheme Code" value={meta?.scheme_code} branding={amcBranding} />
-                <InfoRow label="Fund Start Date" value="N/A" branding={amcBranding} />
+                <InfoRow label="Fund Manager" value={meta?.fund_manager} branding={amcBranding} />
+                <InfoRow label="Fund Start Date" value={formatDate(meta?.fund_start_date || meta?.launch_date)} branding={amcBranding} />
               </dl>
-
-              <div className="mt-3 text-center border-t border-gray-100 pt-3">
-                <p className="text-sm text-gray-600 leading-relaxed italic mx-auto max-w-sm">
-                  "The primary objective of the Scheme is to generate income"
-                </p>
-              </div>
             </div>
           </div>
 
@@ -526,15 +528,15 @@ export default function FundDetails() {
               <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="text-center p-3 rounded-xl bg-gray-50 border border-gray-100">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">1 Year</p>
-                  <p className="text-lg font-bold text-gray-400">N/A</p>
+                  <p className={`text-lg font-bold ${meta?.returns_1y >= 0 ? 'text-green-600' : 'text-red-500'}`}>{meta?.returns_1y ? `${meta.returns_1y}%` : 'N/A'}</p>
                 </div>
                 <div className="text-center p-3 rounded-xl bg-gray-50 border border-gray-100">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">3 Years</p>
-                  <p className="text-lg font-bold text-gray-400">N/A</p>
+                  <p className={`text-lg font-bold ${meta?.returns_3y >= 0 ? 'text-green-600' : 'text-red-500'}`}>{meta?.returns_3y ? `${meta.returns_3y}%` : 'N/A'}</p>
                 </div>
                 <div className="text-center p-3 rounded-xl bg-gray-50 border border-gray-100">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">5 Years</p>
-                  <p className="text-lg font-bold text-gray-400">N/A</p>
+                  <p className={`text-lg font-bold ${meta?.returns_5y >= 0 ? 'text-green-600' : 'text-red-500'}`}>{meta?.returns_5y ? `${meta.returns_5y}%` : 'N/A'}</p>
                 </div>
               </div>
 
@@ -542,11 +544,11 @@ export default function FundDetails() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex justify-between items-center p-3 rounded-xl bg-gray-50/50">
                     <span className="text-sm font-semibold text-gray-600">Min. Lumpsum</span>
-                    <span className="text-sm font-bold text-gray-900">N/A</span>
+                    <span className="text-sm font-bold text-gray-900">{meta?.min_lumpsum ? `₹${meta.min_lumpsum}` : 'N/A'}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 rounded-xl bg-gray-50/50">
                     <span className="text-sm font-semibold text-gray-600">Min. SIP</span>
-                    <span className="text-sm font-bold text-gray-900">N/A</span>
+                    <span className="text-sm font-bold text-gray-900">{meta?.min_sip ? `₹${meta.min_sip}` : 'N/A'}</span>
                   </div>
                 </div>
               </div>

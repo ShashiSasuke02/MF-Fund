@@ -246,6 +246,18 @@
 
 
 
+### Fund Details Enrichment Integration (Jan 30, 2026)
+**Deep Data Fetching from Captain Nemo API**
+- **Goal:** Enrich local fund data with AUM, Risk Level, Returns, Investment Objective, and Start Date.
+- **Status:** **Completed** (Jan 30, 2026).
+- **Features:**
+  - **API Integration:** Fetches from `https://mf.captnemo.in/kuvera/{ISIN}`.
+  - **Schema Updates:** Added `aum`, `risk_level`, `returns_1y/3y/5y`, `investment_objective`, `fund_start_date`, `min_lumpsum`, `min_sip`, `fund_manager` to `funds` table.
+  - **Auto-Enrichment:** `FundController` triggers fetch-on-demand if data is missing or stale (>7 days).
+  - **Frontend:** Dynamic display of all new fields in `FundDetails.jsx` with "N/A" fallback.
+  - **Verification:** `scripts/manual-enrichment-test.js` for end-to-end validation.
+- **Document:** `Walkthrough-FundEnrichment.md`
+
 ### System Integrity Audit & Docker Deployment (Jan 24, 2026)
 **Comprehensive Full-Stack Validation & Production Readiness**
 

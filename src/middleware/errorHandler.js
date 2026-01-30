@@ -1,21 +1,28 @@
+import logger from '../services/logger.service.js';
+
 /**
  * Centralized error handling middleware
  * Catches all errors and returns consistent error responses
  */
 export function errorHandler(err, req, res, next) {
-  // Log error for debugging (in production, use proper logging)
-  console.error('[Error]', {
-    message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    url: req.url,
-    method: req.method
-  });
+  const { requestId } = req;
+
+  // Log error for debugging (using centralized logger)
+  // We log all errors that reach here as 'error' level if they are 500s or unexpected
+  // Validation errors or 4xx might be 'warn' or 'info' depending on preference
 
   // Handle axios errors (from MFapi calls)
   if (err.isAxiosError) {
     const status = err.response?.status || 503;
     const message = getAxiosErrorMessage(err);
-    
+
+    logger.warn(`External API Error: ${message}`, {
+      requestId,
+      method: req.method,
+      url: req.url,
+      status
+    });
+
     return res.status(status).json({
       success: false,
       error: message
@@ -24,6 +31,11 @@ export function errorHandler(err, req, res, next) {
 
   // Handle validation errors (Zod)
   if (err.name === 'ZodError') {
+    logger.debug(`Validation Error: ${req.url}`, {
+      requestId,
+      errors: err.errors
+    });
+
     return res.status(400).json({
       success: false,
       error: 'Validation error',
@@ -33,7 +45,12 @@ export function errorHandler(err, req, res, next) {
 
   // Handle SQLite errors
   if (err.code && err.code.startsWith('SQLITE')) {
-    console.error('[SQLite Error]', err.code, err.message);
+    logger.error(`Database Error: ${err.message}`, {
+      requestId,
+      code: err.code,
+      stack: err.stack
+    });
+
     return res.status(500).json({
       success: false,
       error: 'Database error occurred'
@@ -42,9 +59,23 @@ export function errorHandler(err, req, res, next) {
 
   // Default error response
   const statusCode = err.statusCode || err.status || 500;
-  const message = process.env.NODE_ENV === 'production' 
+  const message = process.env.NODE_ENV === 'production'
     ? 'An unexpected error occurred'
     : err.message || 'Internal server error';
+
+  if (statusCode >= 500) {
+    logger.error(`Server Error: ${err.message}`, {
+      requestId,
+      stack: err.stack,
+      url: req.url,
+      method: req.method
+    });
+  } else {
+    logger.warn(`Client Error: ${err.message}`, {
+      requestId,
+      statusCode
+    });
+  }
 
   res.status(statusCode).json({
     success: false,

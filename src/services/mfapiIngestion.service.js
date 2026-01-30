@@ -1,5 +1,6 @@
 import { mfApiService } from './mfapi.service.js';
 import { fundModel } from '../models/fund.model.js';
+import { cacheService } from './cache.service.js';
 import { fundNavHistoryModel } from '../models/fundNavHistory.model.js';
 import { fundSyncLogModel } from '../models/fundSyncLog.model.js';
 
@@ -53,6 +54,11 @@ export const mfapiIngestionService = {
 
     try {
       console.log('[MFAPI Ingestion] Starting OPTIMIZED full sync for 10 AMCs...');
+
+      // Clear cache to ensure fresh data
+      console.log('[MFAPI Ingestion] Clearing API cache before full sync...');
+      await cacheService.clearAll();
+
       syncId = await fundSyncLogModel.startSync('FULL');
 
       // Step 1: Fetch all funds with NAV data from /mf/latest (single API call)

@@ -18,9 +18,11 @@ import ingestionRoutes from './routes/ingestion.routes.js';
 import cronRoutes from './routes/cron.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
+import logRoutes from './routes/log.routes.js';
 
 // Middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
+import { requestLogger } from './middleware/requestLogger.middleware.js'; // [NEW] Logger
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -57,7 +59,12 @@ app.use(cors({
   credentials: true
 }));
 
-// Request logging
+// [NEW] Request Logger (Files + Console) - Placed before morgan/body-parser to capture raw request data if needed
+// but usually after body parser if we want to log body (careful with PII).
+// For timing, earlier is better.
+app.use(requestLogger);
+
+// Request logging (Morgan for dev console backup)
 if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
@@ -91,6 +98,7 @@ app.use('/api/ingestion', ingestionRoutes);
 app.use('/api/cron', cronRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/logs', logRoutes); // [NEW] Logs
 app.use('/api/health', healthRoutes);
 
 // Root route - API info

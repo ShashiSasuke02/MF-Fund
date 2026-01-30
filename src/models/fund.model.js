@@ -290,6 +290,44 @@ export const fundModel = {
   },
 
   /**
+   * Update enrichment data (AUM, Risk, Returns, etc.)
+   * @param {number} schemeCode - Scheme code
+   * @param {Object} data - Enrichment data
+   * @returns {Promise} Execution result
+   */
+  async updateEnrichmentData(schemeCode, data) {
+    const fields = [];
+    const values = [];
+
+    const allowedFields = [
+      'aum', 'expense_ratio', 'risk_level',
+      'returns_1y', 'returns_3y', 'returns_5y',
+      'min_lumpsum', 'min_sip', 'fund_manager',
+      'investment_objective', 'fund_start_date',
+      'detail_info_synced_at'
+    ];
+
+    for (const field of allowedFields) {
+      if (data[field] !== undefined) {
+        fields.push(`${field} = ?`);
+        values.push(data[field]);
+      }
+    }
+
+    if (fields.length === 0) return { affectedRows: 0 };
+
+    // Update timestamp
+    fields.push('updated_at = ?');
+    values.push(Date.now());
+
+    // Where clause
+    values.push(schemeCode);
+
+    const query = `UPDATE funds SET ${fields.join(', ')} WHERE scheme_code = ?`;
+    return db.run(query, values);
+  },
+
+  /**
    * Find funds without recent NAV updates (inactive fund detection)
    * @param {number} days - Number of days without NAV update
    * @returns {Promise<Array>} Array of scheme_codes
@@ -310,6 +348,29 @@ export const fundModel = {
     `;
 
     return db.query(query, [cutoffDateStr]);
+  },
+
+  /**
+   * Find a peer fund (same base name) that has enrichment data
+   * Used as fallback for funds with missing external data (e.g., IDCW plans)
+   * @param {string} baseName - Base name of the fund (e.g., "ICICI Prudential Bluechip Fund")
+   * @param {number} excludeSchemeCode - Scheme code to exclude from search
+   * @returns {Promise<Object|null>} Fund object with enrichment data
+   */
+  async findPeerFundWithData(baseName, excludeSchemeCode) {
+    // Search for any other fund starting with the base name (likely the Growth variant)
+    // that has populated AUM/Enrichment data
+    const query = `
+      SELECT * FROM funds 
+      WHERE scheme_name LIKE ? 
+      AND scheme_code != ?
+      AND aum IS NOT NULL 
+      AND aum > 0
+      LIMIT 1
+    `;
+
+    // Append % wildcard for LIKE match
+    return db.queryOne(query, [`${baseName}%`, excludeSchemeCode]);
   },
 
   /**

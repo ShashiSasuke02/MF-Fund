@@ -92,9 +92,9 @@ export const initSchedulerJobs = () => {
     // OR we register it unconditionally and let the manual trigger work, but only schedule if enabled.
     // For manual trigger visibility, it's better to register it.
 
-    // 2. Register Full Fund Sync (2:30 AM IST (02:30))
+    // 2. Register Full Fund Sync (1:00 AM IST)
     // Note: Timezone IS 'Asia/Kolkata' (handled below in line 138 options)
-    cronRegistry.register('Full Fund Sync', '0 30 02 * * *', async () => {
+    cronRegistry.register('Full Fund Sync', '0 0 1 * * *', async () => {
         // NOTE: The previous code had specific TZ logic.
         // Standard cron doesn't do TZ easily without the option. 
         // We'll trust the registry/scheduler loop to handle it or use the string directly.
@@ -103,10 +103,10 @@ export const initSchedulerJobs = () => {
         return await mfapiIngestionService.runFullSync();
     });
 
-    // 3. Register Incremental Fund Sync (10 AM, 12 PM, 2 PM IST)
-    cronRegistry.register('Incremental Fund Sync', '0 10,12,14 * * *', async () => {
-        return await mfapiIngestionService.runIncrementalSync();
-    });
+    // 3. Register Incremental Fund Sync (DISABLED)
+    // cronRegistry.register('Incremental Fund Sync', '0 10,12,14 * * *', async () => {
+    //     return await mfapiIngestionService.runIncrementalSync();
+    // });
 
     // 4. Schedule all registered jobs
     const jobs = cronRegistry.getAllJobs();

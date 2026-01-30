@@ -1,5 +1,7 @@
 import { localFundService } from '../services/localFund.service.js';
 import { fundModel } from '../models/fund.model.js';
+import fundEnrichmentService from '../services/fundEnrichment.service.js';
+import logger from '../services/logger.service.js';
 
 /**
  * Fund Controller - handles fund-related HTTP requests
@@ -26,7 +28,7 @@ export const fundController = {
       }
 
       // Fetch scheme details from LOCAL DATABASE
-      const details = await localFundService.getSchemeDetails(code);
+      let details = await localFundService.getSchemeDetails(code);
 
       if (!details) {
         return res.status(404).json({
@@ -34,6 +36,68 @@ export const fundController = {
           error: 'Fund not found in local database. Please ensure the fund sync has been run.'
         });
       }
+
+      // --- Enrichment Logic (Captain Nemo Integration) ---
+      // Check if we need to fetch external data (missing or stale > 7 days)
+      const isStale = !details.meta.detail_info_synced_at ||
+        (Date.now() - details.meta.detail_info_synced_at > 7 * 24 * 60 * 60 * 1000);
+
+      const hasISIN = !!details.meta.isin_growth;
+
+      if (isStale && hasISIN) {
+        try {
+          // Fetch from Enrichment Service
+          const enrichedData = await fundEnrichmentService.fetchFundDetails(details.meta.isin_growth, req.requestId);
+
+          if (enrichedData) {
+            // Persist to DB
+            await localFundService.updateEnrichmentData(code, enrichedData);
+
+            // Merge into current response to avoid a re-fetch
+            details.meta = { ...details.meta, ...enrichedData };
+
+            logger.info(`Served enriched data for ${code}`, { requestId: req.requestId });
+          }
+        } catch (err) {
+          // Failure should not block the main response
+        }
+      }
+
+      // --- Fallback Strategy: Peer Lookup ---
+      // If essential data (AUM) is still missing after enrichment attempt,
+      // try to borrow metadata from a "Peer Fund" (e.g., Growth plan)
+      if (!details.meta.aum) {
+        try {
+          // Extract Base Name: "ICICI Prudential Bond Fund - Annual IDCW" -> "ICICI Prudential Bond Fund"
+          // Split by " - " is a simple heuristic that works for most Indian MFs
+          const baseName = details.meta.scheme_name.split(' - ')[0];
+
+          if (baseName && baseName.length > 10) { // Avoid short/ambiguous names
+            const peerFund = await fundModel.findPeerFundWithData(baseName, code);
+
+            if (peerFund) {
+              logger.info(`Using peer fund data for ${code}`, {
+                peer: peerFund.scheme_name,
+                requestId: req.requestId
+              });
+
+              // Merge shared metadata fields if they are missing in current fund
+              details.meta.aum = details.meta.aum || peerFund.aum;
+              details.meta.fund_manager = details.meta.fund_manager || peerFund.fund_manager;
+              details.meta.investment_objective = details.meta.investment_objective || peerFund.investment_objective;
+              details.meta.fund_start_date = details.meta.fund_start_date || peerFund.fund_start_date;
+              details.meta.risk_level = details.meta.risk_level || peerFund.risk_level;
+              details.meta.expense_ratio = details.meta.expense_ratio || peerFund.expense_ratio;
+
+              // Mark source as peer for visibility (optional, currently not displayed in UI)
+              details.meta.data_source_type = 'PEER_FALLBACK';
+            }
+          }
+        } catch (fallbackErr) {
+          logger.warn(`Peer fallback failed for ${code}`, { error: fallbackErr.message });
+        }
+      }
+      // Wait, I am writing the logic now.
 
       res.json({
         success: true,
