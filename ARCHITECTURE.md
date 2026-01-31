@@ -27,7 +27,10 @@
 │   │   ├── contexts/       # Global State (AuthContext, IdleContext)
 │   │   ├── pages/          # Route Views (FundList, Portfolio, Admin)
 │   │   └── Main.jsx        # Entry point
-│   └── vite.config.js      # Build configuration
+│   │   ├── pages/          # Route Views (FundList, Portfolio, Admin)
+│   │   └── Main.jsx        # Entry point
+│   ├── vite.config.js      # Build configuration
+│   └── .env                # FRONTEND Config (Vite, AdSense) - NOT in root!
 ├── src/                    # Node.js Backend application
 │   ├── config/             # Environment & Constants
 │   ├── controllers/        # Request Handlers (MVC)
@@ -105,9 +108,11 @@ This is the core of the application. Logic is strictly separated from Controller
 -   **Logging:** `winston` (via `requestLogger.middleware.js`) + Database-backed logs (`cron_job_logs`, `fund_sync_log`).
 
 ### 3.8 Configuration
--   **Environment:** managed via `dotenv`.
--   **Critical Vars:** `DB_HOST`, `DB_PASSWORD`, `MFAPI_BASE_URL`, `JWT_SECRET`.
--   **Docker:** variables passed via `docker-compose.yml` take precedence.
+### 3.8 Configuration Architecture
+-   **Dual-Config Strategy:**
+    1.  **Backend (`/.env`):** Server secrets (`DB_PASSWORD`, `JWT_SECRET`, `PORT`). **NEVER** exposed to client.
+    2.  **Frontend (`/client/.env`):** Build-time variables (`VITE_ADSENSE_CLIENT_ID`, `VITE_isAdsEnabled`). **Visible** in browser bundle.
+-   **Docker:** variables passed via `docker-compose.yml` take precedence over root `.env`.
 
 ---
 
@@ -140,6 +145,11 @@ This is the core of the application. Logic is strictly separated from Controller
 -   **Framework:** Tailwind CSS.
 -   **Design System:** Gradient-heavy, "Glassmorphism" aesthetic (premium financial look).
 -   **Responsive:** Mobile-first utilities.
+
+### 4.7 AdSense Integration
+-   **Strategy:** Dynamic loading via `AdSense.jsx` component.
+-   **Control:** Regulated by `VITE_isAdsEnabled` (Boolean) in `client/.env`.
+-   **Privacy/Performance:** Scripts are **NOT** loaded if disabled. No empty placeholders are rendered in production or development when disabled.
 
 ---
 
@@ -298,3 +308,10 @@ If unsure — ask clarifying questions instead of guessing.
 -   **File:** `src/services/email.service.js`
 -   **Enhancement:**
     -   **HTML Formatting:** `sendSupportTicket` now preserves newlines in user descriptions by converting `\n` to `<br>`, improving readability of support tickets.
+
+### 11.5 AdSense Implementation
+-   **File:** `client/src/components/AdSense.jsx`
+-   **Enhancement:**
+    -   **Strict Visibility Control:** Introduced `VITE_isAdsEnabled` to toggle ads globally.
+    -   **Zero-Footprint:** When disabled, the component renders `null` and injects **zero** scripts.
+    -   **Architecture:** Removed hardcoded script from `index.html` in favor of dynamic React hook injection.
