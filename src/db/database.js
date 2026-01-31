@@ -92,14 +92,24 @@ export function getDatabase() {
  */
 export async function query(sql, params = []) {
   const database = getDatabase();
-  try {
-    const [rows] = await database.query(sql, params);
-    return rows;
-  } catch (error) {
-    console.error('Query error:', error);
-    console.error('SQL:', sql);
-    console.error('Params:', params);
-    throw error;
+  let retries = 3;
+
+  while (retries > 0) {
+    try {
+      const [rows] = await database.query(sql, params);
+      return rows;
+    } catch (error) {
+      if (retries === 1 || !['ECONNREFUSED', 'ETIMEDOUT', 'PROTOCOL_CONNECTION_LOST'].includes(error.code)) {
+        console.error('Query error:', error);
+        console.error('SQL:', sql);
+        console.error('Params:', params);
+        throw error;
+      }
+
+      console.warn(`Database query failed (${error.code}), retrying... (${retries} left)`);
+      retries--;
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
   }
 }
 
@@ -116,19 +126,29 @@ export async function queryOne(sql, params = []) {
  */
 export async function run(sql, params = []) {
   const database = getDatabase();
-  try {
-    const [result] = await database.query(sql, params);
+  let retries = 3;
 
-    return {
-      changes: result.affectedRows || 0,
-      insertId: result.insertId || 0,
-      lastInsertRowid: result.insertId || 0
-    };
-  } catch (error) {
-    console.error('Run error:', error);
-    console.error('SQL:', sql);
-    console.error('Params:', params);
-    throw error;
+  while (retries > 0) {
+    try {
+      const [result] = await database.query(sql, params);
+
+      return {
+        changes: result.affectedRows || 0,
+        insertId: result.insertId || 0,
+        lastInsertRowid: result.insertId || 0
+      };
+    } catch (error) {
+      if (retries === 1 || !['ECONNREFUSED', 'ETIMEDOUT', 'PROTOCOL_CONNECTION_LOST'].includes(error.code)) {
+        console.error('Run error:', error);
+        console.error('SQL:', sql);
+        console.error('Params:', params);
+        throw error;
+      }
+
+      console.warn(`Database operation failed (${error.code}), retrying... (${retries} left)`);
+      retries--;
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
   }
 }
 

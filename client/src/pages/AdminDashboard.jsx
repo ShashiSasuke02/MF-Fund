@@ -14,7 +14,9 @@ import QuickActions from '../components/admin/QuickActions';
 import ActivityLogs from '../components/admin/ActivityLogs';
 import LogViewer from '../components/admin/LogViewer'; // [NEW]
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+const envApiUrl = import.meta.env.VITE_API_URL;
+const API_URL = (envApiUrl && envApiUrl !== 'undefined') ? envApiUrl : '';
+
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
