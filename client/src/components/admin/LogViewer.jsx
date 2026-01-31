@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from '../../contexts/AuthContext';
+
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 const LogViewer = () => {
-    const { token, API_URL } = useAuth();
+    const token = sessionStorage.getItem('auth_token');
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -12,8 +13,9 @@ const LogViewer = () => {
         setLoading(true);
         setError('');
         try {
-            const response = await axios.get(`${API_URL}/admin/logs`, {
+            const response = await axios.get(`${API_URL}/api/admin/logs`, {
                 headers: { Authorization: `Bearer ${token}` }
+
             });
             if (response.data.success) {
                 setLogs(response.data.files);
@@ -33,7 +35,7 @@ const LogViewer = () => {
     const handleDownload = async (filename) => {
         // Authenticated download via blob
         try {
-            const response = await axios.get(`${API_URL}/admin/logs/download/${filename}`, {
+            const response = await axios.get(`${API_URL}/api/admin/logs/download/${filename}`, {
                 headers: { Authorization: `Bearer ${token}` },
                 responseType: 'blob', // Important
             });
