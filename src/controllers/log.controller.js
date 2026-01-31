@@ -54,7 +54,7 @@ export const downloadLogFile = (req, res) => {
 
     // Set headers for download
     res.setHeader('Content-Disposition', `attachment; filename=${safeFilename}`);
-    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Type', safeFilename.endsWith('.json') ? 'application/json' : 'text/plain');
 
     const fileStream = fs.createReadStream(filePath);
     fileStream.pipe(res);

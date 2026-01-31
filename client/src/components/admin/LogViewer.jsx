@@ -37,22 +37,27 @@ const LogViewer = () => {
         try {
             const response = await axios.get(`${API_URL}/api/admin/logs/download/${filename}`, {
                 headers: { Authorization: `Bearer ${token}` },
-                responseType: 'blob', // Important
+                responseType: 'blob',
             });
 
             // Create blob link to download
-            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const blob = new Blob([response.data]);
+            const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
             link.setAttribute('download', filename);
             document.body.appendChild(link);
             link.click();
-            link.remove();
+
+            // Cleanup
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
         } catch (err) {
             setError('Failed to download log file.');
             console.error(err);
         }
     };
+
 
     const formatSize = (bytes) => {
         if (bytes === 0) return '0 B';
