@@ -39,48 +39,24 @@ const LogViewer = () => {
         fetchLogs();
     }, []);
 
-    const handleDownload = async (filename) => {
-        try {
-            const token = sessionStorage.getItem('auth_token');
-            if (!token) {
-                setError('Authentication required. Please login again.');
-                return;
-            }
-
-            const response = await axios.get(`${API_URL}/api/admin/logs/download/${filename}`, {
-                headers: { Authorization: `Bearer ${token}` },
-                responseType: 'blob',
-
-            });
-
-            const blob = new Blob([response.data]);
-
-            // Check if we got an error response wrapped as blob
-            if (blob.type === 'application/json') {
-                const text = await blob.text();
-                const errorData = JSON.parse(text);
-                setError(errorData.message || 'Failed to download log file.');
-                console.error('Server error:', errorData);
-                return;
-            }
-
-            // Create blob link to download
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', filename);
-            document.body.appendChild(link);
-            link.click();
-
-            // Cleanup
-            document.body.removeChild(link);
-            setTimeout(() => {
-                window.URL.revokeObjectURL(url);
-            }, 100);
-        } catch (err) {
-            setError('Failed to download log file.');
-            console.error('Download error:', err);
+    const handleDownload = (filename) => {
+        const token = sessionStorage.getItem('auth_token');
+        if (!token) {
+            setError('Authentication required. Please login again.');
+            return;
         }
+
+        // Use native browser download with token as query param
+        // The backend will verify this token
+        const downloadUrl = `${API_URL}/api/admin/logs/download/${filename}?token=${encodeURIComponent(token)}`;
+
+        // Create a hidden link and click it to trigger native download
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
 

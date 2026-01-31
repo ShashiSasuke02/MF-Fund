@@ -7,11 +7,16 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
  */
 export const authenticateToken = (req, res, next) => {
   try {
-    // Get token from Authorization header
+    // Get token from Authorization header OR query parameter (for file downloads)
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.startsWith('Bearer ')
+    let token = authHeader && authHeader.startsWith('Bearer ')
       ? authHeader.substring(7)
       : null;
+
+    // Fallback to query param for file downloads (native browser download)
+    if (!token && req.query.token) {
+      token = req.query.token;
+    }
 
     if (!token) {
       return res.status(401).json({
