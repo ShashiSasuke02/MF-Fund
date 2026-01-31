@@ -95,7 +95,7 @@ services:
       ENABLE_FULL_SYNC_REPORT: ${ENABLE_FULL_SYNC_REPORT:-true}
 
     volumes:
-      - ./logs:/app/logs  # Persist logs to host for System Logs dashboard
+      - mf_logs:/app/logs  # Use named volume for robust permission management
     ports:
       - "${APP_PORT:-4000}:4000"
     networks:
@@ -217,4 +217,6 @@ networks:
 # =============================================================================
 volumes:
   mysql_data:
+    driver: local
+  mf_logs:
     driver: local
