@@ -4,7 +4,6 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || '';
 
 const LogViewer = () => {
-    const token = sessionStorage.getItem('auth_token');
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -13,8 +12,16 @@ const LogViewer = () => {
         setLoading(true);
         setError('');
         try {
+            const token = sessionStorage.getItem('auth_token');
+            if (!token) {
+                setError('Authentication required. Please login again.');
+                setLoading(false);
+                return;
+            }
+
             const response = await axios.get(`${API_URL}/api/admin/logs`, {
                 headers: { Authorization: `Bearer ${token}` }
+
 
             });
             if (response.data.success) {
@@ -34,9 +41,16 @@ const LogViewer = () => {
 
     const handleDownload = async (filename) => {
         try {
+            const token = sessionStorage.getItem('auth_token');
+            if (!token) {
+                setError('Authentication required. Please login again.');
+                return;
+            }
+
             const response = await axios.get(`${API_URL}/api/admin/logs/download/${filename}`, {
                 headers: { Authorization: `Bearer ${token}` },
                 responseType: 'blob',
+
             });
 
             const blob = new Blob([response.data]);
