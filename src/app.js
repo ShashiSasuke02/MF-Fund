@@ -40,8 +40,8 @@ app.use(helmet({
   contentSecurityPolicy: {
     useDefaults: false,
     directives: {
-      defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "https://api.mfapi.in", "http://localhost:4000", "ws://localhost:4000", "https://*.google.com"],
+      defaultSrc: ["'self'", "blob:"],
+      connectSrc: ["'self'", "https://api.mfapi.in", "http://localhost:4000", "ws://localhost:4000", "https://*.google.com", "blob:"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https:", "https://pagead2.googlesyndication.com", "blob:"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],

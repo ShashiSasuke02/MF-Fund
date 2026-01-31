@@ -52,18 +52,14 @@ export const downloadLogFile = (req, res) => {
         return res.status(404).json({ success: false, message: 'Log file not found' });
     }
 
-    // Set headers for download
-    res.setHeader('Content-Disposition', `attachment; filename=${safeFilename}`);
-    res.setHeader('Content-Type', safeFilename.endsWith('.json') ? 'application/json' : 'text/plain');
-
-    const fileStream = fs.createReadStream(filePath);
-    fileStream.pipe(res);
-
-    fileStream.on('error', (error) => {
-        logger.error('Error streaming log file', { requestId: req.requestId, error: error.message });
-        // If headers sent, we can't send JSON error, connection will just close
-        if (!res.headersSent) {
-            res.status(500).json({ success: false, message: 'Error downloading file' });
+    // Use express helper for robost download handling (handles headers, streams, etc.)
+    res.download(filePath, safeFilename, (err) => {
+        if (err) {
+            // Only log and respond if headers haven't been sent
+            logger.error('Error downloading log file', { requestId: req.requestId, error: err.message });
+            if (!res.headersSent) {
+                res.status(500).json({ success: false, message: 'Error downloading file' });
+            }
         }
     });
 };

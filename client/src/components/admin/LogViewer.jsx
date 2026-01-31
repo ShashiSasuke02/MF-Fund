@@ -51,7 +51,9 @@ const LogViewer = () => {
 
             // Cleanup
             document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
+            setTimeout(() => {
+                window.URL.revokeObjectURL(url);
+            }, 100);
         } catch (err) {
             setError('Failed to download log file.');
             console.error(err);
