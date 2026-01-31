@@ -33,15 +33,24 @@ const LogViewer = () => {
     }, []);
 
     const handleDownload = async (filename) => {
-        // Authenticated download via blob
         try {
             const response = await axios.get(`${API_URL}/api/admin/logs/download/${filename}`, {
                 headers: { Authorization: `Bearer ${token}` },
                 responseType: 'blob',
             });
 
-            // Create blob link to download
             const blob = new Blob([response.data]);
+
+            // Check if we got an error response wrapped as blob
+            if (blob.type === 'application/json') {
+                const text = await blob.text();
+                const errorData = JSON.parse(text);
+                setError(errorData.message || 'Failed to download log file.');
+                console.error('Server error:', errorData);
+                return;
+            }
+
+            // Create blob link to download
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -56,7 +65,7 @@ const LogViewer = () => {
             }, 100);
         } catch (err) {
             setError('Failed to download log file.');
-            console.error(err);
+            console.error('Download error:', err);
         }
     };
 
