@@ -319,6 +319,71 @@ class EmailService {
             return false;
         }
     }
+
+    /**
+     * Send Support Ticket Email (Report Issue Feature)
+     * @param {Object} ticketData - Ticket data
+     * @param {string} ticketData.userName - User's full name
+     * @param {string} ticketData.userEmail - User's email
+     * @param {string} ticketData.issueType - Bug, Feedback, Other
+     * @param {string} ticketData.description - Issue description
+     */
+    async sendSupportTicket(ticketData) {
+        if (!this.initialized) this.init();
+
+        const { userName, userEmail, issueType, description } = ticketData;
+        const supportEmail = 'Support@trymutualfunds.com';
+
+        // Format description for HTML (preserve newlines)
+        const formattedDescription = description ? description.replace(/\n/g, '<br>') : '';
+
+        if (!this.transporter) {
+            console.log(`[EmailService] MOCK: Would send support ticket to ${supportEmail}`);
+            console.log(`[EmailService] From: ${userName} (${userEmail})`);
+            console.log(`[EmailService] Type: ${issueType}`);
+            console.log(`[EmailService] Description: ${description}`);
+            return true;
+        }
+
+        const typeEmoji = issueType === 'Bug' ? '🐞' : issueType === 'Feedback' ? '💡' : '📝';
+
+        const html = `
+        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px;">
+            <div style="background: linear-gradient(135deg, #10B981, #14B8A6); padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
+                <h2 style="margin: 0; color: white;">${typeEmoji} New Support Ticket</h2>
+            </div>
+            <div style="background: #F9FAFB; padding: 20px; border: 1px solid #E5E7EB; border-top: none; border-radius: 0 0 12px 12px;">
+                <p><strong>From:</strong> ${userName}</p>
+                <p><strong>Email:</strong> <a href="mailto:${userEmail}">${userEmail}</a></p>
+                <p><strong>Type:</strong> ${issueType}</p>
+                <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 16px 0;">
+                <p><strong>Description:</strong></p>
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #E5E7EB; white-space: pre-wrap;">
+${formattedDescription}
+                </div>
+            </div>
+            <p style="font-size: 12px; color: #6B7280; margin-top: 20px; text-align: center;">
+                Submitted via TryMutualFunds Report Issue Form
+            </p>
+        </div>
+        `;
+
+        try {
+            const info = await this.transporter.sendMail({
+                from: `"TryMutualFunds Support" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+                to: supportEmail,
+                replyTo: userEmail,
+                subject: `${typeEmoji} [${issueType}] Support Ticket from ${userName}`,
+                html
+            });
+
+            console.log(`[EmailService] Support ticket sent. MessageId: ${info.messageId}`);
+            return { success: true };
+        } catch (error) {
+            console.error(`[EmailService] Failed to send support ticket:`, error.message);
+            return { success: false, error: error.message };
+        }
+    }
 }
 
 export const emailService = new EmailService();

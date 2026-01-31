@@ -301,15 +301,16 @@ export const mfapiIngestionService = {
   },
 
   /**
-   * Filter funds to only include those with NAV updated in current month
-   * This effectively filters out inactive/closed funds
+   * Filter funds to only include those with NAV updated recently
+   * Uses a 45-day rolling window to handle month boundaries gracefully
    * @param {Array} funds - All funds with NAV data
    * @returns {Array} Funds with recent NAV updates
    */
   filterByCurrentMonth(funds) {
     const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1; // 1-indexed
+    // Calculate cutoff date (45 days ago to handle month boundaries)
+    const cutoffDate = new Date();
+    cutoffDate.setDate(now.getDate() - 45);
 
     return funds.filter(fund => {
       if (!fund.date) return false;
@@ -318,11 +319,15 @@ export const mfapiIngestionService = {
       const parts = fund.date.split('-');
       if (parts.length !== 3) return false;
 
-      const navYear = parseInt(parts[2], 10);
+      const navDay = parseInt(parts[0], 10);
       const navMonth = parseInt(parts[1], 10);
+      const navYear = parseInt(parts[2], 10);
 
-      // Include if NAV is from current month or this year (within last 30 days logic)
-      return navYear === currentYear && navMonth === currentMonth;
+      // Create date object (Month is 0-indexed in JS)
+      const navDate = new Date(navYear, navMonth - 1, navDay);
+
+      // Include if NAV date is within the 45-day window
+      return navDate >= cutoffDate;
     });
   },
 

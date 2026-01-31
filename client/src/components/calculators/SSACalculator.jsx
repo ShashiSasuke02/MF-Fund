@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { calculatorApi } from '../../api';
 import LoadingSpinner from '../LoadingSpinner';
 import { BannerAd, DisplayAd } from '../AdSense';
@@ -76,7 +76,7 @@ export default function SSACalculator({ interestRates }) {
 			<form onSubmit={handleCalculate} className="space-y-6">
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 					<div>
-						<label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="annualDeposit">Annual Deposit (₹) *</label>
+						<label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="annualDeposit">Annual Deposit (?) *</label>
 						<input
 							id="annualDeposit"
 							name="annualDeposit"
@@ -86,11 +86,11 @@ export default function SSACalculator({ interestRates }) {
 							required
 							min="250"
 							max="150000"
-							step="250"
+							step="any"
 							className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
 							placeholder="e.g., 60000"
 						/>
-						<p className="text-xs text-gray-500 mt-1">Min ₹250 | Max ₹1,50,000 per year</p>
+						<p className="text-xs text-gray-500 mt-1">Min ?250 | Max ?1,50,000 per year</p>
 					</div>
 
 					<div>

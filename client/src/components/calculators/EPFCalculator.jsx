@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { calculatorApi } from '../../api';
 import LoadingSpinner from '../LoadingSpinner';
 import { BannerAd, DisplayAd } from '../AdSense';
@@ -93,7 +93,7 @@ export default function EPFCalculator({ interestRates }) {
 			<form onSubmit={handleCalculate} className="space-y-6">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					<div>
-						<label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="basicSalary">Monthly Basic Salary (₹) *</label>
+						<label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="basicSalary">Monthly Basic Salary (?) *</label>
 						<input
 							id="basicSalary"
 							name="basicSalary"
@@ -102,7 +102,7 @@ export default function EPFCalculator({ interestRates }) {
 							onChange={handleChange}
 							required
 							min="1000"
-							step="500"
+							step="any"
 							className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
 							placeholder="e.g., 30000"
 						/>

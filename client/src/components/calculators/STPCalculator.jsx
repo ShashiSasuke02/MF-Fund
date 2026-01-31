@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { calculatorApi } from '../../api';
 import LoadingSpinner from '../LoadingSpinner';
 import { BannerAd, DisplayAd } from '../AdSense';
@@ -86,7 +86,7 @@ export default function STPCalculator({ interestRates }) {
 			<form onSubmit={handleCalculate} className="space-y-6">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					<div>
-						<label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="initialInvestment">Initial Investment in Source Fund (₹) *</label>
+						<label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="initialInvestment">Initial Investment in Source Fund (?) *</label>
 						<input
 							id="initialInvestment"
 							name="initialInvestment"
@@ -95,14 +95,14 @@ export default function STPCalculator({ interestRates }) {
 							onChange={handleChange}
 							required
 							min="1000"
-							step="1000"
+							step="any"
 							className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
 							placeholder="e.g., 200000"
 						/>
 					</div>
 
 					<div>
-						<label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="monthlyTransfer">Monthly Transfer Amount (₹) *</label>
+						<label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="monthlyTransfer">Monthly Transfer Amount (?) *</label>
 						<input
 							id="monthlyTransfer"
 							name="monthlyTransfer"
@@ -111,7 +111,7 @@ export default function STPCalculator({ interestRates }) {
 							onChange={handleChange}
 							required
 							min="500"
-							step="500"
+							step="any"
 							className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
 							placeholder="e.g., 10000"
 						/>

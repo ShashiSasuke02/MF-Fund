@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { calculatorApi } from '../../api';
 import LoadingSpinner from '../LoadingSpinner';
 import { BannerAd, DisplayAd } from '../AdSense';
@@ -74,7 +74,7 @@ export default function NSCCalculator({ interestRates }) {
 			<form onSubmit={handleCalculate} className="space-y-6">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					<div>
-						<label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="principal">Investment Amount (₹) *</label>
+						<label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="principal">Investment Amount (?) *</label>
 						<input
 							id="principal"
 							name="principal"
@@ -83,7 +83,7 @@ export default function NSCCalculator({ interestRates }) {
 							onChange={handleChange}
 							required
 							min="1000"
-							step="500"
+							step="any"
 							className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
 							placeholder="e.g., 100000"
 						/>

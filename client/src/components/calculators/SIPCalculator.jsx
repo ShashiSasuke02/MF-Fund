@@ -95,7 +95,7 @@ export default function SIPCalculator({ interestRates }) {
               onChange={handleInputChange}
               required
               min="500"
-              step="500"
+              step="any"
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
               placeholder="e.g., 5000"
             />

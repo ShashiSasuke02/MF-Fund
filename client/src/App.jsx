@@ -12,6 +12,7 @@ import Portfolio from './pages/Portfolio';
 import Invest from './pages/Invest';
 import Calculator from './pages/Calculator';
 import AdminDashboard from './pages/AdminDashboard';
+import ReportIssue from './pages/ReportIssue';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -99,6 +100,11 @@ function App() {
             <Route path="/invest" element={
               <ProtectedRoute>
                 <Invest />
+              </ProtectedRoute>
+            } />
+            <Route path="/report-issue" element={
+              <ProtectedRoute>
+                <ReportIssue />
               </ProtectedRoute>
             } />
 

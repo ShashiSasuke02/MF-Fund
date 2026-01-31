@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { calculatorApi } from '../../api';
 import LoadingSpinner from '../LoadingSpinner';
 import { BannerAd, DisplayAd } from '../AdSense';
@@ -97,11 +97,11 @@ export default function APYCalculator() {
 							onChange={handleChange}
 							className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
 						>
-							<option value="1000">₹1,000</option>
-							<option value="2000">₹2,000</option>
-							<option value="3000">₹3,000</option>
-							<option value="4000">₹4,000</option>
-							<option value="5000">₹5,000</option>
+							<option value="1000">?1,000</option>
+							<option value="2000">?2,000</option>
+							<option value="3000">?3,000</option>
+							<option value="4000">?4,000</option>
+							<option value="5000">?5,000</option>
 						</select>
 					</div>
 				</div>

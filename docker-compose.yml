@@ -94,6 +94,8 @@ services:
       ENABLE_TRANSACTION_SCHEDULER_REPORT: ${ENABLE_TRANSACTION_SCHEDULER_REPORT:-true}
       ENABLE_FULL_SYNC_REPORT: ${ENABLE_FULL_SYNC_REPORT:-true}
 
+    volumes:
+      - ./logs:/app/logs  # Persist logs to host for System Logs dashboard
     ports:
       - "${APP_PORT:-4000}:4000"
     networks:

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { calculatorApi } from '../../api';
 import LoadingSpinner from '../LoadingSpinner';
 import { BannerAd, DisplayAd } from '../AdSense';
@@ -66,7 +66,7 @@ export default function SCSSCalculator({ interestRates }) {
 					</svg>
 					<div>
 						<h3 className="text-sm font-semibold text-blue-900 mb-1">About SCSS</h3>
-						<p className="text-sm text-blue-800">5-year tenure, quarterly interest payout, max investment ₹30,00,000. Default rate {defaultRate}% p.a.</p>
+						<p className="text-sm text-blue-800">5-year tenure, quarterly interest payout, max investment ?30,00,000. Default rate {defaultRate}% p.a.</p>
 					</div>
 				</div>
 			</div>
@@ -74,7 +74,7 @@ export default function SCSSCalculator({ interestRates }) {
 			<form onSubmit={handleCalculate} className="space-y-6">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					<div>
-						<label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="principal">Investment Amount (₹) *</label>
+						<label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="principal">Investment Amount (?) *</label>
 						<input
 							id="principal"
 							name="principal"
@@ -84,11 +84,11 @@ export default function SCSSCalculator({ interestRates }) {
 							required
 							min="1000"
 							max="3000000"
-							step="1000"
+							step="any"
 							className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
 							placeholder="e.g., 500000"
 						/>
-						<p className="text-xs text-gray-500 mt-1">Min ₹1,000 | Max ₹30,00,000</p>
+						<p className="text-xs text-gray-500 mt-1">Min ?1,000 | Max ?30,00,000</p>
 					</div>
 
 					<div>

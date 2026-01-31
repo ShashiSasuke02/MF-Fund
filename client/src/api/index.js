@@ -47,6 +47,7 @@ async function fetchApi(endpoint, options = {}) {
     const data = await response.json();
 
     if (!response.ok) {
+      console.error(`[API Error] ${endpoint} Status: ${response.status}`, data);
       throw new Error(data.message || data.error || `HTTP error ${response.status}`);
     }
 
@@ -450,4 +451,18 @@ export const notificationApi = {
     })
 };
 
-export default { amcApi, fundApi, healthApi, authApi, demoApi, calculatorApi, notificationApi };
+/**
+ * Support API functions
+ */
+export const supportApi = {
+  /**
+   * Submit a support ticket
+   */
+  reportIssue: (data) =>
+    fetchApi('/support/report', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+};
+
+export default { amcApi, fundApi, healthApi, authApi, demoApi, calculatorApi, notificationApi, supportApi };

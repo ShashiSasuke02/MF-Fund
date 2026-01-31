@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { calculatorApi } from '../../api';
 import LoadingSpinner from '../LoadingSpinner';
 import { BannerAd, DisplayAd } from '../AdSense';
@@ -84,7 +84,7 @@ export default function NPSCalculator({ interestRates }) {
 			<form onSubmit={handleCalculate} className="space-y-6">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					<div>
-						<label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="monthlyContribution">Monthly Contribution (₹) *</label>
+						<label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="monthlyContribution">Monthly Contribution (?) *</label>
 						<input
 							id="monthlyContribution"
 							name="monthlyContribution"
@@ -93,11 +93,11 @@ export default function NPSCalculator({ interestRates }) {
 							onChange={handleChange}
 							required
 							min="500"
-							step="500"
+							step="any"
 							className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all"
 							placeholder="e.g., 5000"
 						/>
-						<p className="text-xs text-gray-500 mt-1">Minimum ₹500</p>
+						<p className="text-xs text-gray-500 mt-1">Minimum ?500</p>
 					</div>
 
 					<div>

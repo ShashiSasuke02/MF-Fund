@@ -4,6 +4,7 @@ import { demoAccountModel } from '../models/demoAccount.model.js';
 import { holdingModel } from '../models/holding.model.js';
 import { notificationModel } from '../models/notification.model.js';
 import { localFundService } from './localFund.service.js';
+import { getISTDate } from '../utils/date.utils.js';
 
 /**
  * Scheduler Service
@@ -21,10 +22,9 @@ export const schedulerService = {
   async executeDueTransactions(targetDate = null) {
     const startTime = Date.now();
 
-    // Default to today if no target date provided
+    // Default to today (IST) if no target date provided
     if (!targetDate) {
-      const today = new Date();
-      targetDate = today.toISOString().split('T')[0];
+      targetDate = getISTDate(); // Uses IST timezone for consistent "today"
     }
 
     console.log(`[Scheduler] Starting execution for date: ${targetDate}`);

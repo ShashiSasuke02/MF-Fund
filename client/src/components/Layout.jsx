@@ -37,13 +37,13 @@ export default function Layout({ children }) {
                 to="/browse"
                 className="text-gray-700 hover:text-gray-900 font-medium text-base transition-colors"
               >
-                Asset Managements
+                Mutual Funds
               </Link>
               <Link
                 to="/calculators"
                 className="text-gray-700 hover:text-gray-900 font-medium text-base transition-colors"
               >
-                Investment Calculator
+                Calculators
               </Link>
               {isAuthenticated && (
                 <>
@@ -58,6 +58,12 @@ export default function Layout({ children }) {
                     className="text-gray-700 hover:text-gray-900 font-medium text-base transition-colors"
                   >
                     Invest
+                  </Link>
+                  <Link
+                    to="/report-issue"
+                    className="text-gray-700 hover:text-gray-900 font-medium text-base transition-colors"
+                  >
+                    Feedback
                   </Link>
                   {(user?.role === 'admin' || user?.id === 1 || user?.username === 'admin') && (
                     <Link
@@ -190,7 +196,7 @@ export default function Layout({ children }) {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
-                  Inv. Calc
+                  Calc
                 </span>
               </Link>
               {isAuthenticated && (
@@ -221,6 +227,20 @@ export default function Layout({ children }) {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                       </svg>
                       Invest
+                    </span>
+                  </Link>
+                  <Link
+                    to="/report-issue"
+                    className={`flex-shrink-0 px-3 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${location.pathname === '/report-issue'
+                      ? 'bg-emerald-500 text-white shadow-sm'
+                      : 'text-gray-600 hover:text-emerald-600 hover:bg-emerald-50'
+                      }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                      </svg>
+                      Feedback
                     </span>
                   </Link>
                   {(user?.role === 'admin' || user?.id === 1 || user?.username === 'admin') && (

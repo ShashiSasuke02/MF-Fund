@@ -103,10 +103,10 @@ export const initSchedulerJobs = () => {
         return await mfapiIngestionService.runFullSync();
     });
 
-    // 3. Register Incremental Fund Sync (DISABLED)
-    // cronRegistry.register('Incremental Fund Sync', '0 10,12,14 * * *', async () => {
-    //     return await mfapiIngestionService.runIncrementalSync();
-    // });
+    // 3. Register Incremental Fund Sync (10 AM, 12 PM, 2 PM IST)
+    cronRegistry.register('Incremental Fund Sync', '0 10,12,14 * * *', async () => {
+        return await mfapiIngestionService.runIncrementalSync();
+    });
 
     // 4. Schedule all registered jobs
     const jobs = cronRegistry.getAllJobs();

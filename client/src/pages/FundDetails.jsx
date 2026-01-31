@@ -563,42 +563,35 @@ export default function FundDetails() {
           </div>
         )}
 
-        {/* Rectangle Ad before NAV History */}
-        <div className="mb-8 flex justify-center">
-          <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-200 overflow-hidden">
-            <RectangleAd />
-          </div>
-        </div>
-
-        {/* NAV History with modern styling */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200">
-          <div className="p-6 sm:p-8">
-            <div className="flex items-center mb-6">
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center mr-4 shadow-md"
-                style={{
-                  background: `linear-gradient(135deg, ${amcBranding.primaryColor}20, ${amcBranding.secondaryColor}20)`
-                }}
-              >
-                <svg className="w-6 h-6" style={{ color: amcBranding.primaryColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                Recent NAV History
-              </h2>
+        {/* Rectangle Ad before NAV History - Only shown if history exists */}
+        {navHistory && navHistory.length > 0 && (
+          <div className="mb-8 flex justify-center">
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-200 overflow-hidden">
+              <RectangleAd />
             </div>
+          </div>
+        )}
 
-            {navHistory.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+        {/* NAV History with modern styling - Only shown if data exists */}
+        {navHistory && navHistory.length > 0 && (
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200">
+            <div className="p-6 sm:p-8">
+              <div className="flex items-center mb-6">
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mr-4 shadow-md"
+                  style={{
+                    background: `linear-gradient(135deg, ${amcBranding.primaryColor}20, ${amcBranding.secondaryColor}20)`
+                  }}
+                >
+                  <svg className="w-6 h-6" style={{ color: amcBranding.primaryColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
-                <p className="text-gray-500 font-medium">No historical data available</p>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Recent NAV History
+                </h2>
               </div>
-            ) : (
+
               <div>
                 {/* Desktop Table View */}
                 <div className="hidden sm:block overflow-x-auto">
@@ -665,9 +658,9 @@ export default function FundDetails() {
                   })}
                 </div>
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Ad Section */}
         <div className="mt-8">

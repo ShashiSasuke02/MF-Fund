@@ -188,15 +188,35 @@ export default function Portfolio() {
                 Welcome back, <span className="font-semibold ml-1">{user?.fullName}</span>
               </p>
             </div>
-            <Link
-              to="/invest"
-              className="hidden md:inline-flex items-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              New Investment
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link
+                to="/report-issue"
+                className="md:hidden p-2 bg-white border border-gray-200 rounded-lg text-gray-600 shadow-sm hover:bg-gray-50 transition-colors"
+                title="Report Issue"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+              </Link>
+              <Link
+                to="/report-issue"
+                className="hidden md:inline-flex items-center px-4 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow"
+              >
+                <svg className="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                Feedback
+              </Link>
+              <Link
+                to="/invest"
+                className="hidden md:inline-flex items-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                New Investment
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -763,7 +783,7 @@ export default function Portfolio() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-200">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4 pt-4 border-t border-gray-200">
                     <div>
                       <p className="text-xs text-gray-600 mb-1 flex items-center">
                         <svg className="w-4 h-4 mr-1 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -791,6 +811,17 @@ export default function Portfolio() {
                       </p>
                       <p className="text-sm font-semibold text-gray-900">
                         {plan.start_date ? formatDate(plan.start_date) : 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1 flex items-center">
+                        <svg className="w-4 h-4 mr-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {plan.transaction_type === 'SWP' ? 'Next Receivable' : 'Next Installment'}
+                      </p>
+                      <p className="text-sm font-bold text-blue-700">
+                        {plan.next_execution_date ? formatDate(plan.next_execution_date) : 'Completed'}
                       </p>
                     </div>
                     <div>

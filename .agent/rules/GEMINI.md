@@ -36,7 +36,30 @@ Agent activated → Check frontmatter "skills:" field
 
 ---
 
-## �📥 REQUEST CLASSIFIER (STEP 2)
+## 🧪 Regression Safety & Behavior Preservation (ABSOLUTE RULE)
+
+**Primary Objective:**
+The AI must preserve all existing behavior unless a change is explicitly authorized and documented.
+
+**Before ANY code modification:**
+1. **READ ARCHITECTURE.md completely**
+2. **Identify:**
+   - Existing contracts (API, DB, UI, events)
+   - Critical workflows
+   - Shared utilities
+3. **Confirm:**
+   - What MUST remain unchanged
+   - What is allowed to change
+
+**❌ Forbidden Behavior:**
+- Silent breaking changes
+- “Optimizations” that alter behavior
+- Refactors without {task-slug}.md approval
+- Removing logic assumed to be unused
+
+---
+
+## 📥 REQUEST CLASSIFIER (STEP 2)
 
 **Before ANY action, classify the request:**
 
@@ -72,6 +95,47 @@ When user's prompt is NOT in English:
 - **Global Testing Mandate:** Every agent is responsible for writing and running tests for their changes. Follow the "Testing Pyramid" (Unit > Integration > E2E) and the "AAA Pattern" (Arrange, Act, Assert).
 - **Global Performance Mandate:** "Measure first, optimize second." Every agent must ensure their changes adhere to 2025 performance standards (Core Web Vitals for Web, query optimization for DB, bundle limits for FS).
 - **Infrastructure & Safety Mandate:** Every agent is responsible for the deployability and operational safety of their changes. Follow the "5-Phase Deployment Process" (Prepare, Backup, Deploy, Verify, Confirm/Rollback). Always verify environment variables and secrets security.
+- **Regression First Mindset:** Code must be written to preserve existing behavior by default.
+- **Behavioral Documentation:** If behavior changes, update `ARCHITECTURE.md` and `{task-slug}.md`.
+- **Test Ownership Rule:** The agent that changes code OWNS the tests for that code.
+- **No Test, No Change:** High-risk code cannot be changed without tests.
+
+### 🧪 Testing & Regression Governance (GLOBAL)
+
+#### 1. Testing Discovery (MANDATORY)
+Before coding, the agent MUST identify:
+- Existing test types (unit / integration / e2e)
+- Frameworks used
+- Coverage gaps
+- CI expectations (if inferable)
+*(This info MUST be referenced when deciding test scope)*
+
+#### 2. Minimum Testing Requirements
+| Change Type | Mandatory Tests |
+|-------------|-----------------|
+| Utility / Helper | Unit |
+| Business Logic | Unit + Integration |
+| API Endpoint | Integration + Contract |
+| DB Schema | Migration + Validation |
+| UI Component | Component test |
+| Critical Flow | E2E (Playwright if web) |
+
+**If tests CANNOT be added:**
+- Explain why
+- Document residual risk
+- Specify manual verification steps
+
+#### 3. Regression Protection Rules
+You MUST ensure:
+- Existing APIs return same shape & status
+- DB schema compatibility preserved
+- UI flows remain functional
+- Side effects unchanged
+
+**❌ You MUST NOT:**
+- Delete failing tests
+- Weaken assertions
+- Bypass coverage to “move fast”
 
 ### 📁 File Dependency Awareness
 
@@ -104,6 +168,29 @@ When user's prompt is NOT in English:
 
 ---
 
+## 🔁 TIER 0.5 — CHANGE SAFETY GATE (MANDATORY)
+
+> This gate runs after Socratic Gate but before coding
+
+### 🔍 Change Impact Matrix (Required for ALL non-trivial changes)
+
+The agent MUST produce an internal impact analysis:
+
+| Layer | Files | Risk | Reason |
+|-------|-------|------|--------|
+| Backend | services/*.ts | HIGH | Shared business logic |
+| API | controllers/*.ts | MEDIUM | Contract stability |
+| Frontend | components/*.tsx | LOW | Isolated UI |
+
+**Rules:**
+- **HIGH risk** → Tests REQUIRED
+- **MEDIUM risk** → Tests STRONGLY EXPECTED
+- **LOW risk** → At least smoke validation
+
+> **If this matrix is skipped → STOP execution**
+
+---
+
 ## TIER 1: CODE RULES (When Writing Code)
 
 ### 📱 Project Type Routing
@@ -132,6 +219,10 @@ When user's prompt is NOT in English:
 | **Full Orchestration** | Gatekeeper | **STOP** subagents until user confirms plan details |
 | **Direct "Proceed"** | Validation | **STOP** → Even if answers are given, ask 2 "Edge Case" questions |
 
+**Regression Question (ALWAYS ASK):**
+“Which existing behavior must remain 100% unchanged?”
+*(If the user cannot answer → default to full backward compatibility)*
+
 **Protocol:** 
 1. **Never Assume:** If even 1% is unclear, ASK.
 2. **Handle Spec-heavy Requests:** When user gives a list (Answers 1, 2, 3...), do NOT skip the gate. Instead, ask about **Trade-offs** or **Edge Cases** (e.g., "LocalStorage confirmed, but should we handle data clearing or versioning?") before starting.
@@ -142,6 +233,17 @@ When user's prompt is NOT in English:
 
 **Trigger:** When the user says "son kontrolleri yap", "final checks", "çalıştır tüm testleri", or similar phrases.
 
+### 🧪 Mandatory Script Invocation Rules
+| Scenario | Script |
+|----------|--------|
+| Logic change | `test_runner.py` |
+| API change | `test_runner.py` + `schema_validator.py` |
+| UI change | `ux_audit.py` + `playwright_runner.py` |
+| Performance-sensitive change | `bundle_analyzer.py` |
+| Pre-deploy | `verify_all.py` |
+
+> ❌ **Skipping required scripts = Task NOT complete**
+
 | Task Stage | Command | Purpose |
 |------------|---------|---------|
 | **Manual Audit** | `python scripts/checklist.py .` | Priority-based project audit |
@@ -149,6 +251,14 @@ When user's prompt is NOT in English:
 
 **Priority Execution Order:**
 1. **Security** → 2. **Lint** → 3. **Schema** → 4. **Tests** → 5. **UX** → 6. **Seo** → 7. **Lighthouse/E2E**
+
+**UPDATED Checklist Items:**
+- [ ] Existing behavior verified
+- [ ] No breaking API changes
+- [ ] Tests updated or added
+- [ ] ARCHITECTURE.md updated if behavior changed
+- [ ] {task-slug}.md synchronized
+- [ ] Rollback path documented
 
 **Rules:**
 - **Completion:** A task is NOT finished until `checklist.py` returns success.
@@ -172,6 +282,20 @@ When user's prompt is NOT in English:
 | `playwright_runner.py` | webapp-testing | Before deploy |
 
 > 🔴 **Agents & Skills can invoke ANY script** via `python .agent/skills/<skill>/scripts/<script>.py`
+
+### 🧾 NEW REQUIRED OUTPUT BLOCK (ALL COMPLEX TASKS)
+
+Before declaring Done, the agent MUST output:
+
+```markdown
+### Regression Safety Summary
+- Existing behavior preserved: YES / NO
+- Tests added or updated: YES / NO
+- Risk level: LOW / MEDIUM / HIGH
+- Manual verification required: YES / NO
+- Rollback ready: YES / NO
+```
+*(If HIGH risk, the agent MUST explicitly warn the user.)*
 
 ### 🎭 Gemini Mode Mapping
 
@@ -277,3 +401,17 @@ When user's prompt is NOT in English:
 4. **Final Sync:** Document any schema changes in the "Implementation Details" of `newtask.md`.
 
 ---
+
+## 🔐 ARCHITECTURE.md AUTHORITY (FINAL OVERRIDE)
+
+If any rule conflicts, the following priority applies:
+1. `ARCHITECTURE.md`
+2. `Maestro AI Development Orchestrator` (GEMINI.md)
+3. Agent rules
+4. Skill rules
+5. Scripts
+
+**If ARCHITECTURE.md is outdated:**
+1. **STOP**
+2. Propose update
+3. WAIT for confirmation
