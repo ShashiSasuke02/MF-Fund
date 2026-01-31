@@ -273,10 +273,8 @@ export const demoService = {
       start.setHours(0, 0, 0, 0);
 
       // Calculate first day of next month for validation
-      const nextMonth = new Date(today);
-      nextMonth.setMonth(nextMonth.getMonth() + 1);
-      nextMonth.setDate(1); // Set to 1st of next month
-
+      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+      nextMonth.setHours(0, 0, 0, 0);
       if (start < nextMonth) {
         throw new Error('SWP start date must be from next month onwards');
       }

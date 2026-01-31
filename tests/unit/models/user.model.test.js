@@ -5,30 +5,43 @@
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
-// Mock dependencies
-const mockQuery = jest.fn();
-const mockQueryOne = jest.fn();
+// Define mock functions first (hoisted variable pattern not needed for unstable_mockModule if defined before import)
 const mockRun = jest.fn();
-const mockSaveDatabase = jest.fn();
+const mockQueryOne = jest.fn();
+const mockQuery = jest.fn();
 const mockGetDatabase = jest.fn();
+const mockInitializeDatabase = jest.fn();
+const mockCloseDatabase = jest.fn();
+const mockEscape = jest.fn(val => val);
 
-const mockDb = {
-  query: mockQuery,
-  queryOne: mockQueryOne,
-  run: mockRun,
-  saveDatabase: mockSaveDatabase
-};
-
+// Native ESM Mocking
 jest.unstable_mockModule('../../../src/db/database.js', () => ({
-  default: mockDb,
-  query: mockQuery,
-  queryOne: mockQueryOne,
   run: mockRun,
-  saveDatabase: mockSaveDatabase,
-  getDatabase: mockGetDatabase
+  queryOne: mockQueryOne,
+  query: mockQuery,
+  getDatabase: mockGetDatabase,
+  initializeDatabase: mockInitializeDatabase,
+  closeDatabase: mockCloseDatabase,
+  saveDatabase: jest.fn(),
+  escape: mockEscape,
+  default: {
+    run: mockRun,
+    queryOne: mockQueryOne,
+    query: mockQuery,
+    getDatabase: mockGetDatabase,
+    saveDatabase: jest.fn(),
+    initializeDatabase: mockInitializeDatabase,
+    closeDatabase: mockCloseDatabase,
+    escape: mockEscape
+  }
 }));
 
+// Import the module under test dynamically
 const { userModel } = await import('../../../src/models/user.model.js');
+
+// Aliasing for test compatibility
+const run = mockRun;
+const queryOne = mockQueryOne;
 
 describe('User Model', () => {
   beforeEach(() => {
@@ -44,40 +57,40 @@ describe('User Model', () => {
     };
 
     it('should create user with valid data', async () => {
-      mockRun.mockReturnValueOnce({ 
-        lastInsertRowid: 1, 
-        changes: 1 
+      run.mockResolvedValueOnce({
+        lastInsertRowid: 1,
+        changes: 1
       });
-      mockRun.mockReturnValueOnce({ 
-        lastInsertRowid: 1, 
-        changes: 1 
+      run.mockResolvedValueOnce({
+        lastInsertRowid: 1,
+        changes: 1
       });
 
       const result = await userModel.create(validUserData);
 
       expect(result).toEqual({
         id: 1,
-        fullName: 'John Doe',
         full_name: 'John Doe',
-        emailId: 'john@example.com',
-        email_id: 'john@example.com'
+        email_id: 'john@example.com',
+        fullName: 'John Doe',
+        emailId: 'john@example.com'
       });
-      expect(mockRun).toHaveBeenCalledTimes(2); // User insert + demo account insert
+      expect(run).toHaveBeenCalledTimes(2); // User insert + demo account insert
     });
 
     it('should create demo account with ₹1,00,00,000 balance', async () => {
-      mockRun.mockReturnValueOnce({ 
-        lastInsertRowid: 5, 
-        changes: 1 
+      run.mockResolvedValueOnce({
+        lastInsertRowid: 5,
+        changes: 1
       });
-      mockRun.mockReturnValueOnce({ 
-        lastInsertRowid: 5, 
-        changes: 1 
+      run.mockResolvedValueOnce({
+        lastInsertRowid: 5,
+        changes: 1
       });
 
       await userModel.create(validUserData);
 
-      expect(mockRun).toHaveBeenNthCalledWith(
+      expect(run).toHaveBeenNthCalledWith(
         2,
         expect.stringContaining('INSERT INTO demo_accounts'),
         [5, 10000000.00]
@@ -85,9 +98,9 @@ describe('User Model', () => {
     });
 
     it('should reject user creation with userId = 0', async () => {
-      mockRun.mockReturnValueOnce({ 
-        lastInsertRowid: 0, 
-        changes: 0 
+      run.mockResolvedValueOnce({
+        lastInsertRowid: 0,
+        changes: 0
       });
 
       await expect(userModel.create(validUserData)).rejects.toThrow(
@@ -96,9 +109,7 @@ describe('User Model', () => {
     });
 
     it('should handle database errors gracefully', async () => {
-      mockRun.mockImplementationOnce(() => {
-        throw new Error('Database constraint violation');
-      });
+      run.mockRejectedValueOnce(new Error('Database constraint violation'));
 
       await expect(userModel.create(validUserData)).rejects.toThrow(
         'Database constraint violation'
@@ -106,13 +117,13 @@ describe('User Model', () => {
     });
 
     it('should trim whitespace from user data', async () => {
-      mockRun.mockReturnValueOnce({ 
-        lastInsertRowid: 1, 
-        changes: 1 
+      run.mockResolvedValueOnce({
+        lastInsertRowid: 1,
+        changes: 1
       });
-      mockRun.mockReturnValueOnce({ 
-        lastInsertRowid: 1, 
-        changes: 1 
+      run.mockResolvedValueOnce({
+        lastInsertRowid: 1,
+        changes: 1
       });
 
       const dataWithSpaces = {
@@ -123,10 +134,10 @@ describe('User Model', () => {
 
       await userModel.create(dataWithSpaces);
 
-      expect(mockRun).toHaveBeenNthCalledWith(
+      expect(run).toHaveBeenNthCalledWith(
         1,
         expect.any(String),
-        expect.arrayContaining(['John Doe', expect.any(String), 'john@example.com', expect.any(String)])
+        expect.arrayContaining(['John Doe', 'john@example.com', 'john@example.com', expect.any(String)])
       );
     });
   });
@@ -140,19 +151,19 @@ describe('User Model', () => {
         email_id: 'john@example.com',
         password_hash: '$2b$10$hashedpassword'
       };
-      mockQueryOne.mockReturnValueOnce(mockUser);
+      queryOne.mockResolvedValueOnce(mockUser);
 
       const result = await userModel.findByUsername('johndoe');
 
       expect(result).toEqual(mockUser);
-      expect(mockQueryOne).toHaveBeenCalledWith(
+      expect(queryOne).toHaveBeenCalledWith(
         expect.stringContaining('LOWER(email_id)'),
         ['johndoe']
       );
     });
 
     it('should return null for non-existent user', async () => {
-      mockQueryOne.mockReturnValueOnce(null);
+      queryOne.mockResolvedValueOnce(null);
 
       const result = await userModel.findByUsername('nonexistent');
 
@@ -160,11 +171,11 @@ describe('User Model', () => {
     });
 
     it('should handle case-sensitive username lookup', async () => {
-      mockQueryOne.mockReturnValueOnce(null);
+      queryOne.mockResolvedValueOnce(null);
 
       await userModel.findByUsername('JohnDoe');
 
-      expect(mockQueryOne).toHaveBeenCalledWith(
+      expect(queryOne).toHaveBeenCalledWith(
         expect.any(String),
         ['johndoe'] // Normalized to lowercase email lookup
       );
@@ -177,7 +188,7 @@ describe('User Model', () => {
         id: 1,
         email_id: 'john@example.com'
       };
-      mockQueryOne.mockReturnValueOnce(mockUser);
+      queryOne.mockResolvedValueOnce(mockUser);
 
       const result = await userModel.findByEmail('john@example.com');
 
@@ -185,30 +196,30 @@ describe('User Model', () => {
     });
 
     it('should handle email lookup case-insensitively', async () => {
-      mockQueryOne.mockReturnValueOnce({ id: 1 });
+      queryOne.mockResolvedValueOnce({ id: 1 });
 
       await userModel.findByEmail('JOHN@EXAMPLE.COM');
 
-      expect(mockQueryOne).toHaveBeenCalled();
+      expect(queryOne).toHaveBeenCalled();
     });
   });
 
   describe('findById', () => {
     it('should find user by valid ID', async () => {
       const mockUser = { id: 1, username: 'johndoe' };
-      mockQueryOne.mockReturnValueOnce(mockUser);
+      queryOne.mockResolvedValueOnce(mockUser);
 
       const result = await userModel.findById(1);
 
       expect(result).toEqual(mockUser);
-      expect(mockQueryOne).toHaveBeenCalledWith(
+      expect(queryOne).toHaveBeenCalledWith(
         expect.stringContaining('WHERE id = ?'),
         [1]
       );
     });
 
     it('should return null for invalid ID', async () => {
-      mockQueryOne.mockReturnValueOnce(null);
+      queryOne.mockResolvedValueOnce(null);
 
       const result = await userModel.findById(999);
 
@@ -226,7 +237,7 @@ describe('User Model', () => {
 
   describe('usernameExists', () => {
     it('should return true for existing username', async () => {
-      mockQueryOne.mockReturnValueOnce({ count: 1 });
+      queryOne.mockResolvedValueOnce({ count: 1 });
 
       const result = await userModel.usernameExists('johndoe');
 
@@ -234,7 +245,7 @@ describe('User Model', () => {
     });
 
     it('should return false for non-existent username', async () => {
-      mockQueryOne.mockReturnValueOnce({ count: 0 });
+      queryOne.mockResolvedValueOnce({ count: 0 });
 
       const result = await userModel.usernameExists('newuser');
 
@@ -242,7 +253,7 @@ describe('User Model', () => {
     });
 
     it('should handle null query result', async () => {
-      mockQueryOne.mockReturnValueOnce(null);
+      queryOne.mockResolvedValueOnce(null);
 
       const result = await userModel.usernameExists('test');
 
@@ -252,7 +263,7 @@ describe('User Model', () => {
 
   describe('emailExists', () => {
     it('should return true for existing email', async () => {
-      mockQueryOne.mockReturnValueOnce({ count: 1 });
+      queryOne.mockResolvedValueOnce({ count: 1 });
 
       const result = await userModel.emailExists('existing@example.com');
 
@@ -260,7 +271,7 @@ describe('User Model', () => {
     });
 
     it('should return false for new email', async () => {
-      mockQueryOne.mockReturnValueOnce({ count: 0 });
+      queryOne.mockResolvedValueOnce({ count: 0 });
 
       const result = await userModel.emailExists('new@example.com');
 
@@ -270,8 +281,8 @@ describe('User Model', () => {
 
   describe('Data Validation Edge Cases', () => {
     it('should handle empty strings', async () => {
-      mockRun.mockReturnValueOnce({ lastInsertRowid: 1, changes: 1 });
-      mockRun.mockReturnValueOnce({ lastInsertRowid: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, changes: 1 });
 
       const invalidData = {
         fullName: '',
@@ -283,12 +294,12 @@ describe('User Model', () => {
       await userModel.create(invalidData);
 
       // Should still create but with empty strings (validation should happen at controller level)
-      expect(mockRun).toHaveBeenCalled();
+      expect(run).toHaveBeenCalled();
     });
 
     it('should handle special characters in names', async () => {
-      mockRun.mockReturnValueOnce({ lastInsertRowid: 1, changes: 1 });
-      mockRun.mockReturnValueOnce({ lastInsertRowid: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, changes: 1 });
 
       const specialCharsData = {
         fullName: "O'Brien-Smith",
@@ -299,15 +310,15 @@ describe('User Model', () => {
 
       await userModel.create(specialCharsData);
 
-      expect(mockRun).toHaveBeenCalledWith(
+      expect(run).toHaveBeenCalledWith(
         expect.any(String),
         expect.arrayContaining(["O'Brien-Smith"])
       );
     });
 
     it('should handle very long inputs', async () => {
-      mockRun.mockReturnValueOnce({ lastInsertRowid: 1, changes: 1 });
-      mockRun.mockReturnValueOnce({ lastInsertRowid: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, changes: 1 });
 
       const longData = {
         fullName: 'A'.repeat(255),
@@ -318,7 +329,7 @@ describe('User Model', () => {
 
       await userModel.create(longData);
 
-      expect(mockRun).toHaveBeenCalled();
+      expect(run).toHaveBeenCalled();
     });
   });
 });

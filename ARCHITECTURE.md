@@ -265,6 +265,7 @@ If unsure — ask clarifying questions instead of guessing.
     -   "Asset Managements" → "Mutual Funds"
     -   "Investment Calculator" → "Calculators"
     -   Mobile: "Inv. Calc" → "Calc"
+    -   **CTA Cleanup:** Removed the "Start Practice Account" hero button to streamline the landing page experience.
 
 #### Calculator Input Flexibility
 -   **Files:** All `client/src/components/calculators/*.jsx` (20 files)

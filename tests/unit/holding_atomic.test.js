@@ -10,12 +10,28 @@ const mockQueryOne = jest.fn().mockResolvedValue({
     invested_amount: 10000
 });
 
+const mockQuery = jest.fn();
+
 // Mock the database module BEFORE importing it
 jest.unstable_mockModule('../../src/db/database.js', () => ({
     run: mockRun,
     queryOne: mockQueryOne,
+    query: mockQuery,
     saveDatabase: jest.fn(),
-    query: jest.fn()
+    getDatabase: jest.fn(),
+    initializeDatabase: jest.fn(),
+    closeDatabase: jest.fn(),
+    escape: jest.fn(val => val),
+    default: {
+        run: mockRun,
+        queryOne: mockQueryOne,
+        query: mockQuery,
+        saveDatabase: jest.fn(),
+        getDatabase: jest.fn(),
+        initializeDatabase: jest.fn(),
+        closeDatabase: jest.fn(),
+        escape: jest.fn(val => val)
+    }
 }));
 
 // Dynamic import after mocking

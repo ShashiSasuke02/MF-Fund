@@ -46,17 +46,7 @@ export default function Landing() {
           <p className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-6 sm:mb-10 leading-relaxed px-2 sm:px-4">
             Master mutual fund investing with real market data and zero financial risk. Create your portfolio, track returns, and build confidence before investing real money.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4 px-4">
-            <Link
-              to={isAuthenticated ? "/portfolio" : "/register"}
-              className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 text-lg w-full sm:w-auto"
-            >
-              <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-              Start Practice Account
-            </Link>
-          </div>
+
           <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm text-gray-600">
             <div className="flex items-center">
               <svg className="w-5 h-5 text-emerald-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
