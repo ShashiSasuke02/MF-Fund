@@ -70,6 +70,18 @@ const LogViewer = () => {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
+    const handleDownloadAll = () => {
+        const token = sessionStorage.getItem('auth_token');
+        if (!token) {
+            setError('Authentication required. Please login again.');
+            return;
+        }
+
+        // Use native browser download with token as query param
+        const downloadUrl = `${API_URL}/api/admin/logs/download-all?token=${encodeURIComponent(token)}`;
+        window.location.href = downloadUrl;
+    };
+
     return (
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
@@ -79,16 +91,28 @@ const LogViewer = () => {
                     </svg>
                     System Logs
                 </h3>
-                <button
-                    onClick={fetchLogs}
-                    className="text-sm px-3 py-1.5 bg-white border border-slate-300 rounded hover:bg-slate-50 flex items-center gap-2 transition-colors"
-                    disabled={loading}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-slate-500 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Refresh
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={handleDownloadAll}
+                        className="text-sm px-3 py-1.5 bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center gap-2 transition-colors"
+                        disabled={loading || logs.length === 0}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download All
+                    </button>
+                    <button
+                        onClick={fetchLogs}
+                        className="text-sm px-3 py-1.5 bg-white border border-slate-300 rounded hover:bg-slate-50 flex items-center gap-2 transition-colors"
+                        disabled={loading}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-slate-500 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
             </div>
 
             <div className="p-4">

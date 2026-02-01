@@ -7,13 +7,13 @@ const userId = 1;
 
 async function updatePassword() {
   let connection;
-  
+
   try {
     // Generate bcrypt hash
     console.log('🔐 Generating password hash...');
     const passwordHash = await bcrypt.hash(newPassword, 10);
     console.log('✅ Hash generated');
-    
+
     // Connect to database
     console.log('📡 Connecting to database...');
     connection = await mysql.createConnection({
@@ -21,26 +21,26 @@ async function updatePassword() {
       port: 3306,
       user: 'root',
       password: 'root',
-      database: 'mfselection'
+      database: 'mf_selection'
     });
     console.log('✅ Connected to database');
-    
+
     // Update password
     console.log(`🔄 Updating password for user id=${userId}...`);
     const [result] = await connection.execute(
       'UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?',
       [passwordHash, Date.now(), userId]
     );
-    
+
     if (result.affectedRows > 0) {
       console.log('✅ Password updated successfully!');
-      
+
       // Fetch updated user details
       const [rows] = await connection.execute(
         'SELECT id, username, full_name, email_id FROM users WHERE id = ?',
         [userId]
       );
-      
+
       console.log('\n📋 Updated User Details:');
       console.log('─────────────────────────────');
       console.log(`ID: ${rows[0].id}`);
@@ -53,7 +53,7 @@ async function updatePassword() {
     } else {
       console.error('❌ No user found with id=' + userId);
     }
-    
+
   } catch (error) {
     console.error('❌ Error updating password:', error.message);
     process.exit(1);

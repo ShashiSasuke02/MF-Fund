@@ -3,6 +3,7 @@ import { fundModel } from '../models/fund.model.js';
 import { cacheService } from './cache.service.js';
 import { fundNavHistoryModel } from '../models/fundNavHistory.model.js';
 import { fundSyncLogModel } from '../models/fundSyncLog.model.js';
+import logger from './logger.service.js';
 
 /**
  * MFAPI Ingestion Service
@@ -73,35 +74,35 @@ export const mfapiIngestionService = {
     };
 
     try {
-      console.log('[MFAPI Ingestion] Starting OPTIMIZED full sync for 12 AMCs...');
+      logger.info('[MFAPI Ingestion] Starting OPTIMIZED full sync for 12 AMCs...');
 
       // Clear cache to ensure fresh data
-      console.log('[MFAPI Ingestion] Clearing API cache before full sync...');
+      logger.info('[MFAPI Ingestion] Clearing API cache before full sync...');
       await cacheService.clearAll();
 
       syncId = await fundSyncLogModel.startSync('FULL');
 
       // Step 1: Fetch all funds with NAV data from /mf/latest (single API call)
-      console.log('[MFAPI Ingestion] Fetching all funds with NAV from /mf/latest...');
+      logger.info('[MFAPI Ingestion] Fetching all funds with NAV from /mf/latest...');
       const allFundsWithNav = await this.fetchAllFundsWithNav();
-      console.log(`[MFAPI Ingestion] Total funds fetched from MFAPI: ${allFundsWithNav.length}`);
+      logger.info(`[MFAPI Ingestion] Total funds fetched from MFAPI: ${allFundsWithNav.length}`);
 
       // Step 2: Filter by current month NAV update (active funds only)
       const currentMonthFunds = this.filterByCurrentMonth(allFundsWithNav);
-      console.log(`[MFAPI Ingestion] Funds with NAV updated this month: ${currentMonthFunds.length}`);
+      logger.info(`[MFAPI Ingestion] Funds with NAV updated this month: ${currentMonthFunds.length}`);
       stats.skippedInactive = allFundsWithNav.length - currentMonthFunds.length;
 
       // Step 3: Filter by AMC whitelist
       const whitelistedFunds = this.filterByWhitelistWithNav(currentMonthFunds);
-      console.log(`[MFAPI Ingestion] Whitelisted funds (12 AMCs, current month): ${whitelistedFunds.length}`);
+      logger.info(`[MFAPI Ingestion] Whitelisted funds (12 AMCs, current month): ${whitelistedFunds.length}`);
       stats.totalFetched = whitelistedFunds.length;
 
       // Step 4: Apply Exclusion Filters (IDCW, Dividend Yield)
       const finalFunds = this.filterByExclusions(whitelistedFunds);
-      console.log(`[MFAPI Ingestion] Funds after exclusions: ${finalFunds.length} (Removed: ${whitelistedFunds.length - finalFunds.length})`);
+      logger.info(`[MFAPI Ingestion] Funds after exclusions: ${finalFunds.length} (Removed: ${whitelistedFunds.length - finalFunds.length})`);
 
       // Step 5: Upsert funds to database (BATCH PROCESSING)
-      console.log('[MFAPI Ingestion] Upserting funds to database...');
+      logger.info('[MFAPI Ingestion] Upserting funds to database...');
       const upsertStartTime = Date.now();
 
       const FUND_UPSERT_BATCH_SIZE = 100;
@@ -136,10 +137,10 @@ export const mfapiIngestionService = {
             }
           }
 
-          console.log(`[MFAPI Ingestion] Batch ${batchNum}/${totalBatches}: ${stats.inserted}/${finalFunds.length} funds, ${stats.navInserted} NAVs`);
+          logger.info(`[MFAPI Ingestion] Batch ${batchNum}/${totalBatches}: ${stats.inserted}/${finalFunds.length} funds, ${stats.navInserted} NAVs`);
         } catch (error) {
-          console.error(`[MFAPI Ingestion] Batch ${batchNum} failed:`, error.message);
-          console.log(`[MFAPI Ingestion] Falling back to sequential upsert for batch ${batchNum}...`);
+          logger.error(`[MFAPI Ingestion] Batch ${batchNum} failed:`, error.message);
+          logger.info(`[MFAPI Ingestion] Falling back to sequential upsert for batch ${batchNum}...`);
 
           for (const fund of batch) {
             try {
@@ -155,20 +156,20 @@ export const mfapiIngestionService = {
               stats.errorDetails.push({ schemeCode: fund.schemeCode, error: innerErr.message });
             }
           }
-          console.log(`[MFAPI Ingestion] Batch ${batchNum} sequential fallback complete`);
+          logger.info(`[MFAPI Ingestion] Batch ${batchNum} sequential fallback complete`);
         }
       }
 
       const upsertDuration = ((Date.now() - upsertStartTime) / 1000).toFixed(2);
-      console.log(`[MFAPI Ingestion] Fund + NAV upsert complete in ${upsertDuration}s`);
-      console.log(`[MFAPI Ingestion] Funds: ${stats.inserted}, NAVs: ${stats.navInserted}, Errors: ${stats.errors}`);
-      console.log(`[MFAPI Ingestion] Skipped inactive (old NAV): ${stats.skippedInactive}`);
+      logger.info(`[MFAPI Ingestion] Fund + NAV upsert complete in ${upsertDuration}s`);
+      logger.info(`[MFAPI Ingestion] Funds: ${stats.inserted}, NAVs: ${stats.navInserted}, Errors: ${stats.errors}`);
+      logger.info(`[MFAPI Ingestion] Skipped inactive (old NAV): ${stats.skippedInactive}`);
 
       // Step 5: Mark inactive funds (funds with no NAV for 7+ days)
-      console.log('[MFAPI Ingestion] Checking for inactive funds...');
+      logger.info('[MFAPI Ingestion] Checking for inactive funds...');
       const inactiveResult = await this.markInactiveFunds();
       stats.markedInactive = inactiveResult.count || 0;
-      console.log(`[MFAPI Ingestion] Marked ${stats.markedInactive} funds as inactive`);
+      logger.info(`[MFAPI Ingestion] Marked ${stats.markedInactive} funds as inactive`);
 
       // Step 6: Complete sync
       await fundSyncLogModel.completeSyncSuccess(syncId, stats);
@@ -181,19 +182,19 @@ export const mfapiIngestionService = {
         errorSummary: stats.errorDetails.slice(0, 10)
       };
 
-      console.log('[MFAPI Ingestion] Full sync completed successfully');
-      console.log('[MFAPI Ingestion] Summary:', JSON.stringify(summary, null, 2));
+      logger.info('[MFAPI Ingestion] Full sync completed successfully');
+      logger.info('[MFAPI Ingestion] Summary:', JSON.stringify(summary, null, 2));
 
       return summary;
     } catch (error) {
-      console.error('[MFAPI Ingestion] Full sync failed:', error.message);
+      logger.error('[MFAPI Ingestion] Full sync failed:', error.message);
 
       // Secondary check to ensure we don't crash if DB connection is lost
       if (syncId) {
         try {
           await fundSyncLogModel.completeSyncFailure(syncId, error);
         } catch (dbError) {
-          console.error('[MFAPI Ingestion] Critical: Failed to log sync failure to database:', dbError.message);
+          logger.error('[MFAPI Ingestion] Critical: Failed to log sync failure to database:', dbError.message);
         }
       }
 
@@ -221,19 +222,19 @@ export const mfapiIngestionService = {
     };
 
     try {
-      console.log('[MFAPI Ingestion] Starting incremental NAV sync...');
+      logger.info('[MFAPI Ingestion] Starting incremental NAV sync...');
       syncId = await fundSyncLogModel.startSync('INCREMENTAL');
 
       // Get all active funds from database
       const activeFunds = await fundModel.getAllActiveFunds();
       stats.totalFetched = activeFunds.length;
-      console.log(`[MFAPI Ingestion] Active funds in database: ${activeFunds.length}`);
+      logger.info(`[MFAPI Ingestion] Active funds in database: ${activeFunds.length}`);
 
       // Fetch latest NAV for each fund
       const schemeCodes = activeFunds.map(f => f.scheme_code);
       await this.batchFetchNavs(schemeCodes, stats);
 
-      console.log(`[MFAPI Ingestion] NAV records updated: ${stats.navInserted}`);
+      logger.info(`[MFAPI Ingestion] NAV records updated: ${stats.navInserted}`);
 
       // Complete sync
       await fundSyncLogModel.completeSyncSuccess(syncId, stats);
@@ -245,18 +246,18 @@ export const mfapiIngestionService = {
         errorSummary: stats.errorDetails.slice(0, 10)
       };
 
-      console.log('[MFAPI Ingestion] Incremental sync completed');
-      console.log('[MFAPI Ingestion] Summary:', JSON.stringify(summary, null, 2));
+      logger.info('[MFAPI Ingestion] Incremental sync completed');
+      logger.info('[MFAPI Ingestion] Summary:', JSON.stringify(summary, null, 2));
 
       return summary;
     } catch (error) {
-      console.error('[MFAPI Ingestion] Incremental sync failed:', error.message);
+      logger.error('[MFAPI Ingestion] Incremental sync failed:', error.message);
 
       if (syncId) {
         try {
           await fundSyncLogModel.completeSyncFailure(syncId, error);
         } catch (dbError) {
-          console.error('[MFAPI Ingestion] Critical: Failed to log incremental sync failure to database:', dbError.message);
+          logger.error('[MFAPI Ingestion] Critical: Failed to log incremental sync failure to database:', dbError.message);
         }
       }
 
@@ -279,7 +280,7 @@ export const mfapiIngestionService = {
       const response = await mfApiService.getAllFunds();
       return response || [];
     } catch (error) {
-      console.error('[MFAPI Ingestion] Failed to fetch all funds:', error);
+      logger.error('[MFAPI Ingestion] Failed to fetch all funds:', error);
       throw new Error(`MFAPI fetch failed: ${error.message}`);
     }
   },
@@ -295,7 +296,7 @@ export const mfapiIngestionService = {
       const response = await mfApiService.getLatestNAVAll();
       return response || [];
     } catch (error) {
-      console.error('[MFAPI Ingestion] Failed to fetch all funds with NAV:', error);
+      logger.error('[MFAPI Ingestion] Failed to fetch all funds with NAV:', error);
       throw new Error(`MFAPI /mf/latest fetch failed: ${error.message}`);
     }
   },
@@ -429,13 +430,13 @@ export const mfapiIngestionService = {
    */
   async batchFetchNavs(schemeCodes, stats, batchSize = BATCH_SIZE) {
     const totalBatches = Math.ceil(schemeCodes.length / batchSize);
-    console.log(`[MFAPI Ingestion] Processing ${schemeCodes.length} funds in ${totalBatches} batches...`);
+    logger.info(`[MFAPI Ingestion] Processing ${schemeCodes.length} funds in ${totalBatches} batches...`);
 
     for (let i = 0; i < schemeCodes.length; i += batchSize) {
       const batch = schemeCodes.slice(i, i + batchSize);
       const batchNumber = Math.floor(i / batchSize) + 1;
 
-      console.log(`[MFAPI Ingestion] Batch ${batchNumber}/${totalBatches}: Processing ${batch.length} funds...`);
+      logger.info(`[MFAPI Ingestion] Batch ${batchNumber}/${totalBatches}: Processing ${batch.length} funds...`);
 
       // Process batch with concurrency limit
       const promises = batch.map(async (schemeCode) => {
@@ -469,7 +470,7 @@ export const mfapiIngestionService = {
 
             // Log every 100 NAV inserts
             if (stats.navInserted % 100 === 0) {
-              console.log(`[MFAPI Ingestion] NAV progress: ${stats.navInserted}/${schemeCodes.length} records inserted`);
+              logger.info(`[MFAPI Ingestion] NAV progress: ${stats.navInserted}/${schemeCodes.length} records inserted`);
             }
           } else {
             // No NAV data returned - mark fund for potential inactivation
@@ -491,7 +492,7 @@ export const mfapiIngestionService = {
             error: error.message,
             step: 'nav_fetch'
           });
-          console.error(`[MFAPI Ingestion] NAV fetch failed for ${schemeCode}:`, error.message);
+          logger.error(`[MFAPI Ingestion] NAV fetch failed for ${schemeCode}:`, error.message);
         }
       });
 
@@ -500,12 +501,12 @@ export const mfapiIngestionService = {
 
       // Rate limiting: Wait between batches
       if (i + batchSize < schemeCodes.length) {
-        console.log(`[MFAPI Ingestion] Rate limit delay: ${RATE_LIMIT_DELAY}ms`);
+        logger.info(`[MFAPI Ingestion] Rate limit delay: ${RATE_LIMIT_DELAY}ms`);
         await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_DELAY));
       }
     }
 
-    console.log(`[MFAPI Ingestion] NAV fetch completed. Success: ${stats.navInserted}, Errors: ${stats.errors}`);
+    logger.info(`[MFAPI Ingestion] NAV fetch completed. Success: ${stats.navInserted}, Errors: ${stats.errors}`);
   },
 
   /**
@@ -609,11 +610,11 @@ export const mfapiIngestionService = {
       const staleFunds = await fundModel.findFundsWithoutRecentNav(daysWithoutNav);
 
       if (staleFunds.length === 0) {
-        console.log('[MFAPI Ingestion] No inactive funds found');
+        logger.info('[MFAPI Ingestion] No inactive funds found');
         return { count: 0, funds: [] };
       }
 
-      console.log(`[MFAPI Ingestion] Found ${staleFunds.length} funds without NAV in ${daysWithoutNav} days`);
+      logger.info(`[MFAPI Ingestion] Found ${staleFunds.length} funds without NAV in ${daysWithoutNav} days`);
 
       // Get scheme codes to mark inactive
       const schemeCodes = staleFunds.map(f => f.scheme_code);
@@ -621,9 +622,9 @@ export const mfapiIngestionService = {
       // Mark them as inactive
       await fundModel.markInactive(schemeCodes);
 
-      console.log(`[MFAPI Ingestion] Marked ${schemeCodes.length} funds as inactive:`);
+      logger.info(`[MFAPI Ingestion] Marked ${schemeCodes.length} funds as inactive:`);
       staleFunds.forEach(f => {
-        console.log(`  - ${f.scheme_code}: ${f.scheme_name} (Last NAV: ${f.last_nav_date || 'Never'})`);
+        logger.info(`  - ${f.scheme_code}: ${f.scheme_name} (Last NAV: ${f.last_nav_date || 'Never'})`);
       });
 
       return {
@@ -636,7 +637,7 @@ export const mfapiIngestionService = {
         }))
       };
     } catch (error) {
-      console.error('[MFAPI Ingestion] Failed to mark inactive funds:', error.message);
+      logger.error('[MFAPI Ingestion] Failed to mark inactive funds:', error.message);
       return { count: 0, error: error.message };
     }
   }

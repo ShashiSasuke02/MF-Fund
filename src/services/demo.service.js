@@ -2,6 +2,7 @@ import { demoAccountModel } from '../models/demoAccount.model.js';
 import { transactionModel } from '../models/transaction.model.js';
 import { holdingModel } from '../models/holding.model.js';
 import { localFundService } from './localFund.service.js';
+import logger from './logger.service.js';
 
 /**
  * Demo Service - handles demo account transactions
@@ -12,18 +13,20 @@ import { localFundService } from './localFund.service.js';
 
 const isTestEnv = process.env.NODE_ENV === 'test';
 const log = (...args) => {
-  if (!isTestEnv) console.log(...args);
+  if (!isTestEnv) logger.info(args.join(' '));
 };
 const logError = (...args) => {
-  if (!isTestEnv) console.error(...args);
+  if (!isTestEnv) logger.error(args.join(' '));
 };
+
+import { toISTDateString, getISTDate } from '../utils/date.utils.js';
 
 // Helper to format date for DB (YYYY-MM-DD)
 const formatDateForDB = (date) => {
   if (!date) return null;
   // If it's already a Date object
   if (date instanceof Date) {
-    return date.toISOString().split('T')[0];
+    return toISTDateString(date);
   }
   // If string, try to parse
   if (typeof date === 'string') {
@@ -32,7 +35,7 @@ const formatDateForDB = (date) => {
     // If ISO string
     if (date.includes('T')) return date.split('T')[0];
     try {
-      return new Date(date).toISOString().split('T')[0];
+      return toISTDateString(new Date(date));
     } catch (e) {
       return date.substring(0, 10);
     }
@@ -69,7 +72,7 @@ const calculateNextDate = (currentDate, frequency) => {
     default:
       return null;
   }
-  return next.toISOString().split('T')[0];
+  return toISTDateString(next);
 };
 
 export const demoService = {
@@ -148,6 +151,8 @@ export const demoService = {
 
       // For SIP/STP logic
       if (transactionType === 'SIP' || transactionType === 'STP') {
+        const istToday = getISTDate(); // Use IST Today string "YYYY-MM-DD"
+
         // Check start date if provided
         if (startDate) {
           const start = new Date(startDate);
@@ -163,13 +168,18 @@ export const demoService = {
             log('[Demo Service] Future SIP detected. Setting units/NAV to null until execution.');
           } else {
             // Immediate SIP (today or past date): Execute now, schedule next
-            nextExecutionDate = calculateNextDate(today, frequency);
+            nextExecutionDate = calculateNextDate(istToday, frequency);
             log('[Demo Service] Immediate SIP. Next execution scheduled for:', nextExecutionDate);
           }
         } else {
           // No start date provided (defaults to immediate): Execute now, schedule next
-          nextExecutionDate = calculateNextDate(today, frequency);
+          nextExecutionDate = calculateNextDate(istToday, frequency);
           log('[Demo Service] Immediate SIP (No Date). Next execution scheduled for:', nextExecutionDate);
+        }
+
+        // CRITICAL FIX: If executing immediately, mark as done for today to prevent double execution
+        if (transactionStatus === 'SUCCESS') {
+          // We are effectively running the first installment now
         }
       }
 
@@ -187,7 +197,10 @@ export const demoService = {
         endDate: transactionType === 'LUMP_SUM' ? null : endDate,
         installments: transactionType === 'LUMP_SUM' ? null : installments,
         status: transactionStatus,
-        nextExecutionDate: nextExecutionDate
+        nextExecutionDate: nextExecutionDate,
+        // CRITICAL FIX: Set lastExecutionDate and executionCount if immediate
+        lastExecutionDate: transactionStatus === 'SUCCESS' ? getISTDate() : null,
+        executionCount: transactionStatus === 'SUCCESS' ? 1 : 0
       });
 
       // Update demo balance only if transaction is executed immediately (not pending)
@@ -252,14 +265,13 @@ export const demoService = {
       }
 
       const requiredUnits = amount / latestNav;
-
       if (holding.total_units < requiredUnits) {
         throw new Error('Insufficient units for withdrawal');
       }
 
-      // SWP Constraints: Frequency must be MONTHLY or QUARTERLY
-      if (frequency !== 'MONTHLY' && frequency !== 'QUARTERLY') {
-        throw new Error('SWP frequency must be MONTHLY or QUARTERLY');
+      // SWP Constraints: Frequency must be WEEKLY, MONTHLY or QUARTERLY
+      if (frequency !== 'WEEKLY' && frequency !== 'MONTHLY' && frequency !== 'QUARTERLY') {
+        throw new Error('SWP frequency must be WEEKLY, MONTHLY or QUARTERLY');
       }
 
       // SWP Constraints: Start Date must be Next Month or later

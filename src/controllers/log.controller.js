@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import logger from '../services/logger.service.js';
+import AdmZip from 'adm-zip';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,7 +53,7 @@ export const downloadLogFile = (req, res) => {
         return res.status(404).json({ success: false, message: 'Log file not found' });
     }
 
-    // Use express helper for robost download handling (handles headers, streams, etc.)
+    // Use express helper for robust download handling (handles headers, streams, etc.)
     res.download(filePath, safeFilename, (err) => {
         if (err) {
             // Only log and respond if headers haven't been sent
@@ -62,6 +63,41 @@ export const downloadLogFile = (req, res) => {
             }
         }
     });
+};
+
+/**
+ * Download all log files as a single ZIP archive
+ */
+export const downloadAllLogs = async (req, res) => {
+    try {
+        if (!fs.existsSync(LOG_DIR)) {
+            return res.status(404).json({ success: false, message: 'No logs directory found' });
+        }
+
+        const zip = new AdmZip();
+
+        // Add all files from the logs directory
+        zip.addLocalFolder(LOG_DIR);
+
+        // Generate filename with current date
+        const today = new Date().toISOString().split('T')[0];
+        const zipFilename = `system-logs-${today}.zip`;
+
+        // Generate ZIP buffer
+        const zipBuffer = zip.toBuffer();
+
+        // Set headers for download
+        res.set('Content-Type', 'application/zip');
+        res.set('Content-Disposition', `attachment; filename=${zipFilename}`);
+        res.set('Content-Length', zipBuffer.length);
+
+        logger.info(`[Admin] Downloaded all logs as ZIP: ${zipFilename}`, { requestId: req.requestId });
+
+        res.send(zipBuffer);
+    } catch (error) {
+        logger.error('Error creating logs ZIP', { requestId: req.requestId, error: error.message });
+        res.status(500).json({ success: false, message: 'Failed to create logs archive' });
+    }
 };
 
 // Log Client Errors (from Frontend)

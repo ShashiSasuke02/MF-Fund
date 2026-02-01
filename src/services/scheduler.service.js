@@ -5,6 +5,7 @@ import { holdingModel } from '../models/holding.model.js';
 import { notificationModel } from '../models/notification.model.js';
 import { localFundService } from './localFund.service.js';
 import { getISTDate } from '../utils/date.utils.js';
+import logger from './logger.service.js';
 
 /**
  * Scheduler Service
@@ -27,7 +28,7 @@ export const schedulerService = {
       targetDate = getISTDate(); // Uses IST timezone for consistent "today"
     }
 
-    console.log(`[Scheduler] Starting execution for date: ${targetDate}`);
+    logger.info(`[Scheduler] Starting execution for date: ${targetDate}`);
 
     // Release any stale locks first
     await transactionModel.releaseStaleAccess();
@@ -36,7 +37,7 @@ export const schedulerService = {
     const dueTransactions = await transactionModel.findDueTransactions(targetDate);
 
     if (dueTransactions.length === 0) {
-      console.log('[Scheduler] No due transactions found');
+      logger.info('[Scheduler] No due transactions found');
       return {
         targetDate,
         totalDue: 0,
@@ -48,7 +49,7 @@ export const schedulerService = {
       };
     }
 
-    console.log(`[Scheduler] Found ${dueTransactions.length} due transactions`);
+    logger.info(`[Scheduler] Found ${dueTransactions.length} due transactions`);
 
     const results = {
       targetDate,
@@ -86,7 +87,7 @@ export const schedulerService = {
 
         // Log if txn not found (should not happen normally)
         if (!txn) {
-          console.warn(`[Scheduler] Warning: Transaction ${detail.transactionId} not found in due list during stats calculation.`);
+          logger.warn(`[Scheduler] Warning: Transaction ${detail.transactionId} not found in due list during stats calculation.`);
           continue;
         }
 
@@ -232,7 +233,7 @@ export const schedulerService = {
           failureReason: null
         });
 
-        console.log(`[Scheduler] Transaction ${transaction.id} executed successfully. Next execution: ${nextExecutionDate}`);
+        logger.info(`[Scheduler] Transaction ${transaction.id} executed successfully. Next execution: ${nextExecutionDate}`);
 
         // Helper to format date for message
         const formatDateForMsg = (dateStr) => {
@@ -263,7 +264,7 @@ export const schedulerService = {
 
       } catch (error) {
         // Execution failed
-        console.error(`[Scheduler] Transaction ${transaction.id} failed:`, error.message);
+        logger.error(`[Scheduler] Transaction ${transaction.id} failed: ${error.message}`);
 
         logData.status = 'FAILED';
         logData.failureReason = error.message;

@@ -239,7 +239,8 @@ If unsure — ask clarifying questions instead of guessing.
 -   **New File:** `src/utils/date.utils.js`
 -   **Functions:** `getISTDate()`, `getISTTime()`, `toISTDateString()`
 -   **Purpose:** Ensures all business logic uses IST (Asia/Kolkata) timezone instead of UTC, fixing timezone-related double execution bugs.
--   **Used By:** `scheduler.service.js`
+-   **Policy:** **ALWAYS** use `toISTDateString(date)` for DB storage. **NEVER** use `date.toISOString().split('T')[0]` because it converts local IST midnight to previous day UTC (rollback error).
+-   **Used By:** `scheduler.service.js`, `demo.service.js`
 
 #### Relaxed NAV Date Filter
 -   **File:** `src/services/mfapiIngestion.service.js`
@@ -315,3 +316,55 @@ If unsure — ask clarifying questions instead of guessing.
     -   **Strict Visibility Control:** Introduced `VITE_isAdsEnabled` to toggle ads globally.
     -   **Zero-Footprint:** When disabled, the component renders `null` and injects **zero** scripts.
     -   **Architecture:** Removed hardcoded script from `index.html` in favor of dynamic React hook injection.
+
+### 11.6 Production Hardening & Admin Infrastructure (Late Jan 2026)
+
+#### Database Resilience
+-   **File:** `src/db/database.js`
+-   **Enhancement:**
+    -   **Retry Logic:** Implemented robust retry mechanism for `ECONNREFUSED` and `ETIMEDOUT` errors.
+    -   **Startup Stability:** Prevents application crash when the database container is slower to start than the backend service (Race Condition).
+
+#### Admin Dashboard Overhaul
+-   **New Components:** `LogViewer`, `SchedulerStats`, `SyncActivityChart`, `UserManagement`.
+-   **Features:**
+    -   **Visual Stats:** Charts for fund sync status and scheduler activity.
+    -   **Log Management:** Interactive log viewer with support for native browser downloads.
+    -   **Security:** JWT-protected log downloads using query parameter authentication (token in URL).
+    -   **Safety:** Hardened `API_URL` handling in all admin components to prevent `undefined` string pollution in request paths.
+
+
+### 11.7 Critical Fixes (February 2026)
+
+#### Timezone Logic & Double Execution Fix
+-   **Files:** `src/utils/date.utils.js`, `src/services/scheduler.service.js`, `src/services/demo.service.js`.
+-   **Problem:** System was using UTC dates (`new Date().toISOString()`), causing SIPs created near midnight IST to execute twice (once for "Yesterday UTC" and once for "Today IST").
+-   **Solution:**
+    -   **Strict IST Truth:** Implemented `getISTDate()` utility.
+    -   **Refactor:** All transaction scheduling and metadata (`lastExecutionDate`, `executionCount`) now strictly uses IST dates.
+    -   **Validation:** Verified correct day rollover at Jan 31st and Feb 28th boundaries.
+
+#### Sync Logic Optimization
+-   **Files:** `src/services/mfapiIngestion.service.js`, `docker-compose.yml`.
+-   **Change:**
+    -   **Incremental Sync Activated:** Enabled `ENABLE_INCREMENTAL_SYNC` in configuration.
+    -   **Rolling Window Filter:** Updated sync logic to use a 45-day rolling window (`filterByRecentNav`) instead of strict current-month checks, preventing data rejection at month boundaries.
+
+#### Logging & Observability Upgrade (Feb 2026)
+-   **Files:** `src/services/scheduler.service.js`, `src/services/demo.service.js`, `src/services/mfapiIngestion.service.js`.
+-   **Problem:** Critical backend services were using `console.log()`, which only writes to ephemeral Docker output, not to the file-based log system accessible via Admin Dashboard.
+-   **Solution:**
+    -   **Logger Import:** All 3 services now import `logger.service.js`.
+    -   **Replacement:** ~50 `console.log/error/warn` calls replaced with `logger.info/error/warn`.
+    -   **Outcome:** Scheduler events, transaction executions, and sync jobs are now visible in `logs/application-YYYY-MM-DD.log`.
+
+#### SWP Weekly Frequency Support (Feb 2026)
+-   **File:** `src/services/demo.service.js`.
+-   **Problem:** SWP creation was restricted to MONTHLY or QUARTERLY only. Users could not create weekly withdrawals.
+-   **Solution:** Updated validation logic to allow `WEEKLY` frequency for SWP transactions.
+
+#### Admin Log ZIP Download (Feb 2026)
+-   **Files:** `src/controllers/log.controller.js`, `src/routes/admin.routes.js`, `client/src/components/admin/LogViewer.jsx`.
+-   **Dependency:** Added `adm-zip` for in-memory ZIP creation.
+-   **Feature:** Admins can now click "Download All" in the System Logs card to download all log files as a single `system-logs-YYYY-MM-DD.zip` archive.
+-   **API:** `GET /api/admin/logs/download-all` (JWT protected).

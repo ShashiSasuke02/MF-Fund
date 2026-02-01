@@ -21,6 +21,9 @@
 ## ✅ Completed Implementation Details
 - Initial environment and protocol audit.
 - Confirmed understanding of `GEMINI.md`, `ARCHITECTURE.md`, and Specialist Agents.
+- **Logging Upgrade:** Replaced `console.log` with `logger` in critical services (`scheduler`, `demo`, `mfapiIngestion`).
+- **SWP Fix:** Enabled `WEEKLY` frequency for SWP transactions.
+- **Admin Feature:** Implemented "Download All Logs" (ZIP) in Admin Dashboard.
 
 ## 🔍 System State & New Data Structures
 - **DB Schema:** `src/db/schema.sql` (Master truth).

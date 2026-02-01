@@ -1,7 +1,7 @@
 import express from 'express';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware.js';
 import { adminController } from '../controllers/admin.controller.js';
-import { getLogFiles, downloadLogFile } from '../controllers/log.controller.js'; // [NEW]
+import { getLogFiles, downloadLogFile, downloadAllLogs } from '../controllers/log.controller.js';
 
 const router = express.Router();
 
@@ -23,6 +23,7 @@ router.get('/activity-logs', authenticateToken, requireAdmin, adminController.ge
 
 // [NEW] System Logs (File logs)
 router.get('/logs', authenticateToken, requireAdmin, getLogFiles);
+router.get('/logs/download-all', authenticateToken, requireAdmin, downloadAllLogs);
 router.get('/logs/download/:filename', authenticateToken, requireAdmin, downloadLogFile);
 
 // Sync chart data
