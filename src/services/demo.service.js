@@ -284,11 +284,14 @@ export const demoService = {
       const start = new Date(startDate);
       start.setHours(0, 0, 0, 0);
 
-      // Calculate first day of next month for validation
-      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-      nextMonth.setHours(0, 0, 0, 0);
-      if (start < nextMonth) {
-        throw new Error('SWP start date must be from next month onwards');
+      // Calculate tomorrow for validation
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+
+      // Relaxed constraint: Start Date must be in the future (tomorrow onwards)
+      if (start < tomorrow) {
+        throw new Error('SWP start date must be a future date (from tomorrow onwards)');
       }
 
       // Status is ALWAYS PENDING for SWP as immediate execution is disabled

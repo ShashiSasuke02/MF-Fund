@@ -39,10 +39,7 @@ const EXCLUDED_KEYWORDS = [
   'MONTHLY',
   'QUARTERLY',
   'ANNUAL',
-  'PERIODIC',
-  'MIP',
-  'REINVESTMENT',
-  'REINVEST'
+  'PERIODIC'
 ];
 const EXCLUDED_CATEGORIES = [
   'Equity Scheme - Dividend Yield Fund',

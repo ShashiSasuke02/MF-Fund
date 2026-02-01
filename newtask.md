@@ -22,7 +22,8 @@
 - Initial environment and protocol audit.
 - Confirmed understanding of `GEMINI.md`, `ARCHITECTURE.md`, and Specialist Agents.
 - **Logging Upgrade:** Replaced `console.log` with `logger` in critical services (`scheduler`, `demo`, `mfapiIngestion`).
-- **SWP Fix:** Enabled `WEEKLY` frequency for SWP transactions.
+- **SWP Fix:** Enabled `WEEKLY` frequency and relaxed start date validation (allowed from tomorrow).
+- **Exclusion Filters:** Refined keywords (Removed REINVESTMENT/MIP) to include more valid funds.
 - **Admin Feature:** Implemented "Download All Logs" (ZIP) in Admin Dashboard.
 
 ## 🔍 System State & New Data Structures
