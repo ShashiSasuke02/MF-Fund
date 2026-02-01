@@ -285,7 +285,7 @@ describe('Demo Service', () => {
       expect(mockDemoAccountModel.updateBalance).not.toHaveBeenCalled();
     });
 
-    it('should reject SWP if start date is not from next month', async () => {
+    it('should reject SWP if start date is not a future date (tomorrow onwards)', async () => {
       mockDemoAccountModel.getBalance.mockResolvedValueOnce(500000);
       mockLocalFundService.getSchemeDetails.mockResolvedValueOnce({
         meta: { scheme_name: 'HDFC Fund' },
@@ -298,7 +298,7 @@ describe('Demo Service', () => {
           ...validSwpData,
           startDate: today.toISOString().split('T')[0]
         })
-      ).rejects.toThrow(/next month onwards/);
+      ).rejects.toThrow(/future date/);
     });
 
     it('should reject SWP with insufficient units', async () => {
@@ -317,6 +317,22 @@ describe('Demo Service', () => {
           amount: 5000 // Needs 5 units
         })
       ).rejects.toThrow('Insufficient units');
+    });
+
+    it('should reject SWP with HOLDING_NOT_FOUND code when no holdings exist', async () => {
+      mockDemoAccountModel.getBalance.mockResolvedValueOnce(500000);
+      mockLocalFundService.getSchemeDetails.mockResolvedValueOnce({
+        meta: { scheme_name: 'HDFC Fund' },
+        latestNav: { nav: '1000.00', date: '2026-01-14' }
+      });
+      mockHoldingModel.findByScheme.mockResolvedValueOnce(null); // No holding
+
+      await expect(
+        demoService.executeTransaction(validSwpData)
+      ).rejects.toMatchObject({
+        message: expect.stringContaining('No holdings found'),
+        code: 'HOLDING_NOT_FOUND'
+      });
     });
   });
 

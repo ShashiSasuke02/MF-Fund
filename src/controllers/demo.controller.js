@@ -48,10 +48,12 @@ export const demoController = {
     } catch (error) {
       if (error.message.includes('Insufficient') ||
         error.message.includes('Invalid') ||
-        error.message.includes('not found')) {
+        error.message.includes('not found') ||
+        error.message.includes('No holdings')) {
         return res.status(400).json({
           success: false,
-          message: error.message
+          message: error.message,
+          code: error.code || 'VALIDATION_ERROR'
         });
       }
       next(error);

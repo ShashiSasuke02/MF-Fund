@@ -261,7 +261,9 @@ export const demoService = {
 
       const holding = await holdingModel.findByScheme(userId, schemeCode);
       if (!holding) {
-        throw new Error('No holdings found for this scheme');
+        const err = new Error('No holdings found for this scheme. Please invest via Lump Sum or SIP first.');
+        err.code = 'HOLDING_NOT_FOUND';
+        throw err;
       }
 
       const requiredUnits = amount / latestNav;

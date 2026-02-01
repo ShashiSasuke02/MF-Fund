@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { demoApi, fundApi } from '../api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { DisplayAd, RectangleAd } from '../components/AdSense';
+import useErrorFocus from '../hooks/useErrorFocus';
 
 export default function Invest() {
   const navigate = useNavigate();
@@ -23,6 +24,9 @@ export default function Invest() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  // Scroll to error when it changes
+  useErrorFocus({ error });
 
   useEffect(() => {
     if (schemeCode) {
@@ -152,7 +156,12 @@ export default function Invest() {
       }
     } catch (err) {
       console.error('[Invest] Transaction error:', err);
-      setError(err.message || 'Transaction failed');
+      // Check for specific error code from backend
+      if (err.code === 'HOLDING_NOT_FOUND') {
+        setError('You do not own this fund! Please invest via Lump Sum or SIP first before setting up an SWP.');
+      } else {
+        setError(err.message || 'Transaction failed');
+      }
     } finally {
       setLoading(false);
     }

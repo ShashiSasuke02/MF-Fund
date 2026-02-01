@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import useErrorFocus from '../hooks/useErrorFocus';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -20,6 +21,9 @@ export default function Register() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
+
+  // Scroll to first error field when errors change
+  useErrorFocus(errors);
 
   // Password Strength Meter Logic
   const calculatePasswordStrength = (password) => {
