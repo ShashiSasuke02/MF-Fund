@@ -1,17 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
 
-// Idle Timeout: 5 minutes (300,000 ms)
-// Warning: 4 minutes (240,000 ms)
-const TIMEOUT_MS = 5 * 60 * 1000;
-const WARNING_MS = 4 * 60 * 1000;
+// Idle Timeout: 2 minutes (120,000 ms)
+// Warning: 1 minute (60,000 ms)
+const TIMEOUT_MS = 2 * 60 * 1000;
+const WARNING_MS = 1 * 60 * 1000;
 
 export function useIdleTimer({ onIdle, onWarning }) {
     const [isWarning, setIsWarning] = useState(false);
+
+    // Refs to hold latest callback functions (avoids stale closures)
+    const onIdleRef = useRef(onIdle);
+    const onWarningRef = useRef(onWarning);
+
+    useEffect(() => {
+        onIdleRef.current = onIdle;
+        onWarningRef.current = onWarning;
+    }, [onIdle, onWarning]);
+
     const lastActivityRef = useRef(Date.now());
     const timerRef = useRef(null);
     const warningTimerRef = useRef(null);
 
     const resetTimer = () => {
+        // console.log(`[IdleTimer] Timer Reset`);
         lastActivityRef.current = Date.now();
         setIsWarning(false);
 
@@ -21,19 +32,18 @@ export function useIdleTimer({ onIdle, onWarning }) {
         // Set Warning Timer
         warningTimerRef.current = setTimeout(() => {
             setIsWarning(true);
-            if (onWarning) onWarning();
+            if (onWarningRef.current) onWarningRef.current();
         }, WARNING_MS);
 
         // Set Logout Timer
         timerRef.current = setTimeout(() => {
-            if (onIdle) onIdle();
+            if (onIdleRef.current) onIdleRef.current();
         }, TIMEOUT_MS);
     };
 
     useEffect(() => {
         const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
 
-        // Throttle reset to avoid performance hit
         let throttleTimeout;
         const handleActivity = () => {
             if (!throttleTimeout) {

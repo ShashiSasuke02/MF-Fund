@@ -1202,6 +1202,11 @@ export default function Portfolio() {
 
       {/* Critical Login Alerts (SIP/SWP Success/Failure) */}
       <LoginAlerts />
+
+      {/* Bottom Ad Section */}
+      <div className="mt-8">
+        <BannerAd />
+      </div>
     </div>
   );
 }

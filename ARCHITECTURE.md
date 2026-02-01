@@ -304,20 +304,32 @@ If unsure — ask clarifying questions instead of guessing.
 -   **Change:**
     -   **Conditional NAV History:** The "Recent NAV History" card is now completely hidden if no historical data is available, causing the layout to shift up cleaner.
 
-### 11.4 Backend Improvements
+### 12.4 Backend Improvements
 #### Email Service
 -   **File:** `src/services/email.service.js`
 -   **Enhancement:**
     -   **HTML Formatting:** `sendSupportTicket` now preserves newlines in user descriptions by converting `\n` to `<br>`, improving readability of support tickets.
 
-### 11.5 AdSense Implementation
+### 12.5 AdSense Implementation
 -   **File:** `client/src/components/AdSense.jsx`
 -   **Enhancement:**
     -   **Strict Visibility Control:** Introduced `VITE_isAdsEnabled` to toggle ads globally.
+    -   **Dev Placeholders:** In development mode (`npm run dev`), ads render as **visible grey placeholders** to verify layout/spacing without loading real scripts.
     -   **Zero-Footprint:** When disabled, the component renders `null` and injects **zero** scripts.
     -   **Architecture:** Removed hardcoded script from `index.html` in favor of dynamic React hook injection.
 
-### 11.6 Production Hardening & Admin Infrastructure (Late Jan 2026)
+### 11.4 UI Consistency & Ad Placement (February 2026)
+#### Feedback Page Styling
+-   **File:** `client/src/pages/ReportIssue.jsx`
+-   **Change:**
+    -   **Global Background:** Removed local `bg-gray-50` to allow the main application textured background to show through.
+    -   **Glassmorphism:** Applied `bg-white/80 backdrop-blur-md` to the form card for readability and consistency with the "Premium" design language.
+
+#### Portfolio Ad Inventory
+-   **File:** `client/src/pages/Portfolio.jsx`
+-   **Change:** Added a second **Banner Ad** unit at the bottom of the page content to maximize visibility without disrupting the user flow.
+
+### 12.6 Production Hardening & Admin Infrastructure (Late Jan 2026)
 
 #### Database Resilience
 -   **File:** `src/db/database.js`
@@ -368,3 +380,65 @@ If unsure — ask clarifying questions instead of guessing.
 -   **Dependency:** Added `adm-zip` for in-memory ZIP creation.
 -   **Feature:** Admins can now click "Download All" in the System Logs card to download all log files as a single `system-logs-YYYY-MM-DD.zip` archive.
 -   **API:** `GET /api/admin/logs/download-all` (JWT protected).
+
+## 13. Notification System
+
+### 13.1 Architecture
+The notification system is designed to be **user-centric** and **asynchronous**, ensuring data privacy and correct delivery.
+
+1.  **Generation (Backend):**
+    -   **Trigger:** Services (like `Scheduler`, `Sync`) trigger notifications via `notificationModel.create()`.
+    -   **Storage:** Persisted in `user_notifications` table with a mandatory `user_id`.
+    -   **Isolation:** Each row is hard-linked to a specific user.
+
+2.  **Delivery (Frontend):**
+    -   **Pull Model:** The `NotificationCenter` component polls `GET /api/notifications` every 60 seconds.
+    -   **Authentication:** The API extracts `userId` from the JWT token (`req.user.id`).
+    -   **Filtration:** A user can *only* retrieve rows where `user_id` matches their token ID.
+
+### 13.2 Scenario: Concurrent Transactions (SIP vs SWP)
+**Question:** If User A has a SIP and User B has an SWP on the same day, do they see each other's alerts?
+**Answer:** **NO.**
+
+1.  **Execution:** The Scheduler processes both transactions sequentially but creates distinct notification records:
+    -   Record 1: `{ user_id: A, message: "SIP Success" }`
+    -   Record 2: `{ user_id: B, message: "SWP Success" }`
+2.  **Login:**
+    -   User A logs in -> Token ID is A -> API checks `WHERE user_id = A` -> Returns only Record 1.
+    -   User B logs in -> Token ID is B -> API checks `WHERE user_id = B` -> Returns only Record 2.
+
+**Outcome:** Zero cross-talk. Complete privacy.
+
+---
+
+### 11.5 Landing Page Enhancements (February 2026)
+#### Dynamic Content Components
+-   **File:** `client/src/pages/Landing.jsx`
+-   **New Features:**
+    -   **Market Ticker:** Real-time scrolling ticker showing indices (NIFTY 50, SENSEX) at the very top.
+    -   **AMC Marquee:** Infinite scroll marquee showing logos of top AMCs (SBI, HDFC, ICICI, etc.) below the hero section.
+    -   **Ads Integration:** Seamlessly integrated `BannerAd` and `DisplayAd` components into the layout.
+
+### 11.6 Component Cleanup
+-   **Removed:** `SIPTeaser` and `FAQSection` were removed from Login/Register pages to maintain a cleaner, less clutter "Pro Fintech" aesthetic.
+
+## 14. Session & Security Management
+
+### 14.1 Authentication Architecture
+-   **Method:** Stateless JWT (JSON Web Token) using `HS256`.
+-   **Token Storage:** Client-side `sessionStorage`.
+    -   **Behavior:** Token persists across page reloads but is **destroyed** when the browser/tab is closed.
+    -   **Auto-Logout:** Closing the browser acts as a hard logout.
+
+### 14.2 Idle Timeout Policy
+-   **Implementation:** `client/src/hooks/useIdleTimer.js`.
+-   **Duration:** **2 Minutes** (Hard Logout).
+-   **Warning:** At **1 Minute**, a "Session Timeout" modal warns the user.
+-   **Activity Tracking:** Monitors Mouse Move, Click, Scroll, Keydown.
+-   **Enforcement:** `IdleContext` forces a redirect to `/login` upon timeout.
+
+### 14.3 Security Alerts
+-   **Login Alerts:** (`LoginAlerts.jsx`)
+    -   Checks for critical system events (e.g., SIP Failed) that occurred while offline.
+    -   Displayed immediately upon login.
+-   **Privacy:** Alerts are fetched based on `userId` extracted from the JWT, ensuring users never see each other's notifications.

@@ -61,7 +61,7 @@ export default function ReportIssue() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4">
+        <div className="min-h-screen py-12 px-4">
             <div className="max-w-xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-8">
@@ -70,7 +70,7 @@ export default function ReportIssue() {
                 </div>
 
                 {/* Form Card */}
-                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+                <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-8">
                     {/* Status Messages */}
                     {status.message && (
                         <div

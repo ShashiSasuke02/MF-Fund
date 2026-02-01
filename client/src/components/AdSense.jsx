@@ -4,13 +4,20 @@ import { useEffect, useState } from 'react';
 const ADS_ENABLED = import.meta.env.VITE_isAdsEnabled === 'true';
 const CLIENT_ID = import.meta.env.VITE_ADSENSE_CLIENT_ID || 'ca-pub-XXXXXXXXXXXXXXXX';
 
+// DEBUG LOG
+console.log('[AdSense Debug] Init:', {
+  ADS_ENABLED,
+  DEV: import.meta.env.DEV,
+  rawEnv: import.meta.env.VITE_isAdsEnabled
+});
+
 /**
  * Hook to dynamically load AdSense script
  * Only loads once, and only if ads are enabled
  */
 function useAdSenseScript() {
   useEffect(() => {
-    if (!ADS_ENABLED) return;
+    if (!ADS_ENABLED || import.meta.env.DEV) return;
 
     // Check if duplicate
     if (document.querySelector(`script[src*="adsbygoogle.js"]`)) return;
@@ -39,7 +46,10 @@ export default function AdSense({
   className = ''
 }) {
   // 1. If disabled via ENV, Render NOTHING. No placeholders.
-  if (!ADS_ENABLED) return null;
+  if (!ADS_ENABLED) {
+    console.log('[AdSense Debug] Disabled by ENV');
+    return null;
+  }
 
   // 2. Inject Script (idempotent)
   useAdSenseScript();
@@ -55,8 +65,24 @@ export default function AdSense({
     }
   }, []);
 
-  // 4. Render Ad Unit (Only in Production behavior is standard, but here we obey the flag)
-  // Note: Localhost will just show blank space unless we allow dev mode or have test ads.
+  // 4. Render Ad Unit
+  // Dev Mode: Render visible placeholder
+  if (import.meta.env.DEV) {
+    console.log('[AdSense Debug] Rendering Dev Placeholder');
+    return (
+      <div
+        className={`bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-center p-4 text-xs font-mono text-gray-500 uppercase tracking-wider ${className}`}
+        style={{ ...style, display: 'flex' }}
+      >
+        <div className="font-bold text-gray-400 mb-1">AdSense Unit</div>
+        <div className="text-[10px] break-all">Client: {client.slice(0, 10)}...</div>
+        <div className="text-[10px]">Slot: {slot}</div>
+        <div className="text-[10px]">Format: {format}</div>
+      </div>
+    );
+  }
+
+  // Production: Render actual AdSense unit
   return (
     <div className={className}>
       <ins
