@@ -371,15 +371,35 @@ If unsure — ask clarifying questions instead of guessing.
     -   **Outcome:** Scheduler events, transaction executions, and sync jobs are now visible in `logs/application-YYYY-MM-DD.log`.
 
 #### SWP Weekly Frequency Support (Feb 2026)
--   **File:** `src/services/demo.service.js`.
--   **Problem:** SWP creation was restricted to MONTHLY or QUARTERLY only. Users could not create weekly withdrawals.
--   **Solution:** Updated validation logic to allow `WEEKLY` frequency for SWP transactions.
+    -   **Solution:** Updated validation logic to allow `WEEKLY` frequency for SWP transactions.
 
 #### Admin Log ZIP Download (Feb 2026)
 -   **Files:** `src/controllers/log.controller.js`, `src/routes/admin.routes.js`, `client/src/components/admin/LogViewer.jsx`.
 -   **Dependency:** Added `adm-zip` for in-memory ZIP creation.
 -   **Feature:** Admins can now click "Download All" in the System Logs card to download all log files as a single `system-logs-YYYY-MM-DD.zip` archive.
 -   **API:** `GET /api/admin/logs/download-all` (JWT protected).
+
+### 11.8 UI Refinements & Documentation (Feb 2026)
+#### Global Application Background
+-   **Files:** `client/src/components/Layout.jsx`, `client/src/pages/Login.jsx`, `client/src/pages/Register.jsx`.
+-   **Change:** Updated to use `background.png` with `cover` and `fixed` properties for a consistent visual theme.
+
+#### Component Removal & Cleanup
+-   **Components Removed:**
+    -   `AMCMarquee.jsx`: Removed from `Landing.jsx`, `Login.jsx`, and `Register.jsx` to reduce visual clutter.
+    -   `MarketMasteryBanner.jsx`: Removed from `AmcList.jsx` and `Calculator.jsx` as part of the "Pro Fintech" aesthetic streamlining.
+-   **Header Text Removal:** Removed secondary marquee header "Access Funds From India's Top Houses" to simplify the interface.
+
+#### Market Ticker Removal (Feb 2026)
+-   **Files Removed:** `client/src/components/login-enhancements/MarketTicker.jsx`.
+-   **Usages Removed:** `Landing.jsx`, `Login.jsx`, `Register.jsx`, `Calculator.jsx`, `AmcList.jsx`.
+-   **Reason:** Feature deprecated as part of UI streamlining.
+
+#### Calculator UI (Feb 2026)
+-   **File:** `client/src/pages/Calculator.jsx`.
+-   **Status:** Reverted to original white theme with emerald accents.
+-   **Design:** Clean white cards (`bg-white`), gray text (`text-gray-900`), and standard shadows.
+
 
 ## 13. Notification System
 

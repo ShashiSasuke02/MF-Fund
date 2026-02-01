@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { BannerAd, DisplayAd, RectangleAd } from '../components/AdSense';
-import MarketTicker from '../components/login-enhancements/MarketTicker';
-import AMCMarquee from '../components/login-enhancements/AMCMarquee';
+
+
 
 export default function Landing() {
   const { isAuthenticated } = useAuth();
@@ -223,7 +223,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-teal-50/30">
       {/* Market Ticker (Top) */}
-      <MarketTicker />
+
 
       {/* Top Banner Ad */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200">
@@ -279,7 +279,7 @@ export default function Landing() {
 
       {/* AMC Marquee (Below Fold) */}
       <div className="py-8 bg-white/50 backdrop-blur-sm border-y border-gray-100">
-        <AMCMarquee />
+
       </div>
 
       {/* Mid-page Display Ad */}

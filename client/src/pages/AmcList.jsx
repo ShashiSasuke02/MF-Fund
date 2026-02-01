@@ -4,7 +4,7 @@ import { amcApi } from '../api';
 import { PageLoader, CardSkeleton } from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import { BannerAd, DisplayAd } from '../components/AdSense';
-import MarketMasteryBanner from '../components/MarketMasteryBanner';
+
 
 /**
  * AMC List page - displays top AMCs as cards
@@ -55,6 +55,8 @@ export default function AmcList() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-teal-50/30 relative overflow-hidden pb-16">
+
+
       {/* Animated decorative blobs */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
       <div className="absolute top-0 right-0 w-96 h-96 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
@@ -94,7 +96,7 @@ export default function AmcList() {
           <DisplayAd />
         </div>
       </div>
-      <MarketMasteryBanner />
+
     </div>
   );
 }

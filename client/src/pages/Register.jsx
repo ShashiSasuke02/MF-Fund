@@ -4,8 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import useErrorFocus from '../hooks/useErrorFocus';
 
 // UI Enhancements
-import MarketTicker from '../components/login-enhancements/MarketTicker';
-import AMCMarquee from '../components/login-enhancements/AMCMarquee';
+
+
 
 
 export default function Register() {
@@ -160,9 +160,9 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ backgroundImage: 'url(/background.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }}>
       {/* 1. Market Ticker (Top) */}
-      <MarketTicker />
+
 
       {/* Main Content Wrapper */}
       <div className="flex-grow flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -495,10 +495,7 @@ export default function Register() {
           </div>
         </div>
 
-        {/* 3. AMC Marquee */}
-        <div className="mb-16">
-          <AMCMarquee />
-        </div>
+
 
       </div>
     </div>

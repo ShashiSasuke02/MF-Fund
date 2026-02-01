@@ -15,9 +15,6 @@ export default function AMCMarquee() {
 
     return (
         <div className="w-full bg-white/50 backdrop-blur-sm border-y border-gray-200 py-6 overflow-hidden">
-            <div className="max-w-7xl mx-auto px-4 mb-4 text-center">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Access Funds From India's Top Houses</p>
-            </div>
 
             <div className="flex animate-marquee-slow whitespace-nowrap items-center">
                 {[...amcs, ...amcs, ...amcs].map((amc, i) => (
