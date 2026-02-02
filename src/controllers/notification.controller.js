@@ -1,4 +1,5 @@
 import { notificationModel } from '../models/notification.model.js';
+import logger from '../services/logger.service.js';
 
 export const notificationController = {
     /**
@@ -6,8 +7,19 @@ export const notificationController = {
      */
     async getNotifications(req, res) {
         try {
-            const userId = req.user.id;
+            // Disable caching to ensure real-time updates
+            res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+            res.set('Pragma', 'no-cache');
+            res.set('Expires', '0');
+            res.set('Surrogate-Control', 'no-store');
+
+            // Fix: Token payload uses 'userId', not 'id'
+            const userId = req.user.userId;
+
+            logger.info(`[NotificationController] Fetching unread for user ${userId}`);
+
             const notifications = await notificationModel.getUnread(userId);
+            logger.info(`[NotificationController] Found ${notifications.length} unread notifications`);
 
             res.json({
                 success: true,
@@ -28,7 +40,7 @@ export const notificationController = {
      */
     async markAsRead(req, res) {
         try {
-            const userId = req.user.id;
+            const userId = req.user.userId;
             const { id } = req.params;
 
             if (!id) {
@@ -55,7 +67,7 @@ export const notificationController = {
      */
     async markAllAsRead(req, res) {
         try {
-            const userId = req.user.id;
+            const userId = req.user.userId;
             await notificationModel.markAllAsRead(userId);
 
             res.json({

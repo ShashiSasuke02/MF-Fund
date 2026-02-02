@@ -1200,8 +1200,8 @@ export default function Portfolio() {
         />
       )}
 
-      {/* Critical Login Alerts (SIP/SWP Success/Failure) */}
-      <LoginAlerts />
+      {/* Critical Login Alerts (SIP/SWP Success/Failure) - Shows AFTER performance notification */}
+      <LoginAlerts showAfterPerformance={!showLoginNotification} />
 
       {/* Bottom Ad Section */}
       <div className="mt-8">

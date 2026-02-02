@@ -37,14 +37,38 @@ app.set('trust proxy', 1);
 // Security middleware
 app.use(helmet({
   hsts: false, // Disable HSTS for local HTTP usage
+  crossOriginOpenerPolicy: false, // Disable COOP to avoid "untrustworthy origin" warnings on local IP
   contentSecurityPolicy: {
     useDefaults: false,
     directives: {
       defaultSrc: ["'self'", "blob:"],
-      connectSrc: ["'self'", "https://api.mfapi.in", "http://localhost:4000", "ws://localhost:4000", "https://*.google.com", "blob:"],
+      connectSrc: [
+        "'self'",
+        "https://api.mfapi.in",
+        "https://*.google-analytics.com",
+        "https://*.analytics.google.com",
+        "https://*.google.com",
+        "ws:", "wss:", // Allow WebSockets for dev server (HMR)
+        "http://localhost:*",
+        "blob:"
+      ],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https:", "https://pagead2.googlesyndication.com", "blob:"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "'unsafe-eval'",
+        "https:",
+        "https://*.google-analytics.com",
+        "https://*.googlesyndication.com",
+        "blob:"
+      ],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "https:",
+        "blob:",
+        "https://*.google-analytics.com"
+      ],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
       frameSrc: ["'self'", "https://googleads.g.doubleclick.net"],
       upgradeInsecureRequests: null, // Explicitly disable auto-upgrade to HTTPS

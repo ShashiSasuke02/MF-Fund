@@ -528,15 +528,15 @@ export default function FundDetails() {
               <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="text-center p-3 rounded-xl bg-gray-50 border border-gray-100">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">1 Year</p>
-                  <p className={`text-lg font-bold ${meta?.returns_1y >= 0 ? 'text-green-600' : 'text-red-500'}`}>{meta?.returns_1y ? `${meta.returns_1y}%` : 'N/A'}</p>
+                  <p className={`text-lg font-bold ${meta?.returns_1y >= 0 ? 'text-green-600' : 'text-red-500'}`}>{meta?.returns_1y != null ? `${parseFloat(meta.returns_1y).toFixed(2)}%` : 'N/A'}</p>
                 </div>
                 <div className="text-center p-3 rounded-xl bg-gray-50 border border-gray-100">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">3 Years</p>
-                  <p className={`text-lg font-bold ${meta?.returns_3y >= 0 ? 'text-green-600' : 'text-red-500'}`}>{meta?.returns_3y ? `${meta.returns_3y}%` : 'N/A'}</p>
+                  <p className={`text-lg font-bold ${meta?.returns_3y >= 0 ? 'text-green-600' : 'text-red-500'}`}>{meta?.returns_3y != null ? `${parseFloat(meta.returns_3y).toFixed(2)}%` : 'N/A'}</p>
                 </div>
                 <div className="text-center p-3 rounded-xl bg-gray-50 border border-gray-100">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">5 Years</p>
-                  <p className={`text-lg font-bold ${meta?.returns_5y >= 0 ? 'text-green-600' : 'text-red-500'}`}>{meta?.returns_5y ? `${meta.returns_5y}%` : 'N/A'}</p>
+                  <p className={`text-lg font-bold ${meta?.returns_5y >= 0 ? 'text-green-600' : 'text-red-500'}`}>{meta?.returns_5y != null ? `${parseFloat(meta.returns_5y).toFixed(2)}%` : 'N/A'}</p>
                 </div>
               </div>
 

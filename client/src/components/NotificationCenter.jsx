@@ -118,16 +118,16 @@ export default function NotificationCenter() {
                                     <div
                                         key={notification.id}
                                         className={`px-4 py-3 hover:bg-gray-50 transition-colors group relative ${notification.type === 'SUCCESS' ? 'bg-emerald-50/30' :
-                                                notification.type === 'ERROR' ? 'bg-red-50/30' : ''
+                                            notification.type === 'ERROR' ? 'bg-red-50/30' : ''
                                             }`}
                                     >
                                         <div className="flex gap-3">
                                             {/* Icon */}
                                             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-1 ${notification.type === 'SUCCESS'
-                                                    ? 'bg-emerald-100 text-emerald-600'
-                                                    : notification.type === 'ERROR'
-                                                        ? 'bg-red-100 text-red-600'
-                                                        : 'bg-blue-100 text-blue-600'
+                                                ? 'bg-emerald-100 text-emerald-600'
+                                                : notification.type === 'ERROR'
+                                                    ? 'bg-red-100 text-red-600'
+                                                    : 'bg-blue-100 text-blue-600'
                                                 }`}>
                                                 {notification.type === 'SUCCESS' ? (
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

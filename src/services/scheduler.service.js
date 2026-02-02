@@ -373,7 +373,7 @@ export const schedulerService = {
         transaction.user_id,
         transaction.scheme_code,
         nav,
-        new Date().toISOString().split('T')[0]
+        getISTDate()
       );
     } else {
       // Create new holding
@@ -385,7 +385,7 @@ export const schedulerService = {
         investedAmount: amount,
         currentValue: units * nav,
         lastNav: nav,
-        lastNavDate: new Date().toISOString().split('T')[0]
+        lastNavDate: getISTDate()
       });
     }
 
@@ -446,7 +446,7 @@ export const schedulerService = {
       transaction.user_id,
       transaction.scheme_code,
       nav,
-      new Date().toISOString()
+      getISTDate()
     );
 
     // Credit balance

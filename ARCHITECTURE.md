@@ -403,31 +403,118 @@ If unsure — ask clarifying questions instead of guessing.
 
 ## 13. Notification System
 
-### 13.1 Architecture
-The notification system is designed to be **user-centric** and **asynchronous**, ensuring data privacy and correct delivery.
+### 13.1 Architecture Overview
+The notification system has **three distinct components** working together to deliver a seamless user experience:
 
-1.  **Generation (Backend):**
-    -   **Trigger:** Services (like `Scheduler`, `Sync`) trigger notifications via `notificationModel.create()`.
-    -   **Storage:** Persisted in `user_notifications` table with a mandatory `user_id`.
-    -   **Isolation:** Each row is hard-linked to a specific user.
+| Component | Location | Purpose | Trigger |
+|-----------|----------|---------|---------|
+| `InvestmentPerformanceNotification` | Portfolio.jsx | Portfolio update popup (first on login) | `showLoginNotification` session flag |
+| `LoginAlerts` | Portfolio.jsx | Sequential SIP/SWP notification popups | After performance popup dismissed |
+| `NotificationCenter` | Layout.jsx | Bell icon + dropdown (always visible) | User clicks bell icon |
 
-2.  **Delivery (Frontend):**
-    -   **Pull Model:** The `NotificationCenter` component polls `GET /api/notifications` every 60 seconds.
-    -   **Authentication:** The API extracts `userId` from the JWT token (`req.user.id`).
-    -   **Filtration:** A user can *only* retrieve rows where `user_id` matches their token ID.
+### 13.2 Component Details
 
-### 13.2 Scenario: Concurrent Transactions (SIP vs SWP)
+#### InvestmentPerformanceNotification.jsx
+-   **Type:** One-time login popup
+-   **Content:** Shows portfolio performance ("Your investment grew by X%") or welcome message for new users
+-   **Trigger:** `sessionStorage.showLoginNotification === 'true'`
+-   **Data Source:** `portfolioSummary` from `AuthContext`
+
+#### LoginAlerts.jsx
+-   **Type:** Sequential popup queue
+-   **Content:** SIP/SWP success/error notifications from database
+-   **Props:** `showAfterPerformance` - Controls when to start showing alerts
+-   **Behavior:**
+    1. Waits for `InvestmentPerformanceNotification` to be dismissed
+    2. Fetches unread notifications from `GET /api/notifications`
+    3. Shows oldest notification first
+    4. "OK, Next →" button advances to next notification
+    5. Marks each as read when dismissed
+-   **Data Source:** `user_notifications` table (DB)
+
+#### NotificationCenter.jsx
+-   **Type:** Persistent bell icon with dropdown
+-   **Location:** App header (desktop + mobile)
+-   **Behavior:**
+    1. Polls `GET /api/notifications` every 60 seconds
+    2. Shows unread count badge on bell icon
+    3. Dropdown lists all unread notifications
+    4. User can dismiss individual notifications or "Mark all read"
+-   **Data Source:** `user_notifications` table (DB)
+
+### 13.3 Login Popup Flow (Sequential)
+
+```
+User Logs In
+    │
+    ▼
+┌─────────────────────────────────────┐
+│ InvestmentPerformanceNotification   │  ← Shows FIRST
+│ "Your portfolio grew by ₹X,XXX"     │
+│ [OK, Got It!]                       │
+└─────────────────────────────────────┘
+    │ User clicks OK
+    ▼
+┌─────────────────────────────────────┐
+│ LoginAlerts - Notification #1       │  ← Shows SECOND
+│ "SIP Success: Wealth Builder Alert" │
+│ [OK, Next →]                        │
+└─────────────────────────────────────┘
+    │ User clicks OK, Next →
+    ▼
+┌─────────────────────────────────────┐
+│ LoginAlerts - Notification #2       │  ← Shows THIRD
+│ "SWP Success: Passive Income Alert" │
+│ [Awesome!]                          │
+└─────────────────────────────────────┘
+    │ User clicks Awesome!
+    ▼
+Done - All notifications dismissed
+```
+
+### 13.4 Data Model (user_notifications)
+```sql
+CREATE TABLE user_notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,       -- Hard-linked to user (privacy)
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    type VARCHAR(50) DEFAULT 'INFO',  -- INFO, SUCCESS, ERROR
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at BIGINT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+```
+
+### 13.5 Privacy & Isolation
 **Question:** If User A has a SIP and User B has an SWP on the same day, do they see each other's alerts?
 **Answer:** **NO.**
 
-1.  **Execution:** The Scheduler processes both transactions sequentially but creates distinct notification records:
+1.  **Execution:** The Scheduler creates distinct notification records:
     -   Record 1: `{ user_id: A, message: "SIP Success" }`
     -   Record 2: `{ user_id: B, message: "SWP Success" }`
 2.  **Login:**
-    -   User A logs in -> Token ID is A -> API checks `WHERE user_id = A` -> Returns only Record 1.
-    -   User B logs in -> Token ID is B -> API checks `WHERE user_id = B` -> Returns only Record 2.
+    -   User A logs in → Token ID is A → API checks `WHERE user_id = A` → Returns only Record 1.
+    -   User B logs in → Token ID is B → API checks `WHERE user_id = B` → Returns only Record 2.
 
 **Outcome:** Zero cross-talk. Complete privacy.
+
+### 13.6 Backend API
+-   **GET /api/notifications** - Fetch unread notifications for authenticated user
+    -   Headers: `Cache-Control: no-store` (prevents 304 caching)
+    -   Response: `{ success: true, count: N, data: [...] }`
+-   **PUT /api/notifications/:id/read** - Mark single notification as read
+-   **PUT /api/notifications/read-all** - Mark all notifications as read
+
+### 13.7 Testing Notifications
+Manual trigger script for testing:
+```bash
+# Run Locally
+node scripts/trigger_test_notifications.js
+
+# Run in Docker
+docker compose exec backend node scripts/trigger_test_notifications.js
+```
 
 ---
 
@@ -462,3 +549,87 @@ The notification system is designed to be **user-centric** and **asynchronous**,
     -   Checks for critical system events (e.g., SIP Failed) that occurred while offline.
     -   Displayed immediately upon login.
 -   **Privacy:** Alerts are fetched based on `userId` extracted from the JWT, ensuring users never see each other's notifications.
+
+---
+
+## 15. February 2026 Bug Fixes
+
+### 15.1 Scheduler `last_nav_date` Truncation Fix
+
+#### Problem
+The `holdings` table column `last_nav_date` is defined as `VARCHAR(10)`, but the scheduler was storing full ISO timestamps (29 characters), causing transaction failures:
+```
+[Scheduler] Transaction 3 failed: Data too long for column 'last_nav_date' at row 1
+```
+
+#### Root Cause
+**File:** `src/services/scheduler.service.js`
+| Line | Original Code | Issue |
+|------|---------------|-------|
+| 449 | `new Date().toISOString()` | ❌ Returns `2026-02-02T00:30:00.764Z` (29 chars) |
+| 376 | `new Date().toISOString().split('T')[0]` | ⚠️ Works but inconsistent with IST policy |
+| 388 | `new Date().toISOString().split('T')[0]` | ⚠️ Works but inconsistent with IST policy |
+
+#### Solution
+Replaced all occurrences with `getISTDate()` from `src/utils/date.utils.js`:
+```javascript
+// Before (Line 449 - CRITICAL BUG)
+await holdingModel.updateCurrentValue(userId, schemeCode, nav, new Date().toISOString());
+
+// After
+await holdingModel.updateCurrentValue(userId, schemeCode, nav, getISTDate());
+```
+
+#### Files Modified
+- `src/services/scheduler.service.js` (Lines 376, 388, 449)
+
+#### Policy Reminder
+> **NEVER** use `new Date().toISOString()` for date storage.  
+> **ALWAYS** use `getISTDate()` or `toISTDateString()` from `date.utils.js`.
+
+---
+
+### 15.2 Fund Returns (CAGR) Formatting Fix
+
+#### Problem
+The Fund Details page displayed CAGR returns without consistent decimal formatting (e.g., `8%` instead of `8.00%`).
+
+#### Solution
+**File:** `client/src/pages/FundDetails.jsx` (Lines 531, 535, 539)
+
+Applied `parseFloat().toFixed(2)` and changed truthy check to `!= null` (so `0%` displays correctly):
+
+```jsx
+// Before
+{meta?.returns_1y ? `${meta.returns_1y}%` : 'N/A'}
+
+// After
+{meta?.returns_1y != null ? `${parseFloat(meta.returns_1y).toFixed(2)}%` : 'N/A'}
+```
+
+#### Affected Metrics
+- 1 Year Returns
+- 3 Year Returns
+- 5 Year Returns
+
+---
+
+### 15.3 Notification Debugging
+
+#### Manual Trigger Script
+A new script `scripts/trigger_test_notifications.js` has been added to manually push test notifications to the admin user.
+
+**Usage:**
+```bash
+# Run inside Docker
+docker compose exec backend node scripts/trigger_test_notifications.js
+
+# Run Locally
+$env:DB_HOST="127.0.0.1"; node scripts/trigger_test_notifications.js
+```
+
+**Functionality:**
+1. Connects to the database.
+2. Finds the first user with `role='admin'` (or matching 'admin' email).
+3. Inserts two "SUCCESS" notifications (SIP & SWP) into `user_notifications`.
+4. These immediately appear in the UI Notification Center.
