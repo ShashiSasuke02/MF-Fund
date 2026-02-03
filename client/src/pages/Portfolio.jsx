@@ -528,7 +528,7 @@ export default function Portfolio() {
                       </svg>
                       <p className="text-xs text-purple-700 font-medium">Average NAV</p>
                     </div>
-                    <p className="font-bold text-purple-900">₹{parseFloat(holding.invested_nav || 0).toFixed(4)}</p>
+                    <p className="font-bold text-purple-900">₹{parseFloat(holding.invested_nav || 0).toFixed(2)}</p>
                   </div>
                   <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3">
                     <div className="flex items-center mb-1">
@@ -546,7 +546,7 @@ export default function Portfolio() {
                       </svg>
                       <p className="text-xs text-teal-700 font-medium">Latest NAV</p>
                     </div>
-                    <p className="font-bold text-teal-900">₹{parseFloat(holding.last_nav || 0).toFixed(4)}</p>
+                    <p className="font-bold text-teal-900">₹{parseFloat(holding.last_nav || 0).toFixed(2)}</p>
                     {holding.last_nav_date && (
                       <p className="text-xs text-teal-600 mt-0.5">{formatDate(holding.last_nav_date)}</p>
                     )}

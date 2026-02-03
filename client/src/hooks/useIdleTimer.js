@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 
-// Idle Timeout: 2 minutes (120,000 ms)
-// Warning: 1 minute (60,000 ms)
-const TIMEOUT_MS = 2 * 60 * 1000;
-const WARNING_MS = 1 * 60 * 1000;
+// Idle Timeout: 4 minutes (240,000 ms)
+// Warning: 3 minutes (180,000 ms)
+const TIMEOUT_MS = 4 * 60 * 1000;
+const WARNING_MS = 3 * 60 * 1000;
 
 export function useIdleTimer({ onIdle, onWarning }) {
     const [isWarning, setIsWarning] = useState(false);

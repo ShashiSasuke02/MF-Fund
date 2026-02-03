@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Footer from './Footer';
 import NotificationCenter from './NotificationCenter';
+import AiAssistant from './ai/AiAssistant';
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -274,6 +275,9 @@ export default function Layout({ children }) {
 
       {/* Footer */}
       <Footer />
+
+      {/* AI Assistant - Only for authenticated users */}
+      {isAuthenticated && <AiAssistant />}
     </div>
   );
 }

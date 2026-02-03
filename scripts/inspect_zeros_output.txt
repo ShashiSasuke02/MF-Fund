@@ -1,0 +1,24 @@
+﻿MySQL database connected successfully (Attempt 1/30)
+Database schema initialized successfully
+--- Transactions with 0 units or 0 NAV ---
+Found 0 transactions with 0 units or NAV
+
+--- Holdings with 0 units ---
+Found 0 holdings with 0 units
+
+--- User Holdings with 0 NAV in latest history ---
+Found 0 user holdings with latest NAV = 0
+
+--- Funds with 0 NAV in history (Example 10) ---
+Found 10 NAV records with 0 value
+Scheme: 100381, Name: UTI Large Cap Fund-Income Option, Date: Fri Apr 13 2007 00:00:00 GMT+0530 (India Standard Time), NAV: 0.0000
+Scheme: 100382, Name: UTI Large Cap Fund-Growth Option, Date: Fri Apr 13 2007 00:00:00 GMT+0530 (India Standard Time), NAV: 0.0000
+Scheme: 100607, Name: Sundaram Medium Term Bond Fund -Institutional Plan(Annual Dividend), Date: Thu Sep 26 2013 00:00:00 GMT+0530 (India Standard Time), NAV: 0.0000
+Scheme: 100717, Name: SBI MAGNUM DEBT FUND SERIES - 60 DAYS - 2 - DIVIDEND, Date: Wed Jul 05 2006 00:00:00 GMT+0530 (India Standard Time), NAV: 0.0000
+Scheme: 100605, Name: Sundaram Medium Term Bond Fund -Institutional Plan(Qtrly Dividend), Date: Thu Sep 26 2013 00:00:00 GMT+0530 (India Standard Time), NAV: 0.0000
+Scheme: 100606, Name: Sundaram Medium Term Bond Fund-Institutional Plan(Half-Yearly Dividend), Date: Thu Sep 26 2013 00:00:00 GMT+0530 (India Standard Time), NAV: 0.0000
+Scheme: 100791, Name: Sundaram Corporate Bond Fund -Institutional - Quarterly Dividend, Date: Thu Sep 26 2013 00:00:00 GMT+0530 (India Standard Time), NAV: 0.0000
+Scheme: 100792, Name: Sundaram Corporate Bond Fund Institutional - Growth, Date: Thu Sep 26 2013 00:00:00 GMT+0530 (India Standard Time), NAV: 0.0000
+Scheme: 100870, Name: HDFC Liquid Fund-PREMIUM- Dividend, Date: Mon Jun 19 2006 00:00:00 GMT+0530 (India Standard Time), NAV: 0.0000
+Scheme: 100871, Name: HDFC Liquid Fund-PREMIUM PLUS- Dividend, Date: Mon Jun 19 2006 00:00:00 GMT+0530 (India Standard Time), NAV: 0.0000
+Database connection closed

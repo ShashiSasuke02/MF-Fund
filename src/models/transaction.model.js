@@ -18,15 +18,19 @@ export const transactionModel = {
     endDate,
     installments,
     status = 'SUCCESS',
-    nextExecutionDate = null
+    nextExecutionDate = null,
+    lastExecutionDate = null,
+    executionCount = 0
   }) {
     const result = await run(
       `INSERT INTO transactions 
        (user_id, scheme_code, scheme_name, transaction_type, amount, units, nav, 
-        frequency, start_date, end_date, installments, status, next_execution_date) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        frequency, start_date, end_date, installments, status, next_execution_date,
+        last_execution_date, execution_count) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [userId, schemeCode, schemeName, transactionType, amount, units, nav,
-        frequency, startDate, endDate, installments, status, nextExecutionDate]
+        frequency, startDate, endDate, installments, status, nextExecutionDate,
+        lastExecutionDate, executionCount]
     );
 
     return {
@@ -43,7 +47,9 @@ export const transactionModel = {
       endDate,
       installments,
       status,
-      nextExecutionDate
+      nextExecutionDate,
+      lastExecutionDate,
+      executionCount
     };
   },
 
@@ -194,6 +200,8 @@ export const transactionModel = {
    */
   async updateExecutionStatus(transactionId, {
     status,
+    units = null,
+    nav = null,
     nextExecutionDate = null,
     lastExecutionDate = null,
     executionCount = null,
@@ -204,6 +212,16 @@ export const transactionModel = {
 
     updates.push('status = ?');
     values.push(status);
+
+    if (units !== null) {
+      updates.push('units = ?');
+      values.push(units);
+    }
+
+    if (nav !== null) {
+      updates.push('nav = ?');
+      values.push(nav);
+    }
 
     if (nextExecutionDate !== null) {
       updates.push('next_execution_date = ?');

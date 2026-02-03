@@ -20,6 +20,7 @@ import adminRoutes from './routes/admin.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import logRoutes from './routes/log.routes.js';
 import supportRoutes from './routes/support.routes.js';
+import aiRoutes from './routes/ai.routes.js';
 
 // Middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -125,6 +126,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/support', supportRoutes); // Report Issue feature
+app.use('/api/ai', aiRoutes); // AI Mutual Fund Manager
 app.use('/api/health', healthRoutes);
 
 // Root route - API info

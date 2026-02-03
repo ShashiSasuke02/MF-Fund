@@ -1,0 +1,23 @@
+﻿MySQL database connected successfully (Attempt 1/30)
+Database schema initialized successfully
+--- RECENT TRANSACTIONS (User 1) ---
+ID: 17, Type: SWP, Amount: 5000.00, Units: -303.4220, NAV: 16.4787, Status: PENDING
+ID: 16, Type: SIP, Amount: 100000.00, Units: null, NAV: null, Status: PENDING
+ID: 15, Type: SIP, Amount: 50000.00, Units: null, NAV: null, Status: PENDING
+ID: 14, Type: SIP, Amount: 500000.00, Units: null, NAV: null, Status: PENDING
+ID: 5, Type: LUMP_SUM, Amount: 50000.00, Units: 4438.6840, NAV: 11.2646, Status: SUCCESS
+ID: 4, Type: LUMP_SUM, Amount: 50000.00, Units: 4438.6840, NAV: 11.2646, Status: SUCCESS
+ID: 3, Type: LUMP_SUM, Amount: 50000.00, Units: 4438.6840, NAV: 11.2646, Status: SUCCESS
+ID: 2, Type: SIP, Amount: 50000.00, Units: 2934.2379, NAV: 17.0402, Status: RECURRING
+ID: 1, Type: LUMP_SUM, Amount: 499999.99, Units: 1851.8120, NAV: 270.0058, Status: SUCCESS
+[Holding Model] findByUserId - userId: 1
+[Holding Model] Query returned 3 holdings for userId: 1
+[Holding Model] First holding user_id: 1
+
+--- HOLDINGS (User 1) ---
+Scheme: ICICI Prudential Nifty 50 Index Fund - Direct Plan Cumulative Option, Units: 1851.8120, Last NAV: 267.0940, Date: 2026-01-29
+Scheme: HDFC Nifty 100 Equal Weight Index Fund - Direct Plan - Growth Option, Units: 6068.4398, Last NAV: 16.8934, Date: 2026-01-29
+Scheme: Kotak  Arbitrage Fund - Direct Plan - IDCW -Payout &  Reinvestment of Income Distribution cum capital withdrawal option, Units: 4438.6840, Last NAV: 11.1935, Date: 2026-01-29
+
+--- EXECUTION LOGS (Txn 3) ---
+Database connection closed

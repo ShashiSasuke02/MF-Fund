@@ -95,12 +95,17 @@ export const initSchedulerJobs = () => {
     // 2. Register Full Fund Sync (1:00 AM IST)
     // Note: Timezone IS 'Asia/Kolkata' (handled below in line 138 options)
     cronRegistry.register('Full Fund Sync', '0 0 1 * * *', async () => {
-        // NOTE: The previous code had specific TZ logic.
-        // Standard cron doesn't do TZ easily without the option. 
-        // We'll trust the registry/scheduler loop to handle it or use the string directly.
-        // The wrapper below uses cron.schedule(job.schedule) which can take options. 
-        // For now, let's just wrap the service call.
-        return await mfapiIngestionService.runFullSync();
+        // Run Full Sync first
+        const fullSyncResult = await mfapiIngestionService.runFullSync();
+
+        // After successful Full Sync, trigger Incremental Sync
+        console.log('[Cron] Full Fund Sync completed. Triggering Incremental Fund Sync...');
+        const incrementalResult = await mfapiIngestionService.runIncrementalSync();
+
+        return {
+            fullSync: fullSyncResult,
+            incrementalSync: incrementalResult
+        };
     });
 
     // 3. Register Incremental Fund Sync (10 AM, 12 PM, 2 PM IST)

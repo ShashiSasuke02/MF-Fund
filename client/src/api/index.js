@@ -465,4 +465,23 @@ export const supportApi = {
     })
 };
 
-export default { amcApi, fundApi, healthApi, authApi, demoApi, calculatorApi, notificationApi, supportApi };
+/**
+ * AI API functions
+ */
+export const aiApi = {
+  /**
+   * Send message to AI assistant
+   */
+  chat: (message, history = []) =>
+    fetchApi('/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message, history })
+    }),
+
+  /**
+   * Check AI service status
+   */
+  getStatus: () => fetchApi('/ai/status')
+};
+
+export default { amcApi, fundApi, healthApi, authApi, demoApi, calculatorApi, notificationApi, supportApi, aiApi };

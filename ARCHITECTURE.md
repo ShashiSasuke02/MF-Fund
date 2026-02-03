@@ -633,3 +633,154 @@ $env:DB_HOST="127.0.0.1"; node scripts/trigger_test_notifications.js
 2. Finds the first user with `role='admin'` (or matching 'admin' email).
 3. Inserts two "SUCCESS" notifications (SIP & SWP) into `user_notifications`.
 4. These immediately appear in the UI Notification Center.
+
+### 15.4 Zero Units/NAV Fix
+
+#### Problem
+Transactions were appearing in the history with `units` and `nav` as `0.0000`, even though the scheduler logs claimed they were "executed successfully".
+
+#### Root Cause
+1.  **`transaction.model.js`**: The `updateExecutionStatus` method was receiving `units` and `nav` but **ignoring** them in the SQL `UPDATE` statement. It only updated the status and dates.
+2.  **`scheduler.service.js`**: The execution logic calculated the correct values but passed them to an incomplete model method.
+
+#### Solution
+1.  **Model Update**: Modified `transactionModel.updateExecutionStatus` to conditionally update `units` and `nav` columns if valid values are passed.
+2.  **Service Update**: Updated `schedulerService` to explicitly propagate the execution results (`units`, `nav`) to the model update call.
+3.  **Creation Logic**: Enhanced `transactionModel.create` to support immediate execution recording (`lastExecutionDate`, `executionCount`) for Lump Sums and "Today" SIPs.
+
+#### Files Modified
+-   `src/models/transaction.model.js`
+-   `src/services/scheduler.service.js`
+-   `src/services/demo.service.js` (Cleanup)
+
+---
+
+### 15.5 NAV Display Precision (Feb 2026)
+
+#### Change
+Updated NAV display from 4 decimal places to 2 decimal places for better readability.
+
+#### Files Modified
+-   `client/src/pages/Portfolio.jsx` (Lines 531, 549)
+
+#### Before/After
+```jsx
+// Before
+₹{parseFloat(holding.invested_nav || 0).toFixed(4)}  // ₹80.1458
+
+// After
+₹{parseFloat(holding.invested_nav || 0).toFixed(2)}  // ₹80.15
+```
+
+---
+
+### 15.6 Session Timeout Increase (Feb 2026)
+
+#### Change
+Increased idle session timeout from **2 minutes** to **4 minutes** for improved user experience.
+
+#### Files Modified
+-   `client/src/hooks/useIdleTimer.js`
+
+#### Configuration
+| Setting | Old Value | New Value |
+|---------|-----------|-----------|
+| Idle Timeout | 2 minutes | 4 minutes |
+| Warning | 1 minute | 3 minutes |
+
+---
+
+### 15.7 Sync Job Chaining (Feb 2026)
+
+#### Change
+After **Full Fund Sync** completes successfully, the system now automatically triggers **Incremental Fund Sync** to ensure NAV data is immediately up-to-date.
+
+#### Files Modified
+-   `src/jobs/scheduler.job.js`
+
+#### Flow
+```
+Full Fund Sync (1:00 AM IST)
+    │
+    ▼ (On Success)
+Incremental Fund Sync (Automatic)
+    │
+    ▼
+Both results logged together
+```
+
+---
+
+### 15.8 AI Mutual Fund Manager (Feb 2026)
+
+#### Overview
+Integrated an AI-powered assistant using Ollama (local LLM) to help users understand mutual fund concepts, SIPs, SWPs, and investment strategies.
+
+#### Architecture
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Frontend (React)                        │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │  AiAssistant.jsx (Floating Chat Widget)                 │ │
+│  │  - Glassmorphism design                                 │ │
+│  │  - Only visible to authenticated users                  │ │
+│  │  - Minimize/Expand/Close states                         │ │
+│  └─────────────────────────────────────────────────────────┘ │
+│                            │                                  │
+│                      aiApi.chat()                             │
+│                            ▼                                  │
+└─────────────────────────────────────────────────────────────┘
+                             │
+                     POST /api/ai/chat
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      Backend (Node.js)                       │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │  ai.routes.js → ai.controller.js → ollama.service.js    │ │
+│  │  - Auth middleware protects all endpoints               │ │
+│  │  - System prompt defines AI behavior                    │ │
+│  └─────────────────────────────────────────────────────────┘ │
+│                            │                                  │
+│                    HTTP POST /api/chat                        │
+│                            ▼                                  │
+└─────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Ollama Server (192.168.1.4:11434)               │
+│  - Model: qwen2.5:0.5b                                       │
+│  - Self-hosted LLM                                           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Environment Variables
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OLLAMA_ENDPOINT` | `http://192.168.1.4:11434` | Ollama server URL |
+| `OLLAMA_MODEL_NAME` | `qwen2.5:0.5b` | Model to use |
+| `AI_SYSTEM_PROMPT` | (See service) | AI behavior definition |
+
+#### Files Added/Modified
+| File | Type | Purpose |
+|------|------|---------|
+| `src/services/ollama.service.js` | Modified | AI service with system prompt |
+| `src/controllers/ai.controller.js` | New | Chat & status endpoints |
+| `src/routes/ai.routes.js` | New | Protected API routes |
+| `src/app.js` | Modified | Route registration |
+| `client/src/api/index.js` | Modified | Frontend API client |
+| `client/src/components/ai/AiAssistant.jsx` | New | Floating chat widget |
+| `client/src/components/Layout.jsx` | Modified | Widget integration |
+
+#### Security
+- All AI endpoints protected by `authenticateToken` middleware
+- Message length limited to 2000 characters
+- Conversation history limited to 10 messages
+- Graceful error handling (503 on AI failure)
+
+#### .env Configuration (Added)
+```env
+# AI Mutual Fund Manager (Ollama)
+OLLAMA_ENDPOINT=http://192.168.1.4:11434
+OLLAMA_MODEL_NAME=qwen2.5:0.5b
+AI_SYSTEM_PROMPT=You are a helpful AI Mutual Fund Manager assistant...
+```

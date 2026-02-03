@@ -227,6 +227,8 @@ export const schedulerService = {
 
         await transactionModel.updateExecutionStatus(transaction.id, {
           status: newStatus,
+          units: logData.units,
+          nav: logData.nav,
           nextExecutionDate,
           lastExecutionDate: executionDate,
           executionCount: transaction.execution_count + 1,
@@ -351,7 +353,8 @@ export const schedulerService = {
 
     // Deduct balance
     const currentBalance = parseFloat(account.balance);
-    await demoAccountModel.updateBalance(transaction.user_id, currentBalance - amount);
+    const newBalance = parseFloat((currentBalance - amount).toFixed(2));
+    await demoAccountModel.updateBalance(transaction.user_id, newBalance);
 
     // Update holdings
     const existingHolding = await holdingModel.findByScheme(
@@ -388,8 +391,6 @@ export const schedulerService = {
         lastNavDate: getISTDate()
       });
     }
-
-    const newBalance = account.balance - amount;
 
     return {
       units,
@@ -451,7 +452,8 @@ export const schedulerService = {
 
     // Credit balance
     const account = await demoAccountModel.findByUserId(transaction.user_id);
-    const newBalance = account.balance + amount;
+    const currentBalance = parseFloat(account.balance);
+    const newBalance = parseFloat((currentBalance + amount).toFixed(2));
     await demoAccountModel.updateBalance(transaction.user_id, newBalance);
 
     return {
