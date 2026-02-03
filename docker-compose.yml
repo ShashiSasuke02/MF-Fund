@@ -93,6 +93,11 @@ services:
       CRON_REPORT_EMAIL: ${CRON_REPORT_EMAIL}
       ENABLE_TRANSACTION_SCHEDULER_REPORT: ${ENABLE_TRANSACTION_SCHEDULER_REPORT:-true}
       ENABLE_FULL_SYNC_REPORT: ${ENABLE_FULL_SYNC_REPORT:-true}
+      
+      # AI Mutual Fund Manager (Ollama)
+      OLLAMA_ENDPOINT: ${OLLAMA_ENDPOINT:-http://192.168.1.4:11434}
+      OLLAMA_MODEL_NAME: ${OLLAMA_MODEL_NAME:-qwen2.5:0.5b}
+      AI_SYSTEM_PROMPT: ${AI_SYSTEM_PROMPT}
 
     volumes:
       - ./logs:/app/logs  # Bind mount for direct host access
