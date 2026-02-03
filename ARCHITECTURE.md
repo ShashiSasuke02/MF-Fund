@@ -782,8 +782,9 @@ Integrated an AI-powered assistant using Ollama (local LLM) to help users unders
 # AI Mutual Fund Manager (Ollama)
 OLLAMA_ENDPOINT=http://192.168.1.4:11434
 OLLAMA_MODEL_NAME=qwen2.5:0.5b
-AI_SYSTEM_PROMPT=You are a helpful AI Mutual Fund Manager assistant...
+AI_SYSTEM_PROMPT=You are a specialized AI Mutual Fund Manager... STRICT TOPIC RESTRICTION...
 ```
+
 
 ---
 
