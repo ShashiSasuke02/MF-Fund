@@ -784,3 +784,26 @@ OLLAMA_ENDPOINT=http://192.168.1.4:11434
 OLLAMA_MODEL_NAME=qwen2.5:0.5b
 AI_SYSTEM_PROMPT=You are a helpful AI Mutual Fund Manager assistant...
 ```
+
+---
+
+## 16. Deployment Procedures (February 2026)
+> **Note:** Comprehensive deployment instructions are maintained in **`DEPLOYMENT.md`**.
+
+### 16.1 TrueNAS / Docker Strategy
+-   **Image Building:** Multi-stage Dockerfile builds both Frontend (`npm run build`) and Backend.
+-   **Orchestration:** `docker-compose.yml` serves as the source of truth for service definition.
+-   **Environment:** Production secrets must be injected via `.env` file on the host.
+
+### 16.2 Critical Environment Variables
+For successful deployment, the following new variables **MUST** be present in the production `.env` file:
+1.  **`OLLAMA_ENDPOINT`**: URL to the AI server (e.g., `http://192.168.1.4:11434`).
+2.  **`OLLAMA_MODEL_NAME`**: Specific model tag (e.g., `qwen2.5:0.5b`).
+3.  **`ENABLE_INCREMENTAL_SYNC`**: Set to `true` for intraday updates.
+
+### 16.3 Updates & Rollbacks
+-   **Update:** `git pull` -> `docker compose up -d --build` (Forces new image creation).
+-   **Rollback:** Revert git commit -> Rebuild.
+
+---
+
