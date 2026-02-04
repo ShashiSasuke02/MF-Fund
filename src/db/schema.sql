@@ -16,17 +16,21 @@ CREATE TABLE IF NOT EXISTS api_cache (
     INDEX idx_api_cache_expires_at (expires_at)
 );
 
--- Seed the AMC Master table with top 3 fund houses
+-- Seed the AMC Master table with top fund houses (SHORT NAMES - must match AMC_WHITELIST in mfapiIngestion.service.js)
 INSERT IGNORE INTO amc_master (fund_house, display_name, display_order) VALUES
-    ('SBI Mutual Fund', 'SBI Mutual Fund', 1),
-    ('ICICI Prudential Mutual Fund', 'ICICI Prudential Mutual Fund', 2),
-    ('HDFC Mutual Fund', 'HDFC Mutual Fund', 3),
-    ('Nippon India Mutual Fund', 'Nippon India Mutual Fund', 4),
-    ('Kotak Mahindra Mutual Fund', 'Kotak Mahindra Mutual Fund', 5),
-    ('Aditya Birla Sun Life Mutual Fund', 'Aditya Birla Sun Life Mutual Fund', 6),
-    ('Axis Mutual Fund', 'Axis Mutual Fund', 7),
-    ('UTI Mutual Fund', 'UTI Mutual Fund', 8),
-    ('Mirae Asset Mutual Fund', 'Mirae Asset Mutual Fund', 9);
+    ('SBI', 'SBI Mutual Fund', 1),
+    ('ICICI Prudential', 'ICICI Prudential Mutual Fund', 2),
+    ('HDFC', 'HDFC Mutual Fund', 3),
+    ('Nippon India', 'Nippon India Mutual Fund', 4),
+    ('Kotak Mahindra', 'Kotak Mahindra Mutual Fund', 5),
+    ('Aditya Birla Sun Life', 'Aditya Birla Sun Life Mutual Fund', 6),
+    ('Axis', 'Axis Mutual Fund', 7),
+    ('UTI', 'UTI Mutual Fund', 8),
+    ('Mirae Asset', 'Mirae Asset Mutual Fund', 9),
+    ('DSP', 'DSP Mutual Fund', 10),
+    ('Bandhan', 'Bandhan Mutual Fund', 11),
+    ('Tata', 'Tata Mutual Fund', 12);
+
 
 -- Users table for demo account holders
 CREATE TABLE IF NOT EXISTS users (

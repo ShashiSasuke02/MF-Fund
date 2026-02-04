@@ -149,15 +149,17 @@ export const cronNotificationService = {
             }
             else if (reportType === 'SYNC') {
                 const syncResult = jobResults.find(j => j.jobName === 'Full Fund Sync');
-                // stats for sync
-                // Note: 'inserted' = funds inserted/upserted
-                // Note: 'navUpdated' = NAVs updated
-                stats.fundsFetched = (syncResult && syncResult.result) ? (syncResult.result.totalFetched || 0) : 0;
-                stats.fundsInserted = (syncResult && syncResult.result) ? (syncResult.result.inserted || 0) : 0;
-                stats.navUpdated = (syncResult && syncResult.result) ? (syncResult.result.navInserted || 0) : 0;
-                stats.skippedInactive = (syncResult && syncResult.result) ? (syncResult.result.skippedInactive || 0) : 0;
-                stats.markedInactive = (syncResult && syncResult.result) ? (syncResult.result.markedInactive || 0) : 0;
-                stats.errors = (syncResult && syncResult.result) ? (syncResult.result.errors || 0) : 0;
+                // FIX: The job now returns { fullSync: {...}, incrementalSync: {...} }
+                // We need to extract stats from the nested fullSync object
+                const fullSyncData = (syncResult?.result?.fullSync) || syncResult?.result || {};
+                const incrementalSyncData = syncResult?.result?.incrementalSync || {};
+
+                stats.fundsFetched = (fullSyncData.totalFetched || 0) + (incrementalSyncData.totalFetched || 0);
+                stats.fundsInserted = (fullSyncData.inserted || 0) + (incrementalSyncData.inserted || 0);
+                stats.navUpdated = (fullSyncData.navInserted || 0) + (incrementalSyncData.navInserted || 0);
+                stats.skippedInactive = fullSyncData.skippedInactive || 0;
+                stats.markedInactive = fullSyncData.markedInactive || 0;
+                stats.errors = (fullSyncData.errors || 0) + (incrementalSyncData.errors || 0);
             }
 
             const sent = await emailService.sendCronJobReport({

@@ -808,3 +808,22 @@ For successful deployment, the following new variables **MUST** be present in th
 
 ---
 
+### 15.9 AMC Duplicate & Email Notification Fixes (Feb 2026)
+
+#### AMC Duplication Root Cause
+-   **Problem:** The `amc_master` table was seeded with **long** fund house names (e.g., "SBI Mutual Fund"), but `mfapiIngestion.service.js` extracts **short** names from MFAPI (e.g., "SBI"). This caused duplicate entries (one from seed, one from sync).
+-   **Solution:**
+    -   **File:** `src/db/schema.sql`
+    -   **Change:** Updated seed data to use **short names** matching the `AMC_WHITELIST` constant.
+    -   **Example:** `'SBI Mutual Fund'` → `'SBI'` (with `display_name` keeping the full name for UI).
+-   **Note for Existing Deployments:** Run `scripts/fix-amc-duplicates.js` to clean up existing duplicates.
+
+#### Email Notification "0 0 0" Stats Fix
+-   **Problem:** Cron report emails displayed `0` for all stats (Funds Fetched, NAVs Updated, etc.).
+-   **Root Cause:** In `scheduler.job.js`, the Full Fund Sync job returns a **nested** object: `{ fullSync: {...}, incrementalSync: {...} }`. The `cronNotification.service.js` was trying to read flat properties (e.g., `result.totalFetched`) which resulted in `undefined` → defaulting to `0`.
+-   **Solution:**
+    -   **File:** `src/services/cronNotification.service.js`
+    -   **Change:** Updated stats extraction to correctly access `result.fullSync.totalFetched` and `result.incrementalSync.totalFetched`, then sum them.
+-   **Verification:** After deploying, manually trigger "Full Fund Sync" from Admin Dashboard and confirm the email report shows correct stats.
+
+---
