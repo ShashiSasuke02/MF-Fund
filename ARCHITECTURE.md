@@ -10,9 +10,11 @@
 -   **Frontend:** React 18 (Vite), Tailwind CSS, React Router v6, Recharts.
 -   **Backend:** Node.js, Express.js.
 -   **Database:** MySQL 8.0 (with `mysql2` connection pool).
+-   **Cache:** Redis 7 (with `ioredis`) - High-speed in-memory caching with MySQL fallback.
 -   **Infrastructure:** Docker Compose, Nginx (optional proxy), Node Cron.
 -   **External APIs:** 
     -   `api.mfapi.in` (Primary Data Source for Indian Mutual Funds).
+    -   `portal.amfiindia.com` (Official AMFI NAV Text File for bulk sync).
     -   "Captain Nemo" Integration (Enrichment Service for AUM/Outcome data).
 
 ---
@@ -81,6 +83,7 @@ This is the core of the application. Logic is strictly separated from Controller
     -   **Logic:** Locks row -> Checks Balance (`demo_accounts`) -> Calculates Units (using Local NAV) -> Updates `holdings` -> Updates Balance -> Logs to `execution_logs`.
     -   **Self-Contained:** Does **NOT** call external APIs. Relies on data already synced to `fund_nav_history`.
 -   **`localFundService.js`**: Read-only service for fetching fund data from MySQL for the UI.
+-   **`settings.service.js`**: Manages dynamic system configuration (e.g., AI toggles) with in-memory caching.
 
 ### 3.4 Data Access Layer
 -   **Pattern:** Repository/DAO Pattern (no full ORM).
@@ -96,6 +99,7 @@ This is the core of the application. Logic is strictly separated from Controller
 -   **`transactions`**: High-fidelity log of every Buy/Sell order.
 -   **`holdings`**: Aggregate snapshot of user's portfolio.
 -   **`amc_master`**: Whitelist configuration.
+-   **`system_settings`**: Key-value store for global app configuration (AI config, Feature flags).
 
 ### 3.6 Authentication & Authorization
 -   **Strategy:** JWT (JSON Web Tokens).
@@ -164,12 +168,26 @@ This is the core of the application. Logic is strictly separated from Controller
 ## 6. Critical Business Workflows
 
 ### 6.1 Fund Ingestion (Nightly)
+**Stage 1: Full Fund Sync** (1:00 AM IST)
 1.  **Trigger:** Cron (`0 1 * * *`) or Manual Admin Action.
 2.  **Action:** `mfapiIngestionService.runFullSync()`.
 3.  **Fetch:** Calls MFAPI `/mf/latest`.
 4.  **Filter:** Applies Whitelist & Exclusion Keywords (No IDCW).
 5.  **Upsert:** Updates `funds` table and `fund_nav_history`.
 6.  **Enrich:** (Optional) Lazy-load extra data if `detail_info_synced_at` is old.
+
+**Stage 2: AMFI NAV Sync** (Automatic, after Stage 1)
+1.  **Trigger:** Automatically after Full Fund Sync completes (success OR failure).
+2.  **Action:** `amfiSyncService.runSync()`.
+3.  **Fetch:** Downloads AMFI text file (`https://portal.amfiindia.com/spages/NAVAll.txt`).
+4.  **Parse:** Semicolon-delimited, ~13,000 records, parses DD-MMM-YYYY dates.
+5.  **Match:** Filters to only active funds in database (~5,000 funds).
+6.  **Upsert:** Bulk updates `fund_nav_history` with latest NAVs.
+7.  **Performance:** ~1.6 MB download, ~1 second parse, ~500ms DB update.
+
+**Manual Jobs (Admin Dashboard Only):**
+-   **AMFI NAV Sync:** Fast text-based NAV update (recommended).
+-   **Incremental Fund Sync:** Legacy API-based sync (deprecated, slower).
 
 ### 6.2 SIP Execution (Daily)
 1.  **Trigger:** Cron (`0 6 * * *`) -> `scheduler.service.executeDueTransactions()`.
@@ -186,8 +204,17 @@ This is the core of the application. Logic is strictly separated from Controller
 ## 7. Cross-Cutting Concerns
 
 -   **Security:** Hashed passwords (`bcrypt`), JWT Auth, Helmet headers.
--   **Performance:** `mysql2` connection pooling. API caching (memory) for frequent lookups (AMCs).
--   **Scalability:** Monolith structure; scalable via vertical scaling primarily. DB is the bottleneck.
+-   **Performance:** 
+    -   `mysql2` connection pooling for database operations.
+    -   **Redis caching** (primary) with MySQL `api_cache` table (fallback).
+    -   TTL-based expiration - Redis auto-expires, MySQL cleaned via periodic job.
+-   **Caching Strategy:** "Cache Aside" pattern in `cache.service.js`:
+    1.  Try Redis (sub-millisecond).
+    2.  If miss, check MySQL `api_cache`.
+    3.  If miss, fetch from API.
+    4.  Write to both Redis (TTL) and MySQL (durability).
+-   **Graceful Degradation:** If Redis is unavailable, app continues with MySQL-only caching.
+-   **Scalability:** Monolith structure; scalable via vertical scaling primarily. Redis offloads cache load from DB.
 
 ---
 
@@ -773,6 +800,23 @@ Integrated an AI-powered assistant using Ollama (local LLM) to help users unders
 
 #### Security
 - All AI endpoints protected by `authenticateToken` middleware
+
+### 15.9 Admin AI Manager (Feb 2026)
+
+#### Overview
+Added administrative control over the AI Assistant, allowing dynamic toggling and model selection without server restarts.
+
+#### Features
+-   **Global Toggle:** Enable/Disable AI features system-wide.
+-   **Model Selection:** Dropdown list populated dynamically from Ollama API.
+-   **Status Indicator:** Real-time check of Ollama server connectivity.
+
+#### Technical Implementation
+-   **Database:** New `system_settings` table stores `ai_enabled` (boolean) and `ai_model` (string).
+-   **Service:** `settings.service.js` provides cached access (1-minute TTL) to DB settings.
+-   **Frontend:** `AiManager.jsx` component in Admin Dashboard. `AiAssistant.jsx` checks status on mount.
+-   **Graceful Degradation:** If AI is disabled via Admin, the chat widget automatically hides for all users.
+
 - Message length limited to 2000 characters
 - Conversation history limited to 10 messages
 - Graceful error handling (503 on AI failure)

@@ -10,6 +10,7 @@ import { cronJobLogModel } from '../models/cronJobLog.model.js';
 const TRACKED_JOBS = [
     'Daily Transaction Scheduler',
     'Full Fund Sync',
+    'AMFI NAV Sync',
     'Incremental Fund Sync'
 ];
 
@@ -149,17 +150,27 @@ export const cronNotificationService = {
             }
             else if (reportType === 'SYNC') {
                 const syncResult = jobResults.find(j => j.jobName === 'Full Fund Sync');
-                // FIX: The job now returns { fullSync: {...}, incrementalSync: {...} }
+                // FIX: The job now returns { fullSync: {...}, amfiSync: {...} }
                 // We need to extract stats from the nested fullSync object
                 const fullSyncData = (syncResult?.result?.fullSync) || syncResult?.result || {};
-                const incrementalSyncData = syncResult?.result?.incrementalSync || {};
+                const amfiSyncData = syncResult?.result?.amfiSync || {};
 
-                stats.fundsFetched = (fullSyncData.totalFetched || 0) + (incrementalSyncData.totalFetched || 0);
-                stats.fundsInserted = (fullSyncData.inserted || 0) + (incrementalSyncData.inserted || 0);
-                stats.navUpdated = (fullSyncData.navInserted || 0) + (incrementalSyncData.navInserted || 0);
+                stats.fundsFetched = fullSyncData.totalFetched || 0;
+                stats.fundsInserted = fullSyncData.inserted || 0;
+                stats.navUpdated = (fullSyncData.navInserted || 0) + (amfiSyncData.navUpdated || 0);
                 stats.skippedInactive = fullSyncData.skippedInactive || 0;
                 stats.markedInactive = fullSyncData.markedInactive || 0;
-                stats.errors = (fullSyncData.errors || 0) + (incrementalSyncData.errors || 0);
+                stats.errors = (fullSyncData.errors || 0) + (amfiSyncData.errors || 0);
+            }
+            else if (reportType === 'AMFI_SYNC') {
+                const amfiResult = jobResults.find(j => j.jobName === 'AMFI NAV Sync');
+                const amfiData = amfiResult?.result || {};
+
+                stats.totalParsed = amfiData.totalParsed || 0;
+                stats.matchedFunds = amfiData.matchedFunds || 0;
+                stats.navUpdated = amfiData.navUpdated || 0;
+                stats.skippedNoMatch = amfiData.skippedNoMatch || 0;
+                stats.errors = amfiData.errors || 0;
             }
 
             const sent = await emailService.sendCronJobReport({
@@ -200,12 +211,20 @@ export const cronNotificationService = {
             await this.sendDailyReport({ jobFilter: 'Daily Transaction Scheduler', reportType: 'SCHEDULER' });
         }
 
-        // 2. Full Fund Sync (2:30 AM job)
+        // 2. Full Fund Sync (1:00 AM job)
         if (jobName === 'Full Fund Sync') {
             if (process.env.ENABLE_FULL_SYNC_REPORT !== 'true') return;
 
             console.log(`[CronNotification] ${jobName} complete - sending Full Fund Sync Report...`);
             await this.sendDailyReport({ jobFilter: 'Full Fund Sync', reportType: 'SYNC' });
+        }
+
+        // 3. AMFI NAV Sync (runs after Full Fund Sync or manually)
+        if (jobName === 'AMFI NAV Sync') {
+            if (process.env.ENABLE_AMFI_SYNC_REPORT !== 'true') return;
+
+            console.log(`[CronNotification] ${jobName} complete - sending AMFI NAV Sync Report...`);
+            await this.sendDailyReport({ jobFilter: 'AMFI NAV Sync', reportType: 'AMFI_SYNC' });
         }
     }
 };

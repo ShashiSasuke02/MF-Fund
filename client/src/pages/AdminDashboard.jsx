@@ -13,6 +13,7 @@ import UserManagement from '../components/admin/UserManagement';
 import QuickActions from '../components/admin/QuickActions';
 import ActivityLogs from '../components/admin/ActivityLogs';
 import LogViewer from '../components/admin/LogViewer'; // [NEW]
+import AiManager from '../components/admin/AiManager'; // [NEW]
 
 const envApiUrl = import.meta.env.VITE_API_URL;
 const API_URL = (envApiUrl && envApiUrl !== 'undefined') ? envApiUrl : '';
@@ -154,7 +155,8 @@ export default function AdminDashboard() {
     { id: 'overview', label: 'Overview', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
     { id: 'cron', label: 'Cron Jobs', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
     { id: 'users', label: 'Users', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
-    { id: 'logs', label: 'Logs', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' }
+    { id: 'logs', label: 'Logs', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
+    { id: 'ai', label: 'AI Manager', icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' }
   ];
 
   return (
@@ -283,11 +285,18 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          {/* AI Manager Section */}
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">AI Configuration</h2>
+            <AiManager />
+          </div>
+
+          {/* Two Column Layout - Removed: SchedulerStats & SyncActivityChart */}
+          {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <SchedulerStats />
             <SyncActivityChart />
-          </div>
+          </div> */}
         </div>
       )}
 
@@ -370,6 +379,13 @@ export default function AdminDashboard() {
         <div className="space-y-6">
           <LogViewer />
           <ActivityLogs />
+        </div>
+      )}
+
+      {/* AI Tab */}
+      {activeTab === 'ai' && (
+        <div className="space-y-6">
+          <AiManager />
         </div>
       )}
 

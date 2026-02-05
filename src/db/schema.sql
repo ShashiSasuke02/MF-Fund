@@ -248,3 +248,16 @@ CREATE TABLE IF NOT EXISTS user_notifications (
     INDEX idx_notifications_user (user_id, is_read),
     INDEX idx_notifications_created (created_at)
 );
+
+-- System Settings table (dynamic app-wide configuration)
+CREATE TABLE IF NOT EXISTS system_settings (
+    setting_key VARCHAR(50) PRIMARY KEY,
+    setting_value TEXT,
+    description VARCHAR(255),
+    updated_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000)
+);
+
+-- Seed default AI settings
+INSERT IGNORE INTO system_settings (setting_key, setting_value, description, updated_at) VALUES
+    ('ai_enabled', 'true', 'Enable/Disable AI Assistant globally', UNIX_TIMESTAMP() * 1000),
+    ('ai_model', 'qwen2.5:0.5b-instruct', 'Active Ollama model name', UNIX_TIMESTAMP() * 1000);

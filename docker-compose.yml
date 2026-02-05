@@ -43,6 +43,31 @@ services:
           memory: 512M
 
   # ---------------------------------------------------------------------------
+  # Redis Cache (High-speed in-memory caching)
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: mf-investments-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - mf-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 64M
+
+  # ---------------------------------------------------------------------------
   # Backend API + Frontend (Node.js)
   # ---------------------------------------------------------------------------
   backend:
@@ -54,6 +79,8 @@ services:
     restart: unless-stopped
     depends_on:
       mysql:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     environment:
       # Server
@@ -98,6 +125,11 @@ services:
       # Note: AI_SYSTEM_PROMPT is hardcoded in ollama.service.js for security
       OLLAMA_ENDPOINT: ${OLLAMA_ENDPOINT:-http://192.168.1.4:11434}
       OLLAMA_MODEL_NAME: ${OLLAMA_MODEL_NAME:-qwen2.5:0.5b-instruct}
+      
+      # Redis Cache
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_ENABLED: ${REDIS_ENABLED:-true}
 
     volumes:
       - ./logs:/app/logs  # Bind mount for direct host access
@@ -222,4 +254,6 @@ networks:
 # =============================================================================
 volumes:
   mysql_data:
+    driver: local
+  redis_data:
     driver: local

@@ -141,12 +141,41 @@ If there is ANY uncertainty → REFUSE.`
 
 /**
  * Service to interact with a remote Ollama instance
+ * Now supports dynamic configuration via SettingsService
  */
 class OllamaService {
     constructor() {
         this.baseUrl = AI_CONFIG.endpoint;
-        this.model = AI_CONFIG.model;
+        this.defaultModel = AI_CONFIG.model;
         this.systemPrompt = AI_CONFIG.systemPrompt;
+    }
+
+    /**
+     * Get current model from settings (with fallback chain)
+     * @returns {Promise<string>}
+     */
+    async getCurrentModel() {
+        try {
+            const { settingsService } = await import('./settings.service.js');
+            return await settingsService.getAiModel();
+        } catch (error) {
+            // Fallback to default if settings unavailable
+            return this.defaultModel;
+        }
+    }
+
+    /**
+     * Check if AI feature is enabled
+     * @returns {Promise<boolean>}
+     */
+    async isEnabled() {
+        try {
+            const { settingsService } = await import('./settings.service.js');
+            return await settingsService.isAiEnabled();
+        } catch (error) {
+            // Default to enabled if settings unavailable
+            return true;
+        }
     }
 
     /**
@@ -188,6 +217,14 @@ class OllamaService {
      * @returns {Promise<string>} The AI response text
      */
     async chat(userMessage, conversationHistory = []) {
+        // Check if AI is enabled
+        const enabled = await this.isEnabled();
+        if (!enabled) {
+            throw new Error('AI_DISABLED');
+        }
+
+        const model = await this.getCurrentModel();
+
         try {
             // Build messages array with system prompt
             const messages = [
@@ -197,12 +234,12 @@ class OllamaService {
             ];
 
             const payload = {
-                model: this.model,
+                model: model,
                 messages: messages,
                 stream: false
             };
 
-            logger.info(`[Ollama] Chat request [Model: ${this.model}]`);
+            logger.info(`[Ollama] Chat request [Model: ${model}]`);
 
             const response = await fetch(`${this.baseUrl}/api/chat`, {
                 method: 'POST',
@@ -227,10 +264,14 @@ class OllamaService {
     /**
      * Get current configuration (for debugging/admin)
      */
-    getConfig() {
+    async getConfig() {
+        const currentModel = await this.getCurrentModel();
+        const enabled = await this.isEnabled();
+
         return {
             endpoint: this.baseUrl,
-            model: this.model,
+            model: currentModel,
+            enabled: enabled,
             systemPromptLength: this.systemPrompt.length
         };
     }

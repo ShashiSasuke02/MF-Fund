@@ -21,6 +21,10 @@
     - Dynamic script injection (no hardcoded index.html script).
     - Components render `null` when disabled (no placeholders).
 - **Log Management:** Configured `docker-compose.yml` to use bind mounts (`./logs`) for direct log access.
+- **Admin AI Manager (Saved):** [PLAN-admin-ai-manager.md](file:///c:/Users/shashidhar/Desktop/MF-Investments/docs/PLAN-admin-ai-manager.md)
+    - Enable/Disable AI globally via Admin Dashboard.
+    - Select and persist Ollama models dynamically.
+    - New `system_settings` table.
 
 ## ✅ Completed Implementation Details
 - **Project Cleanup:** Moved "unwanted" loose files (plans, debug scripts, logs) to `Extras/` folder.

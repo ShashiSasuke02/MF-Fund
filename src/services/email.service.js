@@ -101,6 +101,10 @@ class EmailService {
             fundsInserted,
             navUpdated,
             errors,
+            // AMFI Sync Stats
+            totalParsed,
+            matchedFunds,
+            skippedNoMatch,
             // Meta
             reportType
         } = reportData;
@@ -149,6 +153,9 @@ class EmailService {
         } else if (reportType === 'SYNC') {
             headerTitle = 'Full Fund Sync Report';
             subTitle = 'Market Data Ingestion';
+        } else if (reportType === 'AMFI_SYNC') {
+            headerTitle = 'AMFI NAV Sync Report';
+            subTitle = 'Official AMFI Text File Sync';
         }
 
         // --- COMPONENTS (Inline CSS Helpers) ---
@@ -183,6 +190,12 @@ class EmailService {
                 ${StatCard('Total Found', fundsFetched, colors.textPrimary)}
                 ${StatCard('Funds Upserted', fundsInserted, '#3B82F6')} // Blue
                 ${StatCard('NAV Records', navUpdated, colors.success)}
+             `;
+        } else if (reportType === 'AMFI_SYNC') {
+            statsRow = `
+                ${StatCard('Total Parsed', totalParsed, colors.textPrimary, 'From AMFI File')}
+                ${StatCard('Matched Funds', matchedFunds, '#3B82F6', 'In Database')}
+                ${StatCard('NAV Updated', navUpdated, colors.success, 'Records Added')}
              `;
         }
 

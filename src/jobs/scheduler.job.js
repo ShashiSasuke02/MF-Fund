@@ -5,6 +5,7 @@ export { cronRegistry };
 import { cronJobLogModel } from '../models/cronJobLog.model.js';
 import { schedulerService } from '../services/scheduler.service.js';
 import { mfapiIngestionService } from '../services/mfapiIngestion.service.js';
+import { amfiSyncService } from '../services/amfiSync.service.js';
 import { cronNotificationService } from '../services/cronNotification.service.js';
 
 
@@ -93,23 +94,54 @@ export const initSchedulerJobs = () => {
     // For manual trigger visibility, it's better to register it.
 
     // 2. Register Full Fund Sync (1:00 AM IST)
-    // Note: Timezone IS 'Asia/Kolkata' (handled below in line 138 options)
+    // After completion (success or failure), AMFI NAV Sync runs automatically
     cronRegistry.register('Full Fund Sync', '0 0 1 * * *', async () => {
-        // Run Full Sync first
-        const fullSyncResult = await mfapiIngestionService.runFullSync();
+        let fullSyncResult = null;
+        let amfiSyncResult = null;
 
-        // After successful Full Sync, trigger Incremental Sync
-        console.log('[Cron] Full Fund Sync completed. Triggering Incremental Fund Sync...');
-        const incrementalResult = await mfapiIngestionService.runIncrementalSync();
+        try {
+            fullSyncResult = await mfapiIngestionService.runFullSync();
+        } catch (error) {
+            console.error('[Cron] Full Fund Sync failed:', error.message);
+            fullSyncResult = { success: false, error: error.message };
+        }
+
+        // Always run AMFI Sync after Full Sync (regardless of success/failure)
+        const amfiStartTime = Date.now();
+        try {
+            console.log('[Cron] Full Fund Sync completed. Running AMFI NAV Sync...');
+            amfiSyncResult = await amfiSyncService.runSync();
+        } catch (error) {
+            console.error('[Cron] AMFI NAV Sync failed:', error.message);
+            amfiSyncResult = { success: false, error: error.message };
+        }
+
+        // Notify for AMFI Sync (separate email)
+        const amfiDuration = Date.now() - amfiStartTime;
+        const amfiStatus = amfiSyncResult?.success ? 'SUCCESS' : 'FAILED';
+        await cronNotificationService.onJobComplete(
+            'AMFI NAV Sync',
+            amfiStatus,
+            amfiSyncResult,
+            amfiSyncResult?.error || null,
+            amfiDuration
+        );
 
         return {
             fullSync: fullSyncResult,
-            incrementalSync: incrementalResult
+            amfiSync: amfiSyncResult
         };
     });
 
-    // 3. Register Incremental Fund Sync (10 AM, 12 PM, 2 PM IST)
-    cronRegistry.register('Incremental Fund Sync', '0 10,12,14 * * *', async () => {
+    // 3. Register AMFI NAV Sync (Manual Only - Admin Dashboard)
+    // NOTE: This job is NOT scheduled. It can be triggered manually for ad-hoc updates.
+    cronRegistry.register('AMFI NAV Sync', 'MANUAL_ONLY', async () => {
+        return await amfiSyncService.runSync();
+    });
+
+    // 4. Register Incremental Fund Sync (Manual Only - Admin Dashboard)
+    // NOTE: This job is NOT scheduled. Legacy API-based sync, use AMFI Sync instead.
+    cronRegistry.register('Incremental Fund Sync', 'MANUAL_ONLY', async () => {
         return await mfapiIngestionService.runIncrementalSync();
     });
 
