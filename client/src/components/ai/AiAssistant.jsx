@@ -41,12 +41,9 @@ export default function AiAssistant() {
                 // Let's rely on the chat error handling for now OR 
                 // if we are an admin/user, we can call the status endpoint.
 
-                if (token) {
-                    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/ai/status`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    setIsEnabled(response.data.ai?.enabled ?? true);
-                }
+                // Check status regardless of auth
+                const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/ai/status`);
+                setIsEnabled(response.data.ai?.enabled ?? true);
             } catch (err) {
                 // If 403 (not admin) / 401, we just assume enabled for now (users can't check admin status)
                 // This is a limitation of the current plan not adding a public status route.

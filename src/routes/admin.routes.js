@@ -60,7 +60,7 @@ router.post('/settings', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 // Get AI Status (public-ish - any authenticated user can check)
-router.get('/ai/status', authenticateToken, async (req, res) => {
+router.get('/ai/status', async (req, res) => {
     try {
         const enabled = await settingsService.isAiEnabled();
         const model = await settingsService.getAiModel();
