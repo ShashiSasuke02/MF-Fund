@@ -160,7 +160,14 @@ export const initSchedulerJobs = () => {
         }
 
         if (isEnabled) {
-            // Validate schedule
+            // Skip cron scheduling for manual-only jobs
+            if (job.schedule === 'MANUAL_ONLY') {
+                logger.info(`[Cron] Registered: ${job.name} (Manual Trigger Only)`);
+                job.isRunning = true;
+                return;
+            }
+
+            // Validate schedule for automated jobs
             if (!cron.validate(job.schedule)) {
                 logger.error(`[Cron] Invalid schedule for ${job.name}: ${job.schedule}`);
                 return;

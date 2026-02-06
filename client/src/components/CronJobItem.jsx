@@ -14,8 +14,8 @@ export default function CronJobItem({ job, onRun, onShowHistory }) {
             <span className="flex items-center gap-2">
                 <span className="text-gray-600">{date}</span>
                 <span className={`text-xs font-bold px-2 py-0.5 rounded ${status === 'SUCCESS' ? 'bg-green-100 text-green-700' :
-                        status === 'FAILED' ? 'bg-red-100 text-red-700' :
-                            'bg-blue-100 text-blue-700'
+                    status === 'FAILED' ? 'bg-red-100 text-red-700' :
+                        'bg-blue-100 text-blue-700'
                     }`}>
                     {status}
                 </span>
@@ -48,7 +48,9 @@ export default function CronJobItem({ job, onRun, onShowHistory }) {
                     </div>
                     <div>
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</p>
-                        <p className="text-sm font-medium mt-0.5 capitalize">{job.isEnabled ? 'Enabled/Scheduled' : 'Disabled (Internal Cache/Sync)'}</p>
+                        <p className="text-sm font-medium mt-0.5 capitalize">
+                            {job.isEnabled ? (job.schedule === 'MANUAL_ONLY' ? 'Manual Trigger Only' : 'Enabled/Scheduled') : 'Disabled (Internal Cache/Sync)'}
+                        </p>
                     </div>
                     <div className="sm:col-span-2">
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Run</p>
