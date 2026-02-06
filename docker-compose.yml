@@ -18,7 +18,7 @@ services:
     # image: mysql:8.0  <-- Replaced with custom build for permission safety
     build:
       context: ./docker
-      dockerfile: Dockerfile.db
+      dockerfile: mysql.Dockerfile
     container_name: mf-investments-db
     restart: unless-stopped
     command: --max-allowed-packet=67108864
