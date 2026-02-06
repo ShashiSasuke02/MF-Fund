@@ -15,7 +15,10 @@ services:
   # MySQL Database
   # ---------------------------------------------------------------------------
   mysql:
-    image: mysql:8.0
+    # image: mysql:8.0  <-- Replaced with custom build for permission safety
+    build:
+      context: ./docker
+      dockerfile: Dockerfile.db
     container_name: mf-investments-db
     restart: unless-stopped
     command: --max-allowed-packet=67108864
@@ -26,7 +29,7 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD:-mf_password_2024}
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+      # - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init.sql <-- Baked into image now
     networks:
       - mf-network
     healthcheck:
