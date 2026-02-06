@@ -1,6 +1,5 @@
 import { queryOne, run } from '../db/database.js';
 import logger from './logger.service.js';
-import logger from './logger.service.js';
 
 /**
  * Settings Service - Manages dynamic system settings with caching
