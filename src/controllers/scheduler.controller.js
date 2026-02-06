@@ -1,6 +1,7 @@
 import { schedulerService } from '../services/scheduler.service.js';
 import { transactionModel } from '../models/transaction.model.js';
 import { executionLogModel } from '../models/executionLog.model.js';
+import logger from '../services/logger.service.js';
 
 /**
  * Scheduler Controller
@@ -25,7 +26,7 @@ export const schedulerController = {
         }
       }
 
-      console.log(`[Scheduler Controller] Manual execution triggered for date: ${targetDate || 'today'}`);
+      logger.info(`[Scheduler Controller] Manual execution triggered for date: ${targetDate || 'today'}`);
 
       const result = await schedulerService.executeDueTransactions(targetDate);
 
@@ -34,7 +35,7 @@ export const schedulerController = {
         data: result
       });
     } catch (error) {
-      console.error('[Scheduler Controller] Execute error:', error);
+      logger.error(`[Scheduler Controller] Execute error: ${error.message}`);
       res.status(500).json({
         error: 'Failed to execute scheduler',
         message: error.message
@@ -69,7 +70,7 @@ export const schedulerController = {
         transactions: dueTransactions
       });
     } catch (error) {
-      console.error('[Scheduler Controller] Get due transactions error:', error);
+      logger.error(`[Scheduler Controller] Get due transactions error: ${error.message}`);
       res.status(500).json({
         error: 'Failed to fetch due transactions',
         message: error.message
@@ -114,7 +115,7 @@ export const schedulerController = {
         logs
       });
     } catch (error) {
-      console.error('[Scheduler Controller] Get execution logs error:', error);
+      logger.error(`[Scheduler Controller] Get execution logs error: ${error.message}`);
       res.status(500).json({
         error: 'Failed to fetch execution logs',
         message: error.message
@@ -144,7 +145,7 @@ export const schedulerController = {
         failures
       });
     } catch (error) {
-      console.error('[Scheduler Controller] Get failures error:', error);
+      logger.error(`[Scheduler Controller] Get failures error: ${error.message}`);
       res.status(500).json({
         error: 'Failed to fetch execution failures',
         message: error.message
@@ -188,7 +189,7 @@ export const schedulerController = {
         statistics: stats
       });
     } catch (error) {
-      console.error('[Scheduler Controller] Get statistics error:', error);
+      logger.error(`[Scheduler Controller] Get statistics error: ${error.message}`);
       res.status(500).json({
         error: 'Failed to fetch execution statistics',
         message: error.message
@@ -226,14 +227,14 @@ export const schedulerController = {
 
       await transactionModel.unlock(parseInt(transactionId));
 
-      console.log(`[Scheduler Controller] Manually unlocked transaction ${transactionId}`);
+      logger.info(`[Scheduler Controller] Manually unlocked transaction ${transactionId}`);
 
       res.json({
         success: true,
         message: `Transaction ${transactionId} unlocked successfully`
       });
     } catch (error) {
-      console.error('[Scheduler Controller] Unlock transaction error:', error);
+      logger.error(`[Scheduler Controller] Unlock transaction error: ${error.message}`);
       res.status(500).json({
         error: 'Failed to unlock transaction',
         message: error.message

@@ -1,5 +1,6 @@
 import Redis from 'ioredis';
-import { query, queryOne, run } from '../db/database.js';
+import { query, queryOne, run } from '../db/database.js'; // Keep these as they are used
+import logger from './logger.service.js'; // Add logger import
 
 /**
  * Cache Service - Hybrid Redis + MySQL caching
@@ -22,7 +23,7 @@ class CacheService {
    */
   initRedis() {
     if (!this.redisEnabled) {
-      console.log('[Cache] Redis disabled via REDIS_ENABLED=false, using MySQL fallback.');
+      logger.info('[Cache] Redis disabled via REDIS_ENABLED=false, using MySQL fallback.');
       return;
     }
 
@@ -36,7 +37,7 @@ class CacheService {
         maxRetriesPerRequest: 3,
         retryStrategy: (times) => {
           if (times > 3) {
-            console.warn('[Cache] Redis connection failed, falling back to MySQL.');
+            logger.warn('[Cache] Redis connection failed, falling back to MySQL-only caching');
             this.redisConnected = false;
             return null; // Stop retrying
           }
@@ -46,13 +47,13 @@ class CacheService {
       });
 
       this.redis.on('connect', () => {
-        console.log('[Cache] ✅ Redis connected:', `${host}:${port}`);
+        logger.info(`[Cache] ✅ Redis connected: ${host}:${port}`);
         this.redisConnected = true;
       });
 
       this.redis.on('error', (err) => {
         if (this.redisConnected) {
-          console.warn('[Cache] Redis error:', err.message);
+          logger.warn('[Cache] Redis error:', err.message);
         }
         this.redisConnected = false;
       });
@@ -62,13 +63,14 @@ class CacheService {
       });
 
       // Attempt initial connection
+      logger.info('[Cache] Initializing Redis connection...');
       this.redis.connect().catch(() => {
         // Connection failed, will use MySQL fallback
-        console.warn('[Cache] Initial Redis connection failed, using MySQL.');
+        logger.warn('[Cache] Initial Redis connection failed, using MySQL.');
       });
 
     } catch (err) {
-      console.warn('[Cache] Redis initialization failed:', err.message);
+      logger.warn('[Cache] Redis initialization failed:', err.message);
       this.redis = null;
     }
   }
@@ -88,7 +90,7 @@ class CacheService {
         }
         // Not in Redis, check MySQL then cache to Redis
       } catch (err) {
-        console.warn('[Cache] Redis GET failed:', err.message);
+        logger.warn(`[Cache] Redis GET failed: ${err.message}`);
       }
     }
 
@@ -110,7 +112,7 @@ class CacheService {
         }
         return parsed;
       } catch (e) {
-        console.error('[Cache] Failed to parse cached JSON:', e.message);
+        logger.error(`[Cache] Failed to parse cached JSON: ${e.message}`);
         return null;
       }
     }
@@ -133,7 +135,7 @@ class CacheService {
     // Write to Redis (non-blocking)
     if (this.redis && this.redisConnected) {
       this.redis.setex(key, ttlSeconds, jsonData).catch((err) => {
-        console.warn('[Cache] Redis SET failed:', err.message);
+        logger.warn(`[Cache] Redis SET failed: ${err.message}`);
       });
     }
 
@@ -182,7 +184,7 @@ class CacheService {
       try {
         await this.redis.flushdb();
       } catch (err) {
-        console.warn('[Cache] Redis FLUSHDB failed:', err.message);
+        logger.warn(`[Cache] Redis FLUSHDB failed: ${err.message}`);
       }
     }
 

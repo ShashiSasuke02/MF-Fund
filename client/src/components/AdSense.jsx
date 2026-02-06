@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 
 // Env check - strict boolean
-const ADS_ENABLED = import.meta.env.VITE_isAdsEnabled === 'true';
+const ADS_ENABLED = import.meta.env.VITE_ADSENSE_ENABLED === 'true';
 const CLIENT_ID = import.meta.env.VITE_ADSENSE_CLIENT_ID || 'ca-pub-XXXXXXXXXXXXXXXX';
 
 // DEBUG LOG
 console.log('[AdSense Debug] Init:', {
   ADS_ENABLED,
   DEV: import.meta.env.DEV,
-  rawEnv: import.meta.env.VITE_isAdsEnabled
+  rawEnv: import.meta.env.VITE_ADSENSE_ENABLED
 });
 
 /**

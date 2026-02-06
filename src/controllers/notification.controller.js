@@ -27,7 +27,7 @@ export const notificationController = {
                 data: notifications
             });
         } catch (error) {
-            console.error('[Notification Controller] getNotifications error:', error);
+            logger.error(`[Notification Controller] getNotifications error: ${error.message}`);
             res.status(500).json({
                 success: false,
                 message: 'Failed to fetch notifications'
@@ -54,7 +54,7 @@ export const notificationController = {
                 message: 'Notification marked as read'
             });
         } catch (error) {
-            console.error('[Notification Controller] markAsRead error:', error);
+            logger.error(`[Notification Controller] markAsRead error: ${error.message}`);
             res.status(500).json({
                 success: false,
                 message: 'Failed to update notification'
@@ -75,7 +75,7 @@ export const notificationController = {
                 message: 'All notifications marked as read'
             });
         } catch (error) {
-            console.error('[Notification Controller] markAllAsRead error:', error);
+            logger.error(`[Notification Controller] markAllAsRead error: ${error.message}`);
             res.status(500).json({
                 success: false,
                 message: 'Failed to update notifications'

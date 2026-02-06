@@ -5,6 +5,7 @@
 
 import { emailService } from './email.service.js';
 import { cronJobLogModel } from '../models/cronJobLog.model.js';
+import logger from './logger.service.js';
 
 // Jobs to track for daily report
 const TRACKED_JOBS = [
@@ -45,7 +46,7 @@ export const cronNotificationService = {
             completedAt: new Date().toISOString()
         });
 
-        console.log(`[CronNotification] Recorded: ${jobName} = ${status}`);
+        logger.info(`[CronNotification] Recorded: ${jobName} = ${status}`);
     },
 
     /**
@@ -115,7 +116,7 @@ export const cronNotificationService = {
         const { jobFilter, reportType } = options;
 
         if (process.env.ENABLE_CRON_REPORTS !== 'true') {
-            console.log('[CronNotification] Reports disabled (ENABLE_CRON_REPORTS != true)');
+            logger.info('[CronNotification] Reports disabled (ENABLE_CRON_REPORTS != true)');
             return false;
         }
 
@@ -192,7 +193,7 @@ export const cronNotificationService = {
 
             return sent;
         } catch (error) {
-            console.error('[CronNotification] Failed to send report:', error);
+            logger.error('[CronNotification] Failed to send report:', error);
             return false;
         }
     },

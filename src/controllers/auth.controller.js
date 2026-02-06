@@ -6,6 +6,7 @@ import { demoAccountModel } from '../models/demoAccount.model.js';
 import { demoService } from '../services/demo.service.js';
 import { emailService } from '../services/email.service.js';
 import { run } from '../db/database.js';
+import logger from '../services/logger.service.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const JWT_EXPIRES_IN = '7d';
@@ -293,7 +294,7 @@ export const authController = {
           lastNavUpdate = portfolio.holdings[0]?.last_nav_date || new Date().toISOString().split('T')[0];
         }
       } catch (error) {
-        console.error('[Auth] Failed to fetch portfolio on login:', error.message);
+        logger.error(`[Auth] Failed to fetch portfolio on login: ${error.message}`);
         // Continue with login even if portfolio fetch fails
       }
 

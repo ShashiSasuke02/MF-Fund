@@ -1,6 +1,7 @@
 
 import { cronRegistry, triggerJobManually } from '../jobs/scheduler.job.js'; // Import trigger from scheduler.job.js to wrap execution
 import { cronJobLogModel } from '../models/cronJobLog.model.js';
+import logger from '../services/logger.service.js';
 
 export const cronController = {
     /**
@@ -28,7 +29,7 @@ export const cronController = {
 
             res.json({ success: true, jobs: jobsWithLastRun });
         } catch (error) {
-            console.error('List jobs error:', error);
+            logger.error(`List jobs error: ${error.message}`);
             res.status(500).json({ error: 'Failed to list cron jobs' });
         }
     },
@@ -56,7 +57,7 @@ export const cronController = {
             // BUT, fund sync takes minutes. Timeout will happen.
             // SO: Fire and forget, return "Job triggered".
 
-            triggerJobManually(jobName).catch(err => console.error(`Manual trigger failed in bg: ${jobName}`, err));
+            triggerJobManually(jobName).catch(err => logger.error(`Manual trigger failed in bg: ${jobName}: ${err.message}`));
 
             res.json({ success: true, message: `Job '${jobName}' triggered successfully.` });
         } catch (error) {

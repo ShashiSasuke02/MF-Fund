@@ -1,6 +1,7 @@
 import { query, queryOne } from '../db/database.js';
 import { fundModel } from '../models/fund.model.js';
 import { fundNavHistoryModel } from '../models/fundNavHistory.model.js';
+import logger from '../services/logger.service.js';
 
 /**
  * Admin Controller
@@ -191,7 +192,7 @@ export const adminController = {
         try {
             const result = await query(`DELETE FROM api_cache`);
 
-            console.log(`[Admin] Cache cleared: ${result.affectedRows || 0} entries removed`);
+            logger.info(`[Admin] Cache cleared: ${result.affectedRows || 0} entries removed`);
 
             res.json({
                 success: true,

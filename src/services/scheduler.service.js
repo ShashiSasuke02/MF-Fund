@@ -3,6 +3,7 @@ import { executionLogModel } from '../models/executionLog.model.js';
 import { demoAccountModel } from '../models/demoAccount.model.js';
 import { holdingModel } from '../models/holding.model.js';
 import { notificationModel } from '../models/notification.model.js';
+import { fundSyncLogModel } from '../models/fundSyncLog.model.js';
 import { localFundService } from './localFund.service.js';
 import { getISTDate } from '../utils/date.utils.js';
 import logger from './logger.service.js';
@@ -102,7 +103,7 @@ export const schedulerService = {
       }
     }
 
-    console.log(`[Scheduler] Execution complete:`, {
+    logger.info(`[Scheduler] Execution complete:`, {
       executed: results.executed,
       failed: results.failed,
       skipped: results.skipped,
@@ -136,13 +137,13 @@ export const schedulerService = {
     };
 
     try {
-      console.log(`[Scheduler] Executing transaction ${transaction.id} (${transaction.transaction_type})`);
+      logger.info(`[Scheduler] Executing transaction ${transaction.id} (${transaction.transaction_type})`);
 
       // Attempt to acquire lock
       const lockAcquired = await transactionModel.lockForExecution(transaction.id);
 
       if (!lockAcquired) {
-        console.log(`[Scheduler] Transaction ${transaction.id} is already locked (concurrency prevention)`);
+        logger.info(`[Scheduler] Transaction ${transaction.id} is already locked (concurrency prevention)`);
         logData.status = 'SKIPPED';
         logData.failureReason = 'Transaction already locked by another process';
         logData.executionDurationMs = Date.now() - startTime;
@@ -162,7 +163,7 @@ export const schedulerService = {
         const shouldStop = await this.checkStopConditions(transaction, executionDate);
 
         if (shouldStop.shouldStop) {
-          console.log(`[Scheduler] Transaction ${transaction.id} reached stop condition:`, shouldStop.reason);
+          logger.info(`[Scheduler] Transaction ${transaction.id} reached stop condition:`, shouldStop.reason);
 
           // Cancel the transaction
           await transactionModel.updateExecutionStatus(transaction.id, {
@@ -309,13 +310,13 @@ export const schedulerService = {
       };
 
     } catch (error) {
-      console.error(`[Scheduler] Unexpected error for transaction ${transaction.id}:`, error);
+      logger.error(`[Scheduler] Unexpected error for transaction ${transaction.id}:`, error);
 
       // Attempt to unlock if error occurred before unlock
       try {
         await transactionModel.unlock(transaction.id);
       } catch (unlockError) {
-        console.error(`[Scheduler] Failed to unlock transaction ${transaction.id}:`, unlockError);
+        logger.error(`[Scheduler] Failed to unlock transaction ${transaction.id}:`, unlockError);
       }
 
       return {

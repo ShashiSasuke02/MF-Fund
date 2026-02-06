@@ -7,6 +7,7 @@ import { schedulerService } from '../services/scheduler.service.js';
 import { mfapiIngestionService } from '../services/mfapiIngestion.service.js';
 import { amfiSyncService } from '../services/amfiSync.service.js';
 import { cronNotificationService } from '../services/cronNotification.service.js';
+import logger from '../services/logger.service.js';
 
 
 /**
@@ -14,7 +15,7 @@ import { cronNotificationService } from '../services/cronNotification.service.js
  * Wraps job execution with logging and error handling
  */
 const executeJobWrapper = async (jobName, handler, triggeredBy = 'SCHEDULE') => {
-    console.log(`[Cron] 🚀 Starting job: ${jobName} (${triggeredBy})`);
+    logger.info(`[Cron] 🚀 Starting job: ${jobName} (${triggeredBy})`);
     const startTime = Date.now();
 
     // Create initial log entry
@@ -27,7 +28,7 @@ const executeJobWrapper = async (jobName, handler, triggeredBy = 'SCHEDULE') => 
             start_time: startTime
         });
     } catch (err) {
-        console.error(`[Cron] Failed to create log for ${jobName}:`, err);
+        logger.error(`[Cron] Failed to create log for ${jobName}: ${err.message}`);
     }
 
     try {
@@ -35,7 +36,7 @@ const executeJobWrapper = async (jobName, handler, triggeredBy = 'SCHEDULE') => 
         const result = await handler();
 
         const duration = Date.now() - startTime;
-        console.log(`[Cron] ✅ Job completed: ${jobName} in ${duration}ms`);
+        logger.info(`[Cron] ✅ Job completed: ${jobName} in ${duration}ms`);
 
         // Update log with success
         if (logId) {
@@ -54,7 +55,7 @@ const executeJobWrapper = async (jobName, handler, triggeredBy = 'SCHEDULE') => 
 
     } catch (error) {
         const duration = Date.now() - startTime;
-        console.error(`[Cron] ❌ Job failed: ${jobName}`, error);
+        logger.error(`[Cron] ❌ Job failed: ${jobName}: ${error.message}`);
 
         // Update log with failure
         if (logId) {
@@ -79,7 +80,7 @@ const executeJobWrapper = async (jobName, handler, triggeredBy = 'SCHEDULE') => 
  * Sets up cron jobs for automated tasks
  */
 export const initSchedulerJobs = () => {
-    console.log('[Cron] Initializing scheduler jobs...');
+    logger.info('[Cron] Initializing scheduler jobs...');
 
     // 1. Register Daily Transaction Scheduler (6:00 AM)
     cronRegistry.register('Daily Transaction Scheduler', '0 6 * * *', async () => {
@@ -102,17 +103,17 @@ export const initSchedulerJobs = () => {
         try {
             fullSyncResult = await mfapiIngestionService.runFullSync();
         } catch (error) {
-            console.error('[Cron] Full Fund Sync failed:', error.message);
+            logger.error(`[Cron] Full Fund Sync failed: ${error.message}`);
             fullSyncResult = { success: false, error: error.message };
         }
 
         // Always run AMFI Sync after Full Sync (regardless of success/failure)
         const amfiStartTime = Date.now();
         try {
-            console.log('[Cron] Full Fund Sync completed. Running AMFI NAV Sync...');
+            logger.info('[Cron] Full Fund Sync completed. Running AMFI NAV Sync...');
             amfiSyncResult = await amfiSyncService.runSync();
         } catch (error) {
-            console.error('[Cron] AMFI NAV Sync failed:', error.message);
+            logger.error(`[Cron] AMFI NAV Sync failed: ${error.message}`);
             amfiSyncResult = { success: false, error: error.message };
         }
 
@@ -140,7 +141,7 @@ export const initSchedulerJobs = () => {
     });
 
     // 4. Register Incremental Fund Sync (Manual Only - Admin Dashboard)
-    // NOTE: This job is NOT scheduled. Legacy API-based sync, use AMFI Sync instead.
+    // NOTE: This job is DISABLED by default. Legacy API-based sync, use AMFI Sync instead.
     cronRegistry.register('Incremental Fund Sync', 'MANUAL_ONLY', async () => {
         return await mfapiIngestionService.runIncrementalSync();
     });
@@ -161,7 +162,7 @@ export const initSchedulerJobs = () => {
         if (isEnabled) {
             // Validate schedule
             if (!cron.validate(job.schedule)) {
-                console.error(`[Cron] Invalid schedule for ${job.name}: ${job.schedule}`);
+                logger.error(`[Cron] Invalid schedule for ${job.name}: ${job.schedule}`);
                 return;
             }
 
@@ -181,14 +182,14 @@ export const initSchedulerJobs = () => {
                 executeJobWrapper(job.name, job.handler, 'SCHEDULE');
             }, options);
 
-            console.log(`[Cron] Scheduled: ${job.name} at ${job.schedule}`);
+            logger.info(`[Cron] Scheduled: ${job.name} at ${job.schedule}`);
             job.isRunning = true;
         } else {
-            console.log(`[Cron] Job logged but disabled: ${job.name} (Enable via ENV)`);
+            logger.info(`[Cron] Job logged but disabled: ${job.name} (Enable via ENV)`);
         }
     });
 
-    console.log(`[Cron] ✅ Initialized ${jobs.length} jobs.`);
+    logger.info(`[Cron] ✅ Initialized ${jobs.length} jobs.`);
 };
 
 /**

@@ -2,6 +2,7 @@ import mysql from 'mysql2/promise';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import logger from '../services/logger.service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -139,13 +140,13 @@ export async function run(sql, params = []) {
       };
     } catch (error) {
       if (retries === 1 || !['ECONNREFUSED', 'ETIMEDOUT', 'PROTOCOL_CONNECTION_LOST'].includes(error.code)) {
-        console.error('Run error:', error);
-        console.error('SQL:', sql);
-        console.error('Params:', params);
+        logger.error(`Run error: ${error.message}`);
+        logger.error(`SQL: ${sql}`);
+        logger.error(`Params: ${JSON.stringify(params)}`);
         throw error;
       }
 
-      console.warn(`Database operation failed (${error.code}), retrying... (${retries} left)`);
+      logger.warn(`Database operation failed (${error.code}), retrying... (${retries} left)`);
       retries--;
       await new Promise(resolve => setTimeout(resolve, 1000));
     }

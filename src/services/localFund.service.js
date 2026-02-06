@@ -1,6 +1,7 @@
 import { fundModel } from '../models/fund.model.js';
 import { fundNavHistoryModel } from '../models/fundNavHistory.model.js';
 import { query } from '../db/database.js';
+import logger from './logger.service.js';
 
 /**
  * Local Fund Service
@@ -18,7 +19,6 @@ export const localFundService = {
     async getSchemeDetails(schemeCode) {
         try {
             // Get fund from local DB
-            console.log('DEBUG: fundModel keys:', Object.keys(fundModel));
             const fund = await fundModel.findBySchemeCode(schemeCode);
 
             if (!fund) {
@@ -66,7 +66,7 @@ export const localFundService = {
                 dataSource: 'LOCAL_DB'
             };
         } catch (error) {
-            console.error(`[LocalFundService] getSchemeDetails failed for ${schemeCode}:`, error.message);
+            logger.error(`[LocalFundService] getSchemeDetails failed for ${schemeCode}: ${error.message}`);
             throw error;
         }
     },
@@ -90,7 +90,7 @@ export const localFundService = {
             const navRecord = await fundNavHistoryModel.getLatestNav(schemeCode);
 
             if (!navRecord) {
-                console.warn(`[LocalFundService] No NAV found for scheme ${schemeCode}`);
+                logger.warn(`[LocalFundService] No NAV found for scheme ${schemeCode}`);
                 return null;
             }
 
@@ -100,7 +100,7 @@ export const localFundService = {
                 dataSource: 'LOCAL_DB'
             };
         } catch (error) {
-            console.error(`[LocalFundService] getLatestNAV failed for ${schemeCode}:`, error.message);
+            logger.error(`[LocalFundService] getLatestNAV failed for ${schemeCode}: ${error.message}`);
             throw error;
         }
     },
@@ -135,7 +135,7 @@ export const localFundService = {
                 dataSource: 'LOCAL_DB'
             };
         } catch (error) {
-            console.error(`[LocalFundService] getNAVHistory failed for ${schemeCode}:`, error.message);
+            logger.error(`[LocalFundService] getNAVHistory failed for ${schemeCode}: ${error.message}`);
             throw error;
         }
     },
@@ -164,7 +164,7 @@ export const localFundService = {
                 schemeCategory: r.scheme_category
             }));
         } catch (error) {
-            console.error(`[LocalFundService] searchSchemes failed:`, error.message);
+            logger.error(`[LocalFundService] searchSchemes failed: ${error.message}`);
             throw error;
         }
     },
@@ -210,7 +210,7 @@ export const localFundService = {
                 date: s.nav_date || null
             }));
         } catch (error) {
-            console.error(`[LocalFundService] getSchemesByFundHouse failed:`, error.message);
+            logger.error(`[LocalFundService] getSchemesByFundHouse failed: ${error.message}`);
             throw error;
         }
     },
@@ -235,7 +235,7 @@ export const localFundService = {
                 dataSource: 'LOCAL_DB'
             };
         } catch (error) {
-            console.error(`[LocalFundService] getFundWithNav failed for ${schemeCode}:`, error.message);
+            logger.error(`[LocalFundService] getFundWithNav failed for ${schemeCode}: ${error.message}`);
             return {
                 scheme_code: schemeCode,
                 scheme_name: 'Unknown',

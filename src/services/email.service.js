@@ -1,3 +1,5 @@
+import fs from 'fs';
+import logger from './logger.service.js';
 import nodemailer from 'nodemailer';
 
 class EmailService {
@@ -10,7 +12,7 @@ class EmailService {
         if (this.initialized) return;
 
         if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
-            console.warn('[EmailService] SMTP credentials missing. Email sending disabled.');
+            logger.warn('[EmailService] SMTP credentials missing. Email sending disabled.');
             return;
         }
 
@@ -28,7 +30,7 @@ class EmailService {
         });
 
         this.initialized = true;
-        console.log('[EmailService] Initialized with host:', process.env.SMTP_HOST);
+        logger.info('[EmailService] Initialized with host:', process.env.SMTP_HOST);
     }
 
     /**
@@ -40,7 +42,7 @@ class EmailService {
         if (!this.initialized) this.init();
 
         if (!this.transporter) {
-            console.log(`[EmailService] MOCK SEND: OTP for ${toEmail} is ${otp}`);
+            logger.info(`[EmailService] MOCK SEND: OTP for ${toEmail} is ${otp}`);
             return true; // Return true to allow dev flows without SMTP
         }
 
@@ -64,10 +66,10 @@ class EmailService {
         `
             });
 
-            console.log(`[EmailService] OTP sent to ${toEmail}. MessageId: ${info.messageId}`);
+            logger.info(`[EmailService] OTP sent to ${toEmail}. MessageId: ${info.messageId}`);
             return true;
         } catch (error) {
-            console.error(`[EmailService] Failed to send OTP to ${toEmail}:`, error.message);
+            logger.error(`[EmailService] Failed to send OTP to ${toEmail}:`, error.message);
             // Don't throw, just return false so registration flow handles it gracefully
             return false;
         }
@@ -81,7 +83,7 @@ class EmailService {
         if (!this.initialized) this.init();
 
         if (!this.transporter) {
-            console.log('[EmailService] MOCK: Would send cron report to', reportData.recipient);
+            logger.info('[EmailService] MOCK: Would send cron report to', reportData.recipient);
             return true;
         }
 
@@ -325,10 +327,10 @@ class EmailService {
                 html
             });
 
-            console.log(`[EmailService] Cron report sent to ${recipient}. MessageId: ${info.messageId}`);
+            logger.info(`[EmailService] Cron report sent to ${recipient}. MessageId: ${info.messageId}`);
             return true;
         } catch (error) {
-            console.error(`[EmailService] Failed to send cron report:`, error.message);
+            logger.error(`[EmailService] Failed to send cron report:`, error.message);
             return false;
         }
     }
@@ -351,10 +353,10 @@ class EmailService {
         const formattedDescription = description ? description.replace(/\n/g, '<br>') : '';
 
         if (!this.transporter) {
-            console.log(`[EmailService] MOCK: Would send support ticket to ${supportEmail}`);
-            console.log(`[EmailService] From: ${userName} (${userEmail})`);
-            console.log(`[EmailService] Type: ${issueType}`);
-            console.log(`[EmailService] Description: ${description}`);
+            logger.info(`[EmailService] MOCK: Would send support ticket to ${supportEmail}`);
+            logger.info(`[EmailService] From: ${userName} (${userEmail})`);
+            logger.info(`[EmailService] Type: ${issueType}`);
+            logger.info(`[EmailService] Description: ${description}`);
             return true;
         }
 
@@ -390,10 +392,10 @@ ${formattedDescription}
                 html
             });
 
-            console.log(`[EmailService] Support ticket sent. MessageId: ${info.messageId}`);
+            logger.info(`[EmailService] Support ticket sent. MessageId: ${info.messageId}`);
             return { success: true };
         } catch (error) {
-            console.error(`[EmailService] Failed to send support ticket:`, error.message);
+            logger.error(`[EmailService] Failed to send support ticket: ${error.message}`);
             return { success: false, error: error.message };
         }
     }

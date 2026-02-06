@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { BannerAd, DisplayAd, RectangleAd } from '../components/AdSense';
+import SEO from '../components/SEO';
 
 
 
@@ -222,6 +223,12 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-teal-50/30">
+      <SEO
+        title="Practice Mutual Fund Investing Risk-Free"
+        description="Master mutual fund investing with real market data and zero financial risk. Create your virtual portfolio, track returns, and build confidence before investing real money."
+        keywords="mutual fund simulator, paper trading india, risk free investing, virtual portfolio manager, learn mutual funds"
+      />
+
       {/* Market Ticker (Top) */}
 
 

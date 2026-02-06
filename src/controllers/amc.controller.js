@@ -1,5 +1,6 @@
 import amcModel from '../models/amc.model.js';
 import { localFundService } from '../services/localFund.service.js';
+import logger from '../services/logger.service.js';
 
 /**
  * AMC Controller - handles AMC-related HTTP requests
@@ -75,7 +76,7 @@ export const amcController = {
         const schemes = await localFundService.getSchemesByFundHouse(fundHouse);
         schemeCount = schemes.length;
       } catch (e) {
-        console.error('[AMC Controller] Failed to get scheme count:', e.message);
+        logger.error(`[AMC Controller] Failed to get scheme count: ${e.message}`);
       }
 
       res.json({

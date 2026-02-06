@@ -105,7 +105,8 @@ services:
       # Enable schedulers in production
       ENABLE_SCHEDULER_CRON: ${ENABLE_SCHEDULER_CRON:-true}
       ENABLE_FULL_SYNC: ${ENABLE_FULL_SYNC:-true}
-      ENABLE_INCREMENTAL_SYNC: ${ENABLE_INCREMENTAL_SYNC:-true}
+      ENABLE_INCREMENTAL_SYNC: "false"
+      ENABLE_AMFI_SYNC_REPORT: "true"
       ENABLE_MFAPI_FALLBACK: "true"
       
       # Email / SMTP Configuration

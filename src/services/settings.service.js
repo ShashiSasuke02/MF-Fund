@@ -1,4 +1,6 @@
 import { queryOne, run } from '../db/database.js';
+import logger from './logger.service.js';
+import logger from './logger.service.js';
 
 /**
  * Settings Service - Manages dynamic system settings with caching
@@ -39,7 +41,7 @@ class SettingsService {
 
             return value;
         } catch (error) {
-            console.error('[SettingsService] Get Error:', error.message);
+            logger.error(`[SettingsService] Get Error: ${error.message}`);
             return defaultValue;
         }
     }
@@ -66,7 +68,7 @@ class SettingsService {
 
             return true;
         } catch (error) {
-            console.error('[SettingsService] Set Error:', error.message);
+            logger.error(`[SettingsService] Set Error: ${error.message}`);
             throw error;
         }
     }
@@ -91,7 +93,7 @@ class SettingsService {
 
             return settings;
         } catch (error) {
-            console.error('[SettingsService] GetAll Error:', error.message);
+            logger.error(`[SettingsService] GetAll Error: ${error.message}`);
             return {};
         }
     }

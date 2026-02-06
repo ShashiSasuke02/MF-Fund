@@ -3,6 +3,7 @@
  * Fetches and caches current interest rates for various investment schemes
  * from reliable sources (RBI, government websites, major banks)
  */
+import logger from './logger.service.js';
 
 /**
  * Default Interest Rates (Fallback values)
@@ -21,14 +22,14 @@ const DEFAULT_RATES = {
   loanHomeLoan: 8.5,
   loanPersonalLoan: 11.5,
   loanCarLoan: 9.0,
-  
+
   // Government Schemes
   ppf: 7.1,              // Public Provident Fund
   ssa: 8.2,              // Sukanya Samriddhi Account
   scss: 8.2,             // Senior Citizen Savings Scheme
   nsc: 7.7,              // National Savings Certificate
   kvp: 7.5,              // Kisan Vikas Patra
-  
+
   // Post Office Schemes
   poMIS: 7.4,            // Post Office Monthly Income Scheme
   poRD: 6.7,             // Post Office Recurring Deposit
@@ -38,16 +39,16 @@ const DEFAULT_RATES = {
     '3year': 7.1,
     '5year': 7.5
   },
-  
+
   // Retirement Schemes
   epf: 8.25,             // Employees' Provident Fund
   nps: 10.0,             // National Pension System (expected return)
-  
+
   // Market-based (Expected returns)
   mutualFundEquity: 12.0,
   mutualFundDebt: 7.5,
   mutualFundHybrid: 9.5,
-  
+
   // Last updated timestamp
   lastUpdated: new Date().toISOString(),
   source: 'Default rates - January 2026'
@@ -77,24 +78,24 @@ const fetchRatesFromSources = async () => {
   try {
     // In production, make actual API calls here
     // For now, using default rates with potential updates
-    
-    console.log('[Rate Service] Fetching current interest rates...');
-    
+
+    logger.info('[Rate Service] Fetching current interest rates...');
+
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 100));
-    
+
     // In production, parse and merge rates from different sources
     const fetchedRates = {
       ...DEFAULT_RATES,
       lastUpdated: new Date().toISOString(),
       source: 'Fetched from sources'
     };
-    
-    console.log('[Rate Service] Successfully fetched rates');
+
+    logger.info('[Rate Service] Successfully fetched rates');
     return fetchedRates;
-    
+
   } catch (error) {
-    console.error('[Rate Service] Error fetching rates:', error.message);
+    logger.error(`[Rate Service] Error fetching rates: ${error.message}`);
     // Return default rates on error
     return DEFAULT_RATES;
   }
@@ -105,10 +106,10 @@ const fetchRatesFromSources = async () => {
  */
 const isCacheValid = () => {
   if (!rateCache.lastFetched) return false;
-  
+
   const now = Date.now();
   const age = now - rateCache.lastFetched;
-  
+
   return age < rateCache.ttl;
 };
 
@@ -120,21 +121,21 @@ const isCacheValid = () => {
 export const getCurrentRates = async (forceRefresh = false) => {
   // Return cached rates if valid
   if (!forceRefresh && isCacheValid()) {
-    console.log('[Rate Service] Returning cached rates');
+    logger.info('[Rate Service] Returning cached rates');
     return rateCache.rates;
   }
-  
+
   // Fetch fresh rates
   try {
     const freshRates = await fetchRatesFromSources();
-    
+
     // Update cache
     rateCache.rates = freshRates;
     rateCache.lastFetched = Date.now();
-    
+
     return freshRates;
   } catch (error) {
-    console.error('[Rate Service] Failed to fetch rates, using defaults:', error.message);
+    logger.error(`[Rate Service] Failed to fetch rates, using defaults: ${error.message}`);
     return DEFAULT_RATES;
   }
 };
@@ -147,20 +148,20 @@ export const getCurrentRates = async (forceRefresh = false) => {
  */
 export const getRateForScheme = async (schemeType, tenure = null) => {
   const rates = await getCurrentRates();
-  
+
   const schemeKey = schemeType.toLowerCase();
-  
+
   if (!rates[schemeKey]) {
-    console.warn(`[Rate Service] Unknown scheme type: ${schemeType}, using default 6.5%`);
+    logger.warn(`[Rate Service] Unknown scheme type: ${schemeType}, using default 6.5%`);
     return 6.5;
   }
-  
+
   // Handle schemes with tenure-based rates
   if (tenure && typeof rates[schemeKey] === 'object') {
     const tenureKey = tenure.toLowerCase().replace(' ', '');
     return rates[schemeKey][tenureKey] || Object.values(rates[schemeKey])[0] || 6.5;
   }
-  
+
   return typeof rates[schemeKey] === 'number' ? rates[schemeKey] : 6.5;
 };
 
@@ -180,16 +181,16 @@ export const getAllRates = async () => {
  */
 export const updateRate = (schemeType, newRate) => {
   const schemeKey = schemeType.toLowerCase();
-  
+
   if (rateCache.rates[schemeKey] !== undefined) {
     rateCache.rates[schemeKey] = newRate;
     rateCache.rates.lastUpdated = new Date().toISOString();
     rateCache.rates.source = 'Manually updated';
-    console.log(`[Rate Service] Updated ${schemeType} rate to ${JSON.stringify(newRate)}`);
+    logger.info(`[Rate Service] Updated ${schemeType} rate to ${JSON.stringify(newRate)}`);
   } else {
-    console.warn(`[Rate Service] Unknown scheme type: ${schemeType}`);
+    logger.warn(`[Rate Service] Unknown scheme type: ${schemeType}`);
   }
-  
+
   return rateCache.rates;
 };
 
@@ -198,7 +199,7 @@ export const updateRate = (schemeType, newRate) => {
  */
 export const clearCache = () => {
   rateCache.lastFetched = null;
-  console.log('[Rate Service] Cache cleared');
+  logger.info('[Rate Service] Cache cleared');
 };
 
 /**

@@ -6,6 +6,7 @@ import ErrorMessage from '../components/ErrorMessage';
 import { useAuth } from '../contexts/AuthContext';
 import { DisplayAd, RectangleAd, BannerAd } from '../components/AdSense';
 import NavChart from '../components/NavChart';
+import SEO from '../components/SEO';
 
 /**
  * AMC Branding Configuration
@@ -276,8 +277,34 @@ export default function FundDetails() {
   // Get AMC branding based on fund house
   const amcBranding = getAMCBranding(meta?.fund_house);
 
+  // Construct SEO Meta
+  const pageTitle = meta ? `${meta.scheme_name} - NAV & Analysis` : 'Fund Details';
+  const pageDesc = meta ? `Track ${meta.scheme_name} NAV, returns, and performance. Current NAV: ₹${latestNav?.nav || 'N/A'}. ${meta.fund_house} fund analysis.` : 'Fund details page';
+
+  // Construct JSON-LD Schema
+  const schema = meta ? {
+    "@context": "https://schema.org",
+    "@type": "FinancialProduct",
+    "name": meta.scheme_name,
+    "description": meta.investment_objective || pageDesc,
+    "brand": {
+      "@type": "Organization",
+      "name": meta.fund_house
+    },
+    "feesAndCommissionsSpecification": meta.expense_ratio ? `Expense Ratio: ${meta.expense_ratio}` : undefined,
+    "annualPercentageRate": meta.returns_1y,
+    // "price" is not standard in FinancialProduct but commonly used or mapped to Offers
+  } : null;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-teal-50/30 relative overflow-hidden">
+      <SEO
+        title={pageTitle}
+        description={pageDesc}
+        keywords={`${meta?.scheme_name}, ${meta?.fund_house}, mutual fund nav, fund performance, ${meta?.scheme_category}`}
+        schema={schema}
+      />
+
       {/* Animated decorative blobs with AMC color */}
       <div
         className="absolute top-0 left-0 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"

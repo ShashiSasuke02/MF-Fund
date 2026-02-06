@@ -115,7 +115,7 @@ This is the core of the application. Logic is strictly separated from Controller
 ### 3.8 Configuration Architecture
 -   **Dual-Config Strategy:**
     1.  **Backend (`/.env`):** Server secrets (`DB_PASSWORD`, `JWT_SECRET`, `PORT`). **NEVER** exposed to client.
-    2.  **Frontend (`/client/.env`):** Build-time variables (`VITE_ADSENSE_CLIENT_ID`, `VITE_isAdsEnabled`). **Visible** in browser bundle.
+    2.  **Frontend (`/client/.env`):** Build-time variables (`VITE_ADSENSE_CLIENT_ID`, `VITE_ADSENSE_ENABLED`). **Visible** in browser bundle.
 -   **Docker:** variables passed via `docker-compose.yml` take precedence over root `.env`.
 
 ---
@@ -152,7 +152,7 @@ This is the core of the application. Logic is strictly separated from Controller
 
 ### 4.7 AdSense Integration
 -   **Strategy:** Dynamic loading via `AdSense.jsx` component.
--   **Control:** Regulated by `VITE_isAdsEnabled` (Boolean) in `client/.env`.
+-   **Control:** Regulated by `VITE_ADSENSE_ENABLED` (Boolean) in `client/.env`.
 -   **Privacy/Performance:** Scripts are **NOT** loaded if disabled. No empty placeholders are rendered in production or development when disabled.
 
 ---
@@ -273,11 +273,11 @@ If unsure — ask clarifying questions instead of guessing.
 -   **File:** `src/services/mfapiIngestion.service.js`
 -   **Change:** `filterByCurrentMonth()` now uses a **45-day rolling window** instead of strict current-month check.
 -   **Benefit:** Fixes "Full Fund Sync" rejection of valid NAV data at month boundaries (e.g., Jan 31st data rejected on Feb 1st).
-
-#### Incremental Fund Sync Enabled
+-  #### Incremental Fund Sync Disabled
 -   **File:** `src/jobs/scheduler.job.js`
--   **Change:** Uncommented `Incremental Fund Sync` registration.
--   **Schedule:** Runs at 10 AM, 12 PM, 2 PM IST for fresher NAV data.
+-   **Change:** `Incremental Fund Sync` is now disabled by default (`ENABLE_INCREMENTAL_SYNC: false`).
+-   **Reason:** Superseded by the more accurate AMFI NAV Sync which runs immediately after Full Sync.
+-   **Note:** Retained in registry for legacy support/manual usage if re-enabled via environment.
 
 #### Log Persistence
 -   **File:** `docker-compose.yml`
@@ -340,7 +340,7 @@ If unsure — ask clarifying questions instead of guessing.
 ### 12.5 AdSense Implementation
 -   **File:** `client/src/components/AdSense.jsx`
 -   **Enhancement:**
-    -   **Strict Visibility Control:** Introduced `VITE_isAdsEnabled` to toggle ads globally.
+    -   **Strict Visibility Control:** Introduced `VITE_ADSENSE_ENABLED` to toggle ads globally.
     -   **Dev Placeholders:** In development mode (`npm run dev`), ads render as **visible grey placeholders** to verify layout/spacing without loading real scripts.
     -   **Zero-Footprint:** When disabled, the component renders `null` and injects **zero** scripts.
     -   **Architecture:** Removed hardcoded script from `index.html` in favor of dynamic React hook injection.

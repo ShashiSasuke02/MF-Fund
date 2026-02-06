@@ -30,7 +30,8 @@
 - **Project Cleanup:** Moved "unwanted" loose files (plans, debug scripts, logs) to `Extras/` folder.
 - Initial environment and protocol audit.
 - Confirmed understanding of `GEMINI.md`, `ARCHITECTURE.md`, and Specialist Agents.
-- **Logging Upgrade:** Replaced `console.log` with `logger` in critical services (`scheduler`, `demo`, `mfapiIngestion`).
+- **Logging Migration:** Migrated 100% of the backend (src/) from `console.log` to the centralized `logger` service for structured observability.
+- **Sync Optimization:** Disabled Incremental Fund Sync (config-only); enabled AMFI NAV Sync daily reports via email (`ENABLE_AMFI_SYNC_REPORT`).
 - **SWP Fix:** Enabled `WEEKLY` frequency and relaxed start date validation (allowed from tomorrow).
 - **Exclusion Filters:** Refined keywords (Removed REINVESTMENT/MIP) to include more valid funds.
 - **Admin Feature:** Implemented "Download All Logs" (ZIP) in Admin Dashboard.

@@ -5,20 +5,19 @@ import cacheService from './services/cache.service.js';
 import cron from 'node-cron';
 import { mfapiIngestionService } from './services/mfapiIngestion.service.js';
 import { initSchedulerJobs } from './jobs/scheduler.job.js';
+import logger from './services/logger.service.js';
 
 const PORT = process.env.PORT || 4000;
 
 // Initialize database in background to allow server to start listening
 // This ensures health checks don't fail with "Connection Refused" while DB is warming up
 initializeDatabase().catch(error => {
-  console.error('[Server] Critical: Database failed to initialize after retries:', error.message);
-  // Optional: Could trigger shutdown here if DB is strictly required for any operation
-  // process.exit(1);
+  logger.error(`[Server] Critical: Database failed to initialize after retries: ${error.message}`);
 });
 
 // Start server
 const server = app.listen(PORT, () => {
-  console.log(`
+  logger.info(`
 ╔═══════════════════════════════════════════════════════════════╗
 ║                                                               ║
 ║   🚀 MF Selection App Server                                  ║
@@ -32,6 +31,7 @@ const server = app.listen(PORT, () => {
 ║   - GET  /api/amcs/:id/funds  List funds by AMC               ║
 ║   - GET  /api/funds/:code     Fund details                    ║
 ║   - GET  /api/funds/search    Search funds                    ║
+║   - GET  /api/funds/full-sync Manual sync trigger               ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
   `);
@@ -57,28 +57,29 @@ initSchedulerJobs();
 // Graceful shutdown
 const shutdown = async (signal) => {
   console.log(`\n[Server] Received ${signal}, shutting down gracefully...`);
+  logger.info(`\n[Server] Received ${signal}, shutting down gracefully...`);
 
   // Clear interval
   clearInterval(cacheCleanupInterval);
 
   // Close server
   server.close(() => {
-    console.log('[Server] HTTP server closed');
+    logger.info('[Server] HTTP server closed');
 
     // Close database
     try {
       closeDb();
     } catch (e) {
-      console.error('[Server] Error closing database:', e.message);
+      logger.error(`[Server] Error closing database: ${e.message}`);
     }
 
-    console.log('[Server] Shutdown complete');
+    logger.info('[Server] Shutdown complete');
     process.exit(0);
   });
 
   // Force exit after 10 seconds
   setTimeout(() => {
-    console.error('[Server] Forced shutdown after timeout');
+    logger.error('[Server] Forced shutdown after timeout');
     process.exit(1);
   }, 10000);
 };

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import https from 'https';
 import cacheService from './cache.service.js';
+import logger from './logger.service.js';
 
 // Configuration from environment
 const BASE_URL = process.env.MFAPI_BASE_URL || 'https://api.mfapi.in';
@@ -48,7 +49,7 @@ async function fetchWithRetry(fetchFn, maxRetries = 3, baseDelayMs = 1000) {
       if (error.response && error.response.status === 429) {
         if (attempt < maxRetries - 1) {
           const delay = 5000 * (attempt + 1); // 5s, 10s, 15s
-          console.log(`[MFApi] Rate limited. Waiting ${delay}ms before retry ${attempt + 1}`);
+          logger.warn(`[MFApi] Rate limited. Waiting ${delay}ms before retry ${attempt + 1}`);
           await sleep(delay);
           continue;
         }
@@ -64,7 +65,7 @@ async function fetchWithRetry(fetchFn, maxRetries = 3, baseDelayMs = 1000) {
       // Exponential backoff for server errors and network issues
       if (attempt < maxRetries - 1) {
         const delay = baseDelayMs * Math.pow(2, attempt);
-        console.log(`[MFApi] Retry attempt ${attempt + 1} after ${delay}ms`);
+        logger.info(`[MFApi] Retry attempt ${attempt + 1} after ${delay}ms`);
         await sleep(delay);
       }
     }
@@ -87,7 +88,7 @@ class MFApiService {
     const cached = await cacheService.get(cacheKey);
 
     if (cached) {
-      console.log(`[MFApi] Cache hit for search: ${query}`);
+      logger.info(`[MFApi] Cache hit for search: ${query}`);
       return cached;
     }
 
@@ -114,7 +115,7 @@ class MFApiService {
     const cached = await cacheService.get(cacheKey);
 
     if (cached) {
-      console.log(`[MFApi] Cache hit for schemes list`);
+      logger.info(`[MFApi] Cache hit for schemes list`);
       return cached;
     }
 
@@ -140,7 +141,7 @@ class MFApiService {
     const cached = await cacheService.get(cacheKey);
 
     if (cached) {
-      console.log(`[MFApi] Cache hit for latest NAV all`);
+      logger.info(`[MFApi] Cache hit for latest NAV all`);
       return cached;
     }
 
@@ -165,7 +166,7 @@ class MFApiService {
     const cached = await cacheService.get(cacheKey);
 
     if (cached) {
-      console.log(`[MFApi] Cache hit for latest NAV: ${schemeCode}`);
+      logger.info(`[MFApi] Cache hit for latest NAV: ${schemeCode}`);
       return cached;
     }
 
@@ -190,7 +191,7 @@ class MFApiService {
     const cached = await cacheService.get(cacheKey);
 
     if (cached) {
-      console.log(`[MFApi] Cache hit for NAV history: ${schemeCode}`);
+      logger.info(`[MFApi] Cache hit for NAV history: ${schemeCode}`);
       return cached;
     }
 
@@ -250,7 +251,7 @@ class MFApiService {
         formatDate(endDate)
       );
     } catch (e) {
-      console.log(`[MFApi] Could not fetch history for ${schemeCode}:`, e.message);
+      logger.warn(`[MFApi] Could not fetch history for ${schemeCode}: ${e.message}`);
       historyData = null;
     }
 
