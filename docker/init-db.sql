@@ -239,6 +239,22 @@ CREATE TABLE IF NOT EXISTS cron_job_logs (
     INDEX idx_cron_logs_start_time (start_time)
 );
 
+-- Ledger Entries table (Double-entry bookkeeping)
+CREATE TABLE IF NOT EXISTS ledger_entries (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    transaction_id INT,
+    amount DECIMAL(15,2) NOT NULL,
+    balance_after DECIMAL(15,2) NOT NULL,
+    type ENUM('CREDIT', 'DEBIT') NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    created_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP() * 1000),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON DELETE SET NULL,
+    INDEX idx_ledger_user (user_id),
+    INDEX idx_ledger_created (created_at)
+);
+
 -- System Settings table (dynamic app-wide configuration)
 CREATE TABLE IF NOT EXISTS system_settings (
     setting_key VARCHAR(50) PRIMARY KEY,
