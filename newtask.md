@@ -21,10 +21,12 @@
     - Dynamic script injection (no hardcoded index.html script).
     - Components render `null` when disabled (no placeholders).
 - **Log Management:** Configured `docker-compose.yml` to use bind mounts (`./logs`) for direct log access.
-- **Admin AI Manager (Saved):** [PLAN-admin-ai-manager.md](file:///c:/Users/shashidhar/Desktop/MF-Investments/docs/PLAN-admin-ai-manager.md)
     - Enable/Disable AI globally via Admin Dashboard.
     - Select and persist Ollama models dynamically.
     - New `system_settings` table.
+- **VPS Deployment (Pending):** [PLAN-vps-deploy.md](file:///c:/Users/shashidhar/Desktop/MF-Investments/docs/PLAN-vps-deploy.md)
+    - Deploy to VPS with Nginx Proxy Manager.
+    - Configure SSL and domain routing for `www.trymutualfunds.com`.
 
 ## ✅ Completed Implementation Details
 - **Project Cleanup:** Moved "unwanted" loose files (plans, debug scripts, logs) to `Extras/` folder.
@@ -40,8 +42,14 @@
 - **Portfolio Ads:** Added second banner ad unit to bottom of Portfolio page for better inventory.
 - **Session Security:** Tightened Idle Timeout to **2 minutes** (was 3). Stale closure bug fixed with Refs.
 
+- **Infrastructure Hardening (Feb 2026):** Implemented custom MySQL Dockerfile and build optimizations.
+- **SEO Phase 2:** Full integration of dynamic meta and rich snippets.
+- **Strict Ledger Plan:** Approved architecture policy and implementation plan created. Integration targeted for Portfolio "Report" tab.
+- **AI Manager Visibility (Feb 2026):** Fixed bug where AI widget was visible even when disabled. Added `ai_enabled` system setting check to frontend.
+- **Ledger Model Fix (Feb 2026):** Resolved `TypeError` in `LedgerModel` by correcting database wrapper usage (`pool.run` vs `pool.execute`).
 
-## 🔍 System State & New Data Structures
-- **DB Schema:** `src/db/schema.sql` (Master truth).
-- **Design Tokens:** Primary Green: `#24D17E`, Font: `Inter`.
-- **Infrastructure:** Docker Compose (Node + MySQL).
+## 📝 Next Session Implementation Plan: Ledger Book
+1. **DB Setup**: Create `ledger_entries` table in `schema.sql`.
+2. **Backend**: Implement `ledger.model.js` and Service wrappers in `scheduler.service.js` and `demo.service.js`.
+3. **API**: Expose `/api/ledger` endpoint.
+4. **Frontend**: Replace placeholder in `Portfolio.jsx` (Investment Report tab) with a professional `LedgerTable`.

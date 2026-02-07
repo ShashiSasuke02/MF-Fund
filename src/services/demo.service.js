@@ -3,6 +3,7 @@ import { transactionModel } from '../models/transaction.model.js';
 import { holdingModel } from '../models/holding.model.js';
 import { localFundService } from './localFund.service.js';
 import logger from './logger.service.js';
+import LedgerModel from '../models/ledger.model.js';
 
 /**
  * Demo Service - handles demo account transactions
@@ -209,6 +210,21 @@ export const demoService = {
         newBalance = currentBalance - amount;
         log('[Demo Service] Updating balance - old:', currentBalance, 'new:', newBalance, 'deducted:', amount);
         await demoAccountModel.updateBalance(userId, newBalance);
+
+        // [Ledger] Log Entry
+        try {
+          await LedgerModel.createEntry({
+            userId,
+            transactionId: transaction.id,
+            amount: amount,
+            balanceAfter: newBalance,
+            type: 'DEBIT',
+            description: `Investment: ${schemeName} (${transactionType})`
+          });
+        } catch (ledgerError) {
+          logError('[Demo Service] Failed to create ledger entry:', ledgerError.message);
+          // Non-blocking error
+        }
       } else {
         log('[Demo Service] Transaction pending - balance not updated yet');
       }

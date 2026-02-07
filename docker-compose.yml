@@ -110,6 +110,7 @@ services:
       ENABLE_FULL_SYNC: ${ENABLE_FULL_SYNC:-true}
       ENABLE_INCREMENTAL_SYNC: "false"
       ENABLE_AMFI_SYNC_REPORT: "true"
+      ENABLE_AMFI_SYNC_SCHEDULE: "${ENABLE_AMFI_SYNC_SCHEDULE:-true}"
       ENABLE_MFAPI_FALLBACK: "true"
       
       # Email / SMTP Configuration

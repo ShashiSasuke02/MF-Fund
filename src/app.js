@@ -19,6 +19,7 @@ import cronRoutes from './routes/cron.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import logRoutes from './routes/log.routes.js';
+import ledgerRoutes from './routes/ledger.routes.js';
 import supportRoutes from './routes/support.routes.js';
 import aiRoutes from './routes/ai.routes.js';
 
@@ -125,6 +126,7 @@ app.use('/api/cron', cronRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/logs', logRoutes);
+app.use('/api/ledger', ledgerRoutes); // [NEW] Ledger Book
 app.use('/api/support', supportRoutes); // Report Issue feature
 app.use('/api/ai', aiRoutes); // AI Mutual Fund Manager
 app.use('/api/health', healthRoutes);

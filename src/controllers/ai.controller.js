@@ -1,5 +1,6 @@
 import { ollamaService } from '../services/ollama.service.js';
 import logger from '../services/logger.service.js';
+import settingsService from '../services/settings.service.js';
 
 /**
  * AI Controller - Handles AI chat requests
@@ -64,10 +65,13 @@ export const aiController = {
             const isConnected = await ollamaService.checkConnection();
             const config = ollamaService.getConfig();
 
+            const isEnabled = await settingsService.isAiEnabled();
+
             return res.json({
                 success: true,
                 data: {
                     available: isConnected,
+                    enabled: isEnabled,
                     model: config.model,
                     endpoint: process.env.NODE_ENV === 'development' ? config.endpoint : undefined
                 }

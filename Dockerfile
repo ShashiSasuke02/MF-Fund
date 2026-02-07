@@ -64,6 +64,7 @@ COPY --from=frontend-builder --chown=mfapp:nodejs /app/client/dist ./client/dist
 # Environment defaults (override via docker-compose or runtime)
 ENV NODE_ENV=production
 ENV PORT=4000
+ENV TZ=Asia/Kolkata
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \

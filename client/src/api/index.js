@@ -484,4 +484,21 @@ export const aiApi = {
   getStatus: () => fetchApi('/ai/status')
 };
 
-export default { amcApi, fundApi, healthApi, authApi, demoApi, calculatorApi, notificationApi, supportApi, aiApi };
+/**
+ * Ledger API functions
+ */
+export const ledgerApi = {
+  /**
+   * Get ledger entries
+   */
+  getLedger: (params = {}) => {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', params.page);
+    if (params.limit) searchParams.set('limit', params.limit);
+
+    const queryString = searchParams.toString();
+    return fetchApi(`/ledger${queryString ? `?${queryString}` : ''}`);
+  }
+};
+
+export default { amcApi, fundApi, healthApi, authApi, demoApi, calculatorApi, notificationApi, supportApi, aiApi, ledgerApi };

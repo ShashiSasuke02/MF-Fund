@@ -7,6 +7,7 @@ import ErrorMessage from '../components/ErrorMessage';
 import { RectangleAd, BannerAd } from '../components/AdSense';
 import InvestmentPerformanceNotification from '../components/InvestmentPerformanceNotification';
 import LoginAlerts from '../components/LoginAlerts';
+import LedgerTable from '../components/portfolio/LedgerTable';
 
 export default function Portfolio() {
   const { user, demoAccount, refreshBalance, loading: authLoading, portfolioSummary } = useAuth();
@@ -442,7 +443,8 @@ export default function Portfolio() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               <span className="sm:hidden">Report</span>
-              <span className="hidden sm:inline">Investment Report</span>
+              <span className="sm:hidden">Ledger</span>
+              <span className="hidden sm:inline">Ledger Book</span>
             </button>
           </div>
         </div>
@@ -1173,32 +1175,20 @@ export default function Portfolio() {
         </div>
       )}
 
-      {/* Investment Report Tab - Coming Soon */}
+      {/* Ledger Book Tab */}
       {activeTab === 'investment-report' && (
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-12 text-center">
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full mb-6">
-            <svg className="w-12 h-12 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900 mb-4">Coming Soon</h3>
-          <p className="text-gray-600 text-lg mb-6">We're working on comprehensive investment reports to give you detailed insights into your portfolio performance.</p>
-          <div className="inline-flex items-center space-x-2 text-emerald-600 font-semibold">
-            <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <span>Feature in development</span>
-          </div>
-        </div>
+        <LedgerTable />
       )}
 
       {/* Login Performance Notification */}
-      {showLoginNotification && portfolioSummary && (
-        <InvestmentPerformanceNotification
-          portfolioSummary={portfolioSummary}
-          onClose={() => setShowLoginNotification(false)}
-        />
-      )}
+      {
+        showLoginNotification && portfolioSummary && (
+          <InvestmentPerformanceNotification
+            portfolioSummary={portfolioSummary}
+            onClose={() => setShowLoginNotification(false)}
+          />
+        )
+      }
 
       {/* Critical Login Alerts (SIP/SWP Success/Failure) - Shows AFTER performance notification */}
       <LoginAlerts showAfterPerformance={!showLoginNotification} />
@@ -1207,6 +1197,6 @@ export default function Portfolio() {
       <div className="mt-8">
         <BannerAd />
       </div>
-    </div>
+    </div >
   );
 }

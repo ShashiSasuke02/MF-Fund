@@ -25,14 +25,12 @@
 ├── client/                 # React Frontend application
 │   ├── src/
 │   │   ├── api/            # API abstraction layer (Axios instances)
-│   │   ├── components/     # Reusable UI components (Layout, Loaders, Ads)
+│   │   ├── components/     # Reusable UI components (Layout, Loaders, Ads, SEO)
 │   │   ├── contexts/       # Global State (AuthContext, IdleContext)
 │   │   ├── pages/          # Route Views (FundList, Portfolio, Admin)
-│   │   └── Main.jsx        # Entry point
-│   │   ├── pages/          # Route Views (FundList, Portfolio, Admin)
-│   │   └── Main.jsx        # Entry point
-│   ├── vite.config.js      # Build configuration
-│   └── .env                # FRONTEND Config (Vite, AdSense) - NOT in root!
+│   │   └── main.jsx        # Entry point with HelmetProvider
+│   ├── vite.config.js      # Build configuration (PWA ready)
+│   └── .env                # FRONTEND Config (Vite, AdSense)
 ├── src/                    # Node.js Backend application
 │   ├── config/             # Environment & Constants
 │   ├── controllers/        # Request Handlers (MVC)
@@ -47,6 +45,7 @@
 │   ├── app.js              # Express App Configuration
 │   └── server.js           # Server Bootstrap & Cron Init
 ├── docker/                 # Docker Resources
+│   ├── mysql.Dockerfile    # Custom DB image (baked SQL for permission safety)
 │   ├── init-db.sql         # DB Initialization script
 │   └── nginx.conf          # Reverse Proxy Config
 ├── scripts/                # Utility Scripts (Sync Triggers, Admin Seed)
@@ -89,6 +88,10 @@ This is the core of the application. Logic is strictly separated from Controller
 -   **Pattern:** Repository/DAO Pattern (no full ORM).
 -   **Location:** `src/models/*.model.js`.
 -   **Implementation:** Raw SQL queries via `mysql2` pool.
+-   **Wrapper (`src/db/database.js`):** The application checks out a connection pool but wraps it in a custom helper object.
+    -   `query(sql, params)`: Returns `rows` array directly (simplifies `[rows, fields]` destructuring).
+    -   `run(sql, params)`: Returns object `{ insertId, changes }` for INSERT/UPDATE operations.
+    -   **Important:** Do NOT use `pool.execute` or `pool.query` expecting standard MySQL2 return signatures. Use the wrapper methods.
 -   **Consistency:** Models perform database writes. Services coordinate complex flows involving multiple models.
 
 ### 3.5 Database Schema
@@ -108,8 +111,11 @@ This is the core of the application. Logic is strictly separated from Controller
 -   **Roles:** Simple 'user' vs 'admin' role column in `users` table.
 
 ### 3.7 Error Handling & Logging
--   **Global Handler:** `src/middleware/errorHandler.js` catches async errors.
--   **Logging:** `winston` (via `requestLogger.middleware.js`) + Database-backed logs (`cron_job_logs`, `fund_sync_log`).
+-   **Global Handler:** `src/middleware/errorHandler.js` catches async errors and formats them for the client.
+-   **Logging:** Centrally managed via `src/services/logger.service.js` (Winston-based).
+    -   **Levels:** `info`, `warn`, `error`.
+    -   **Persistence:** Writes to `logs/application-YYYY-MM-DD.log` (Rotated daily).
+    -   **Policy:** All `console.log` statements are forbidden in production services/controllers.
 
 ### 3.8 Configuration
 ### 3.8 Configuration Architecture
@@ -153,7 +159,14 @@ This is the core of the application. Logic is strictly separated from Controller
 ### 4.7 AdSense Integration
 -   **Strategy:** Dynamic loading via `AdSense.jsx` component.
 -   **Control:** Regulated by `VITE_ADSENSE_ENABLED` (Boolean) in `client/.env`.
--   **Privacy/Performance:** Scripts are **NOT** loaded if disabled. No empty placeholders are rendered in production or development when disabled.
+-   **Privacy/Performance:** Scripts are **NOT** loaded if disabled. No empty placeholders are rendered in production.
+-   **Dev Mode:** Displays gray placeholders in development to verify layout.
+
+### 4.8 SEO & Rich Snippets
+-   **Library:** `react-helmet-async` for head management.
+-   **Dynamic Meta:** The `<SEO />` component dynamically updates Page Title, Description, and Keywords.
+-   **Structured Data:** Implements **JSON-LD Schema** (`FinancialProduct`) on fund pages for Google Rich Result indexing.
+-   **Rich Snippets:** Extracts real-time NAV and Returns for search engine visibility.
 
 ---
 
@@ -177,7 +190,9 @@ This is the core of the application. Logic is strictly separated from Controller
 6.  **Enrich:** (Optional) Lazy-load extra data if `detail_info_synced_at` is old.
 
 **Stage 2: AMFI NAV Sync** (Automatic, after Stage 1)
-1.  **Trigger:** Automatically after Full Fund Sync completes (success OR failure).
+1.  **Trigger:**
+    -   **Automatic:** Immediately after Full Fund Sync completes (success OR failure).
+    -   **Scheduled:** Independently at **11:00 PM IST** and **05:00 AM IST** (`0 5,23 * * *`).
 2.  **Action:** `amfiSyncService.runSync()`.
 3.  **Fetch:** Downloads AMFI text file (`https://portal.amfiindia.com/spages/NAVAll.txt`).
 4.  **Parse:** Semicolon-delimited, ~13,000 records, parses DD-MMM-YYYY dates.
@@ -222,6 +237,7 @@ This is the core of the application. Logic is strictly separated from Controller
 
 -   **Data Delay:** NAVs are 1 day delayed (EOD data from AMFI/MFAPI). Real-time trading is NOT supported.
 -   **Local Truth:** The app assumes the local DB is the "source of truth" for the UI. If sync fails, the UI shows stale data. It does not fallback to live API calls from the client.
+-   **Strict Ledger Policy:** Every fund movement (SIP, SWP, Lump Sum) MUST have a corresponding entry in `ledger_entries`. The user's virtual balance is strictly derived from these movements (simulating a bank statement).
 -   **Docker Host:** The code assumes availability of `mysql` hostname. Local dev outside Docker requires `.env` override to `localhost`.
 
 ---
@@ -788,6 +804,34 @@ Integrated an AI-powered assistant using Ollama (local LLM) to help users unders
 | `AI_SYSTEM_PROMPT` | (See service) | AI behavior definition |
 
 #### Files Added/Modified
+- `src/services/ollama.service.js`
+- `src/services/ai.controller.js`
+- `src/routes/ai.routes.js`
+- `client/src/components/ai/AiAssistant.jsx`
+
+### 15.9 AI Manager Visibility (Feb 2026)
+
+#### Feature
+The AI Manager widget is now conditionally rendered based on a global system setting.
+
+#### Implementation
+- **Backend source of Truth:** `system_settings` table (`ai_enabled` key).
+- **API:** `GET /api/ai/status` returns `{ success: true, data: { enabled: boolean } }`.
+- **Frontend Behavior:**
+    - `AiAssistant.jsx` calls status endpoint on mount.
+    - If `enabled: false`, the component returns `null` (does not render).
+    - If API fails, it defaults to `enabled: true` (graceful degradation) but logs a warning.
+
+### 15.10 Ledger Model Fix (Feb 2026)
+#### Problem
+`TypeError: Cannot read properties of undefined` in `LedgerModel`.
+#### Cause
+Incorrect usage of the `src/db/database.js` wrapper. The model attempted to use `execute` (which doesn't exist on the wrapper) and incorrectly destructured the result of `query` (which returns rows directly).
+#### Solution
+- Refactored `LedgerModel` to use `pool.run` for inserts.
+- Removed array destructuring for `pool.query` results.
+- **Learnings:** Always check `src/db/database.js` implementation when writing new models.
+
 | File | Type | Purpose |
 |------|------|---------|
 | `src/services/ollama.service.js` | Modified | AI service with system prompt |
@@ -832,6 +876,28 @@ AI_SYSTEM_PROMPT=You are a specialized AI Mutual Fund Manager... STRICT TOPIC RE
 
 ---
 
+### 15.11 Infrastructure Hardening & SEO Phase 2 (Feb 2026)
+
+#### Docker & Production Safety
+-   **Custom DB Image:** Introduced `docker/mysql.Dockerfile` to resolve "Permission Denied" errors on TrueNAS SCALE. The DB initialization script is now baked into the image with `644` permissions rather than bind-mounted.
+-   **Build Context Fix:** Updated `.dockerignore` and `mysql.Dockerfile` to ensure `client/.env` is accessible during build, preventing AdSense configuration from being stripped in production bundles.
+-   **Git Safety:** Renamed database Dockerfile to `mysql.Dockerfile` to bypass `.gitignore` patterns and ensure deployment scripts are tracked.
+
+#### Sync Mechanism Improvements
+-   **Automatic Chaining:** The daily scheduler now automatically triggers the **AMFI NAV Sync** immediately after the **Full Fund Sync** completes (or is manually triggered). This ensures historical data and latest NAVs are always in sync.
+-   **Manual Job UX:** Updated registry to mark "MANUAL_ONLY" jobs as active, and enhanced the Admin Dashboard UI to display "Manual Trigger Only" tags instead of misleading "Disabled" status.
+
+#### SEO Phase 2 Optimization
+-   **Dynamic Metadata:** Implemented page-specific `<SEO />` tags for every route.
+-   **Fund Precision:** Fund Details pages now feature dynamic `<title>` tags containing the scheme name and the latest NAV price (e.g., "HDFC Top 100 - NAV: ₹95.20").
+-   **Rich Result Snippets:** Integrated `FinancialProduct` structured data (JSON-LD) for all mutual funds, optimizing indexing and search result display.
+
+#### Logging Consolidation
+-   **100% Migration:** Completed the removal of legacy `console.log` statements across the entire backend (`src/`).
+-   **System Audit:** All critical paths (Scheduler, Ingestion, Auth, API) now use the asynchronous `logger.service.js` for centralized file-based observability.
+
+---
+
 ## 16. Deployment Procedures (February 2026)
 > **Note:** Comprehensive deployment instructions are maintained in **`DEPLOYMENT.md`**.
 
@@ -852,7 +918,7 @@ For successful deployment, the following new variables **MUST** be present in th
 
 ---
 
-### 15.9 AMC Duplicate & Email Notification Fixes (Feb 2026)
+### 15.10 AMC Duplicate & Email Notification Fixes (Feb 2026)
 
 #### AMC Duplication Root Cause
 -   **Problem:** The `amc_master` table was seeded with **long** fund house names (e.g., "SBI Mutual Fund"), but `mfapiIngestion.service.js` extracts **short** names from MFAPI (e.g., "SBI"). This caused duplicate entries (one from seed, one from sync).
@@ -869,5 +935,61 @@ For successful deployment, the following new variables **MUST** be present in th
     -   **File:** `src/services/cronNotification.service.js`
     -   **Change:** Updated stats extraction to correctly access `result.fullSync.totalFetched` and `result.incrementalSync.totalFetched`, then sum them.
 -   **Verification:** After deploying, manually trigger "Full Fund Sync" from Admin Dashboard and confirm the email report shows correct stats.
+
+### 11.9 Ledger Book Implementation (Feb 2026)
+
+#### Overview
+Implemented a **double-entry ledger system** to track all financial movements (investments, redemptions, SIP allocations) with high fidelity. This ensures a complete audit trail for the user's demo account balance.
+
+#### Database Schema
+- **Table:** `ledger_entries`
+- **Columns:**
+    - `id`: Primary Key
+    - `user_id`: Foreign Key to `users`
+    - `transaction_id`: Foreign Key to `transactions` (Nullable for manual resets)
+    - `amount`: Transaction amount
+    - `balance_after`: Snapshot of user balance after transaction
+    - `type`: `CREDIT` (Deposit/Redemption) or `DEBIT` (Investment)
+    - `description`: Human-readable context (e.g., "SIP Execution: HDFC Fund")
+    - `created_at`: Timestamp
+
+#### Backend Architecture
+- **Model:** `src/models/ledger.model.js` - Handles DB insertions and paginated retrieval.
+- **Service:** `src/services/ledger.service.js` - Business logic and centralized logging.
+- **Controller:** `src/controllers/ledger.controller.js` - Exposes `GET /api/ledger`.
+- **Integration:** 
+    - `DemoService` logs ledger entries for **Lump Sum** investments and **Account Resets**.
+    - `SchedulerService` logs ledger entries for **SIP** (Debit) and **SWP** (Credit) executions.
+
+#### Frontend Integration
+- **Component:** `client/src/components/portfolio/LedgerTable.jsx`.
+- **Location:** `Portfolio.jsx` - Replaces the "Investment Report" placeholder.
+- **Features:** 
+    - responsive table/card layout.
+    - Server-side pagination.
+    - Real-time balance tracking.
+
+#### Regression Safety
+- **No Backfill:** Historical transactions prior to this feature validation were **NOT** backfilled to preserve data integrity. The ledger starts tracking from the moment of deployment.
+
+---
+
+### 15.11 Automated AMFI NAV Sync (Feb 2026)
+
+#### Feature
+Automated the **AMFI NAV Sync** to run independently of the Full Fund Sync, ensuring data freshness even if metadata syncs are disabled or fail.
+
+#### Schedule
+-   **Trigger 1:** Immediately after `Full Fund Sync` (Chained).
+-   **Trigger 2:** Scheduled at **11:00 PM IST** and **05:00 AM IST** (`0 5,23 * * *`).
+
+#### Configuration
+-   **New Variable:** `ENABLE_AMFI_SYNC_SCHEDULE` (Default: `true`).
+-   To disable the independent schedule: Set `ENABLE_AMFI_SYNC_SCHEDULE=false` in `.env` or `docker-compose.yml`.
+
+#### Files Modified
+-   `src/jobs/scheduler.job.js`
+-   `docker-compose.yml`
+-   `Dockerfile` (Added `TZ=Asia/Kolkata`)
 
 ---

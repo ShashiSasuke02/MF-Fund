@@ -24,30 +24,13 @@ export default function AiAssistant() {
     useEffect(() => {
         const checkStatus = async () => {
             try {
-                const token = sessionStorage.getItem('auth_token');
-                // Use public-ish endpoint via admin route (safe for authenticated users)
-                // Or try a chat handshake. For now, we assume if /api/chat fails with 403/503 it handles it.
-                // But better UX is to hide it.
-                // Since there is no public status endpoint, we rely on the component handling errors gracefully.
-                // However, the requirement is "If disabled, unmount/hide widget entirely."
-                // Let's add a lightweight status check to the api.js or try a dry run.
-
-                // For now, we'll try to fetch status if logged in (since route is protected)
-                // If not logged in, we default to enabled but chat will fail if backend enforces blocks.
-                // Correct path: Check /api/admin/ai/status if possible, or new public endpoint.
-                // Given constraints, we will just start enabled. 
-                // IF we want to strictly follow the plan: "Unmount/hide widget entirely"
-                // We need a public status endpoint. 
-                // Let's rely on the chat error handling for now OR 
-                // if we are an admin/user, we can call the status endpoint.
-
-                // Check status regardless of auth
-                const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/ai/status`);
-                setIsEnabled(response.data.ai?.enabled ?? true);
+                const response = await aiApi.getStatus();
+                if (response.success) {
+                    setIsEnabled(response.data.enabled ?? true);
+                }
             } catch (err) {
-                // If 403 (not admin) / 401, we just assume enabled for now (users can't check admin status)
-                // This is a limitation of the current plan not adding a public status route.
-                // We will default to TRUE.
+                console.warn('Failed to check AI status, defaulting to enabled:', err);
+                setIsEnabled(true);
             }
         };
         checkStatus();

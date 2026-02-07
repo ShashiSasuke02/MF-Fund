@@ -7,6 +7,7 @@ import { fundSyncLogModel } from '../models/fundSyncLog.model.js';
 import { localFundService } from './localFund.service.js';
 import { getISTDate } from '../utils/date.utils.js';
 import logger from './logger.service.js';
+import LedgerModel from '../models/ledger.model.js';
 
 /**
  * Scheduler Service
@@ -357,6 +358,20 @@ export const schedulerService = {
     const newBalance = parseFloat((currentBalance - amount).toFixed(2));
     await demoAccountModel.updateBalance(transaction.user_id, newBalance);
 
+    // [Ledger] Log Entry for SIP Debit
+    try {
+      await LedgerModel.createEntry({
+        userId: transaction.user_id,
+        transactionId: transaction.id,
+        amount: amount,
+        balanceAfter: newBalance,
+        type: 'DEBIT',
+        description: `SIP Execution: ${transaction.scheme_name}`
+      });
+    } catch (ledgerError) {
+      logger.error(`[Scheduler] Failed to create ledger entry for SIP ${transaction.id}: ${ledgerError.message}`);
+    }
+
     // Update holdings
     const existingHolding = await holdingModel.findByScheme(
       transaction.user_id,
@@ -456,6 +471,20 @@ export const schedulerService = {
     const currentBalance = parseFloat(account.balance);
     const newBalance = parseFloat((currentBalance + amount).toFixed(2));
     await demoAccountModel.updateBalance(transaction.user_id, newBalance);
+
+    // [Ledger] Log Entry for SWP Credit
+    try {
+      await LedgerModel.createEntry({
+        userId: transaction.user_id,
+        transactionId: transaction.id,
+        amount: amount,
+        balanceAfter: newBalance,
+        type: 'CREDIT',
+        description: `SWP Payout: ${transaction.scheme_name}`
+      });
+    } catch (ledgerError) {
+      logger.error(`[Scheduler] Failed to create ledger entry for SWP ${transaction.id}: ${ledgerError.message}`);
+    }
 
     return {
       units: unitsToRedeem,

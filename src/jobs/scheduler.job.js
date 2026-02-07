@@ -134,9 +134,11 @@ export const initSchedulerJobs = () => {
         };
     });
 
-    // 3. Register AMFI NAV Sync (Manual Only - Admin Dashboard)
-    // NOTE: This job is NOT scheduled. It can be triggered manually for ad-hoc updates.
-    cronRegistry.register('AMFI NAV Sync', 'MANUAL_ONLY', async () => {
+    // 3. Register AMFI NAV Sync (Scheduled + Manual)
+    // Runs at 11:00 PM IST (to capture early updates) and 05:00 AM IST (late updates)
+    // Also available for manual trigger via Admin Dashboard
+    const amfiSchedule = process.env.ENABLE_AMFI_SYNC_SCHEDULE === 'true' ? '0 5,23 * * *' : 'MANUAL_ONLY';
+    cronRegistry.register('AMFI NAV Sync', amfiSchedule, async () => {
         return await amfiSyncService.runSync();
     });
 
