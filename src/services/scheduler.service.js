@@ -5,7 +5,7 @@ import { holdingModel } from '../models/holding.model.js';
 import { notificationModel } from '../models/notification.model.js';
 import { fundSyncLogModel } from '../models/fundSyncLog.model.js';
 import { localFundService } from './localFund.service.js';
-import { getISTDate } from '../utils/date.utils.js';
+import { getISTDate, calculateNextPaymentDate } from '../utils/date.utils.js';
 import logger from './logger.service.js';
 import LedgerModel from '../models/ledger.model.js';
 
@@ -217,7 +217,7 @@ export const schedulerService = {
         logData.failureReason = null;
 
         // Update transaction status and advance schedule
-        const nextExecutionDate = this.calculateNextExecutionDate(
+        const nextExecutionDate = calculateNextPaymentDate(
           executionDate,
           transaction.frequency
         );
@@ -508,42 +508,7 @@ export const schedulerService = {
    * @param {string} frequency - DAILY, WEEKLY, MONTHLY, QUARTERLY
    * @returns {string} Next execution date (YYYY-MM-DD)
    */
-  calculateNextExecutionDate(currentDate, frequency) {
-    const current = new Date(currentDate);
-    let next;
-
-    switch (frequency) {
-      case 'DAILY':
-        next = new Date(current);
-        next.setDate(current.getDate() + 1);
-        break;
-
-      case 'WEEKLY':
-        next = new Date(current);
-        next.setDate(current.getDate() + 7);
-        break;
-
-      case 'MONTHLY':
-        next = new Date(current);
-        next.setMonth(current.getMonth() + 1);
-        break;
-
-      case 'QUARTERLY':
-        next = new Date(current);
-        next.setMonth(current.getMonth() + 3);
-        break;
-
-      case 'YEARLY':
-        next = new Date(current);
-        next.setFullYear(current.getFullYear() + 1);
-        break;
-
-      default:
-        throw new Error(`Unsupported frequency: ${frequency}`);
-    }
-
-    return next.toISOString().split('T')[0];
-  },
+  calculateNextExecutionDate: calculateNextPaymentDate,
 
   /**
    * Check if transaction should stop (end conditions reached)

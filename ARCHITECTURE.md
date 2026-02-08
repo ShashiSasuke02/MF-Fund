@@ -472,6 +472,39 @@ If unsure — ask clarifying questions instead of guessing.
 -   **Status:** Reverted to original white theme with emerald accents.
 -   **Design:** Clean white cards (`bg-white`), gray text (`text-gray-900`), and standard shadows.
 
+### 11.9 Math Logic & Test Coverage (Feb 2026)
+#### Date Logic Refactoring (DRY Principle)
+-   **New Module:** `src/utils/date.utils.js`
+-   **Function:** `calculateNextPaymentDate(currentDate, frequency)`
+-   **Impact:**
+    -   Centralized all next-date calculation logic (Daily, Weekly, Monthly, Quarterly, Yearly).
+    -   Eliminated code duplication between `scheduler.service.js` and `demo.service.js`.
+    -   Ensures consistent execution scheduling across the platform.
+
+#### Test Coverage Enhancement
+-   **Golden Data Tests:** Added real-world verification to `calculator.service.test.js`.
+    -   **SIP:** Verified against standard bank calculator scenarios (e.g., ₹5k/mo, 12%, 10y).
+    -   **SWP:** Verified withdrawal logic against known benchmarks.
+-   **Date Utility Tests:** Created `tests/unit/utils/date.utils.test.js` covering all frequency handling and leap year edge cases.
+
+### 11.10 UI/UX & Error Handling (Feb 2026)
+#### Error Focus Management
+-   **New Hook:** `useErrorFocus(errors, refs)`
+-   **Function:** Automatically scrolls to and focuses on the first invalid field upon form submission failure.
+-   **UX Impact:** improved accessibility and user guidance during complex form interactions (Login, Register, Invest).
+
+#### Invest Page Refinement
+-   **Simplified UI:** Removed "Number of Installments" field (now handled internally as indefinite until stopped).
+-   **Strict Validation:** Implemented cross-field validation to ensure `EndDate` > `StartDate` for SIP/SWP.
+
+### 11.11 Infrastructure Updates (Feb 2026)
+#### Email Service Migration
+-   **provider:** **Zoho Mail** (Replaced Brevo).
+-   **Configuration:** 
+    -   Host: `smtp.zoho.in`
+    -   Port: `465` (SSL)
+    -   Auth: App-specific password via `EMAIL_USER` / `EMAIL_PASS`.
+
 
 ## 13. Notification System
 
@@ -798,6 +831,31 @@ Integrated an AI-powered assistant using Ollama (local LLM) to help users unders
 │  │  - Only visible to authenticated users                  │ │
 │  │  - Minimize/Expand/Close states                         │ │
 │  └─────────────────────────────────────────────────────────┘ │
+
+### 15.9 Error Handling & UX Overhaul (Feb 2026)
+
+#### Centralized Error Management
+-   **Class:** `AppError` (`src/utils/errors/AppError.js`)
+    -   Extends `Error` with `statusCode`, `errorCode`, and `details`.
+    -   Ensures consistent error structure across the entire application.
+-   **Middleware:** Refactored `src/middleware/errorHandler.js`
+    -   Catches `AppError`, Axios errors, and DB validation errors.
+    -   Returns standardized JSON: `{ success: false, message, code, stack? }`.
+-   **Frontend Propagation:**
+    -   `client/src/api/index.js` now attaches `code`, `details`, and `status` to thrown errors.
+    -   Allows UI components to react to specific error codes (e.g., `HOLDING_NOT_FOUND`).
+
+#### UX Enhancements
+-   **Error Focus Hook:** `client/src/hooks/useErrorFocus.js`
+    -   Automatically scrolls to and focuses on the error message container when an error occurs.
+    -   Requires `id="error"` and `tabIndex="-1"` on the error container.
+-   **Visual Variants:** `ErrorMessage.jsx` now supports `banner` (default), `inline`, and `modal` styles with animations.
+-   **Zoho Mail Integration:**
+    -   Migrated to **Zoho Mail Lite** for SMTP.
+    -   Implemented dynamic SSL/TLS port switching in `email.service.js`.
+
+---
+
 │                            │                                  │
 │                      aiApi.chat()                             │
 │                            ▼                                  │

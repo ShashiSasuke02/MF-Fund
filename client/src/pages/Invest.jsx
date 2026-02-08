@@ -19,7 +19,7 @@ export default function Invest() {
     frequency: 'MONTHLY',
     startDate: '',
     endDate: '',
-    installments: ''
+    endDate: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -124,6 +124,20 @@ export default function Invest() {
           return;
         }
       }
+
+      // End Date Validation
+      if (formData.endDate) {
+        const end = new Date(formData.endDate);
+        const start = new Date(formData.startDate); // startDate is guaranteed to exist by check above
+
+        end.setHours(0, 0, 0, 0);
+        start.setHours(0, 0, 0, 0);
+
+        if (end <= start) {
+          setError('End Date must be after the Start Date.');
+          return;
+        }
+      }
     }
 
     setLoading(true);
@@ -136,10 +150,7 @@ export default function Invest() {
         amount: parseFloat(formData.amount),
         frequency: transactionType === 'LUMP_SUM' ? undefined : formData.frequency,
         startDate: transactionType === 'LUMP_SUM' ? undefined : formData.startDate,
-        endDate: transactionType === 'LUMP_SUM' ? undefined : formData.endDate || undefined,
-        installments: transactionType === 'LUMP_SUM' || !formData.installments
-          ? undefined
-          : parseInt(formData.installments)
+        endDate: transactionType === 'LUMP_SUM' ? undefined : formData.endDate || undefined
       };
 
       const response = await demoApi.createTransaction(transactionData);
@@ -259,7 +270,11 @@ export default function Invest() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg flex items-start shadow-lg">
+            <div
+              id="error"
+              tabIndex="-1"
+              className="bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg flex items-start shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            >
               <svg className="w-6 h-6 text-red-500 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -460,29 +475,7 @@ export default function Invest() {
                 </div>
               </div>
 
-              <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-6 transition-all hover:shadow-xl">
-                <label htmlFor="installments" className="flex items-center text-sm font-semibold text-gray-700 mb-3">
-                  <svg className="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
-                  Number of Installments (Optional)
-                </label>
-                <input
-                  id="installments"
-                  name="installments"
-                  type="number"
-                  value={formData.installments}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                  placeholder="Leave empty for indefinite (e.g., 12, 24, 36)"
-                />
-                <p className="mt-2 text-sm text-gray-500 flex items-center">
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Leave empty to continue until manually stopped
-                </p>
-              </div>
+
             </>
           )}
 

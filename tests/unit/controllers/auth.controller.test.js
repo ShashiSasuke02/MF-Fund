@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import AppError from '../../../src/utils/errors/AppError.js';
 
 // Define mock handles
 const mockUserModel = {
@@ -133,14 +134,13 @@ describe('Auth Controller', () => {
     it('should reject non-whitelisted email domains', async () => {
       req.body = { ...validRegisterData, emailId: 'john@fake.com' };
 
+      // Expect AppError to be passed to next
       await authController.register(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining('Shield Active')
-        })
-      );
+      expect(next).toHaveBeenCalledWith(expect.any(AppError));
+      const error = next.mock.calls[0][0];
+      expect(error.errorCode).toBe('VAL_DOMAIN_ERROR');
+      expect(error.statusCode).toBe(400);
     });
 
     it('should reject registration with missing fields', async () => {
@@ -148,12 +148,10 @@ describe('Auth Controller', () => {
 
       await authController.register(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'All fields are required'
-        })
-      );
+      expect(next).toHaveBeenCalledWith(expect.any(AppError));
+      const error = next.mock.calls[0][0];
+      expect(error.message).toBe('All fields are required');
+      expect(error.statusCode).toBe(400);
     });
 
     it('should reject duplicate email', async () => {
@@ -162,12 +160,10 @@ describe('Auth Controller', () => {
 
       await authController.register(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(409);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'Email already registered'
-        })
-      );
+      expect(next).toHaveBeenCalledWith(expect.any(AppError));
+      const error = next.mock.calls[0][0];
+      expect(error.message).toBe('Email already registered');
+      expect(error.statusCode).toBe(409);
     });
   });
 

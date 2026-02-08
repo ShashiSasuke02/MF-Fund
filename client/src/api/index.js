@@ -48,7 +48,11 @@ async function fetchApi(endpoint, options = {}) {
 
     if (!response.ok) {
       console.error(`[API Error] ${endpoint} Status: ${response.status}`, data);
-      throw new Error(data.message || data.error || `HTTP error ${response.status}`);
+      const error = new Error(data.message || data.error || `HTTP error ${response.status}`);
+      error.code = data.code;
+      error.details = data.details;
+      error.status = response.status;
+      throw error;
     }
 
     return data;

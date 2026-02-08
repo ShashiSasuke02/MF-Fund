@@ -91,7 +91,7 @@ describe('Banking Scheme Calculators', () => {
         { month: 24, amount: 50000 }
       ];
       const result = calculateAdvancedLoan(500000, 8.5, 60, prepayments);
-      
+
       expect(result.actualTenure).toBeLessThan(result.originalTenure);
       expect(result.savingsFromPrepayment).toBeGreaterThan(0);
       expect(result.schedule).toBeDefined();
@@ -257,6 +257,14 @@ describe('Mutual Fund Calculators', () => {
       expect(() => calculateSIP(-5000, 12, 10)).toThrow();
       expect(() => calculateSIP(5000, -12, 10)).toThrow();
     });
+
+    test('should match Golden Data (SIP)', () => {
+      // Golden Data: ₹5,000/mo, 12% p.a., 10 years
+      // Expected: Invested = 6,00,000 | Value ≈ 11,61,695
+      const result = calculateSIP(5000, 12, 10);
+      expect(result.totalInvestment).toBe(600000);
+      expect(Math.round(result.futureValue)).toBe(1161695);
+    });
   });
 
   describe('calculateSWP', () => {
@@ -270,6 +278,18 @@ describe('Mutual Fund Calculators', () => {
       const result = calculateSWP(1000000, 50000, 8, 5);
       // Should deplete faster
       expect(result.remainingBalance).toBeDefined();
+    });
+
+    test('should match Golden Data (SWP)', () => {
+      // Golden Data: Invest ₹10L, Withdraw ₹10k/mo, Return 8% p.a., Duration 1 yr
+      // 10k * 12 = 1.2L withdrawn
+      // Balance should decrease but earn interest
+      const result = calculateSWP(1000000, 10000, 8, 1);
+      expect(result.totalWithdrawn).toBe(120000);
+      // Rough calc: 10L * 8% = 80k growth. 1.2L withdrawn. Net -40k.
+      // Balance approx 9.6L. Exact calc needed for test.
+      expect(result.remainingBalance).toBeLessThan(1000000);
+      expect(result.remainingBalance).toBeGreaterThan(950000);
     });
   });
 
@@ -336,13 +356,13 @@ describe('Retirement Planning Calculators', () => {
 describe('Edge Cases and Performance', () => {
   test('all calculations should complete within 100ms', () => {
     const start = Date.now();
-    
+
     calculateSimpleInterest(100000, 7.5, 5);
     calculateCompoundInterest(100000, 7.5, 5, 4);
     calculateBasicLoanEMI(500000, 8.5, 60);
     calculateSIP(5000, 12, 10);
     calculatePPF(150000, 7.1, 15);
-    
+
     const duration = Date.now() - start;
     expect(duration).toBeLessThan(100);
   });

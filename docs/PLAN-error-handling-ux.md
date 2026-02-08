@@ -1,71 +1,63 @@
-# Plan: Node.js Error Handling & UX Review
+# Implementation Plan - Error Handling & UX Refinement
 
-## Goal
-Improve user-facing error handling, messaging, and visibility while standardizing the backend architecture to follow industry best practices for a Node.js ecosystem.
+This plan addresses the need for a standardized error handling architecture in the Node.js backend and improved user experience for error reporting in the React frontend.
+
+## Goals
+1.  **Standardize Backend Errors:** Replace ad-hoc error handling with a centralized `AppError` class and middleware.
+2.  **Fix API Communication:** Ensure error codes (e.g., `HOLDING_NOT_FOUND`) are propagated from Backend -> API Client -> Frontend Components.
+3.  **Enhance UX:** Implement "Scroll-to-Error" behavior and visual improvements for error messages.
 
 ## User Review Required
 > [!IMPORTANT]
-> **Refactoring Pattern:** I will replace manual `res.status().json()` calls in controllers with `next(new AppError(...))` to leverage centralized middleware.
-> **UX Focus:** A new React hook `useErrorFocus` will be created to handle automatic scrolling and focusing on form errors.
+> **Breaking Change (Internal):** The `errorHandler` middleware response format will change to include `code` and `details`.
+> **Breaking Change (Frontend Client):** The `fetchApi` utility in `client/src/api/index.js` will be updated to throw an enhanced Error object containing backend properties.
 
 ## Proposed Changes
 
-### 1. Backend Architecture (Refinement)
+### 1. Backend Infrastructure
 
-#### [NEW] [AppError.js](file:///c:/Users/shashidhar/Desktop/MF-Investments/src/utils/errors/AppError.js)
-Create a centralized `AppError` class that extends the native `Error` object.
+#### [NEW] [src/utils/errors/AppError.js](file:///c:/Users/shashidhar/Desktop/MF-Investments/src/utils/errors/AppError.js)
+-   Create a class extending `Error` with `statusCode`, `errorCode`, `isOperational`, and `details`.
 
-| Property | Purpose |
-| :--- | :--- |
-| `statusCode` | HTTP status code (e.g., 400, 401, 404, 500) |
-| `errorCode` | Machine-readable string (e.g., `AUTH_INVALID_CREDENTIALS`) |
-| `isOperational` | Distinguish between planned errors vs. system crashes |
-| `details` | Optional object for validation field errors |
+#### [MODIFY] [src/middleware/errorHandler.js](file:///c:/Users/shashidhar/Desktop/MF-Investments/src/middleware/errorHandler.js)
+-   Update to handle `AppError` instances explicitly.
+-   Include `errorCode` (e.g., `VAL_001`, `AUTH_001`) in the JSON response.
+-   Standardize logging based on `isOperational`.
 
-#### [MODIFY] [errorHandler.js](file:///c:/Users/shashidhar/Desktop/MF-Investments/src/middleware/errorHandler.js)
-Refactor the middleware to:
-- Detect `AppError` and format the response accordingly.
-- Clean up `isAxiosError` logic to provide friendlier messages for external API failures.
-- Ensure `NODE_ENV === 'production'` hides all stack traces and internal details.
-- Standardize logging levels (operational errors = `warn`, system errors = `error`).
+### 2. Service & Controller Refactoring
 
-#### [MODIFY] [Controllers](file:///c:/Users/shashidhar/Desktop/MF-Investments/src/controllers/)
-Update `auth.controller.js`, `scheduler.controller.js`, etc., to remove redundant `res.status().json()` blocks and use `next(AppError)`.
+#### [MODIFY] [src/services/demo.service.js](file:///c:/Users/shashidhar/Desktop/MF-Investments/src/services/demo.service.js)
+-   Replace generic `Error` throws with `new AppError(...)`.
+-   Specifically regarding SWP/Sell: Throw `AppError` with code `HOLDING_NOT_FOUND`.
 
----
+#### [MODIFY] [src/controllers/auth.controller.js](file:///c:/Users/shashidhar/Desktop/MF-Investments/src/controllers/auth.controller.js)
+-   Replace manual `res.status().json()` with `next(new AppError(...))`.
 
-### 2. Frontend UX (Visibility & Focus)
+### 3. Frontend Core
 
-#### [NEW] [useErrorFocus.js](file:///c:/Users/shashidhar/Desktop/MF-Investments/client/src/hooks/useErrorFocus.js)
-A reusable hook to handle accessibility and UX requirements.
-- **Logic:** When an `errors` object is updated, find the first key with an error, scroll its input into view, and focus the element.
+#### [MODIFY] [client/src/api/index.js](file:///c:/Users/shashidhar/Desktop/MF-Investments/client/src/api/index.js)
+-   Update `fetchApi` to attach `data.code` and `data.details` to the thrown Error object.
+-   This fixes the issue where `Invest.jsx` checks `err.code` but receives undefined.
 
-#### [MODIFY] [ErrorMessage.jsx](file:///c:/Users/shashidhar/Desktop/MF-Investments/client/src/components/ErrorMessage.jsx)
-Enhance the component with:
-- Visual variants (Banner, Inline, Modal).
-- Meaningful icons (Warning, Error, Info).
-- Smooth entry animations (Slide-down).
+#### [MODIFY] [client/src/hooks/useErrorFocus.js](file:///c:/Users/shashidhar/Desktop/MF-Investments/client/src/hooks/useErrorFocus.js)
+-   (Optional) Verify logic matches requirements (already seems correct).
 
-#### [MODIFY] [Register.jsx](file:///c:/Users/shashidhar/Desktop/MF-Investments/client/src/pages/Register.jsx)
-Implement the `useErrorFocus` hook and standardize user messaging.
+### 4. Frontend UI Components
 
----
+#### [MODIFY] [client/src/components/ErrorMessage.jsx](file:///c:/Users/shashidhar/Desktop/MF-Investments/client/src/components/ErrorMessage.jsx)
+-   Add support for `variant` prop (banner, modal, inline).
+-   Add icons and animations.
 
-### 3. Error Classification & Messaging
-I will create a standard mapping for internal codes:
-- `VAL_001`: Generic Validation Error
-- `AUTH_001`: Invalid Credentials
-- `SYS_001`: Unexpected Server Error
-
----
+#### [MODIFY] [client/src/pages/Invest.jsx](file:///c:/Users/shashidhar/Desktop/MF-Investments/client/src/pages/Invest.jsx)
+-   Ensure `HOLDING_NOT_FOUND` is handled gracefully (logic exists, just verify with new API client).
 
 ## Verification Plan
 
 ### Automated Tests
-- Run `npm test` after refactoring to ensure existing coverage passes.
-- Create new unit tests for `AppError` and the refactored `errorHandler`.
+-   Create unit tests for `AppError` and `errorHandler`.
+-   Run existing backend tests to ensuring refactoring didn't break auth/demo flows.
 
 ### Manual Verification
-- Trigger validation errors on the **Signup Page** and verify it scrolls/focuses correctly.
-- Simulate a network timeout (Axios error) and verify the "Friendly" message shows up instead of a technical one.
-- Verify production mode hides internal variable names in responses.
+1.  **SWP Error:** Try to SWP a fund with 0 holdings. Verify "You do not own this fund" message appears (requires `HOLDING_NOT_FOUND` code propagation).
+2.  **Form Focus:** Trigger validation error on Register/Login and verify auto-scroll.
+3.  **Auth Error:** Try logging in with wrong password. Verify standardized error response.

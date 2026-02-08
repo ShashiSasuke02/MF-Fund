@@ -36,3 +36,46 @@ export const toISTDateString = (date) => {
         timeZone: 'Asia/Kolkata'
     });
 };
+
+/**
+ * Calculate next execution date based on frequency
+ * @param {string} currentDate - Current execution date (YYYY-MM-DD)
+ * @param {string} frequency - DAILY, WEEKLY, MONTHLY, QUARTERLY, YEARLY
+ * @returns {string} Next execution date (YYYY-MM-DD)
+ */
+export const calculateNextPaymentDate = (currentDate, frequency) => {
+    const current = new Date(currentDate);
+    let next;
+
+    switch (frequency) {
+        case 'DAILY':
+            next = new Date(current);
+            next.setDate(current.getDate() + 1);
+            break;
+
+        case 'WEEKLY':
+            next = new Date(current);
+            next.setDate(current.getDate() + 7);
+            break;
+
+        case 'MONTHLY':
+            next = new Date(current);
+            next.setMonth(current.getMonth() + 1);
+            break;
+
+        case 'QUARTERLY':
+            next = new Date(current);
+            next.setMonth(current.getMonth() + 3);
+            break;
+
+        case 'YEARLY':
+            next = new Date(current);
+            next.setFullYear(current.getFullYear() + 1);
+            break;
+
+        default:
+            throw new Error(`Unsupported frequency: ${frequency}`);
+    }
+
+    return toISTDateString(next);
+};

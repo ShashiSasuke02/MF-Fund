@@ -4,6 +4,7 @@ import { holdingModel } from '../models/holding.model.js';
 import { localFundService } from './localFund.service.js';
 import logger from './logger.service.js';
 import LedgerModel from '../models/ledger.model.js';
+import AppError from '../utils/errors/AppError.js';
 
 /**
  * Demo Service - handles demo account transactions
@@ -20,7 +21,7 @@ const logError = (...args) => {
   if (!isTestEnv) logger.error(args.join(' '));
 };
 
-import { toISTDateString, getISTDate } from '../utils/date.utils.js';
+import { toISTDateString, getISTDate, calculateNextPaymentDate } from '../utils/date.utils.js';
 
 // Helper to format date for DB (YYYY-MM-DD)
 const formatDateForDB = (date) => {
@@ -44,37 +45,7 @@ const formatDateForDB = (date) => {
   return null;
 };
 
-// Helper to calculate next execution date
-const calculateNextDate = (currentDate, frequency) => {
-  const current = new Date(currentDate);
-  let next;
 
-  switch (frequency) {
-    case 'DAILY':
-      next = new Date(current);
-      next.setDate(current.getDate() + 1);
-      break;
-    case 'WEEKLY':
-      next = new Date(current);
-      next.setDate(current.getDate() + 7);
-      break;
-    case 'MONTHLY':
-      next = new Date(current);
-      next.setMonth(current.getMonth() + 1);
-      break;
-    case 'QUARTERLY':
-      next = new Date(current);
-      next.setMonth(current.getMonth() + 3);
-      break;
-    case 'YEARLY':
-      next = new Date(current);
-      next.setFullYear(current.getFullYear() + 1);
-      break;
-    default:
-      return null;
-  }
-  return toISTDateString(next);
-};
 
 export const demoService = {
   /**
@@ -138,6 +109,20 @@ export const demoService = {
         throw new Error('Insufficient demo balance');
       }
 
+      // End Date Validation
+      if (endDate) {
+        const end = new Date(endDate);
+        const start = startDate ? new Date(startDate) : new Date();
+
+        end.setHours(0, 0, 0, 0);
+        start.setHours(0, 0, 0, 0);
+
+        if (end <= start) {
+          logError('[Demo Service] Validation Failed: End Date must be after Start Date. User:', userId, 'Start:', start, 'End:', end);
+          throw new AppError('End Date must be after the Start Date', 400, 'VAL_DATE_ERROR');
+        }
+      }
+
       // Calculate units
       const units = amount / latestNav;
 
@@ -169,12 +154,12 @@ export const demoService = {
             log('[Demo Service] Future SIP detected. Setting units/NAV to null until execution.');
           } else {
             // Immediate SIP (today or past date): Execute now, schedule next
-            nextExecutionDate = calculateNextDate(istToday, frequency);
+            nextExecutionDate = calculateNextPaymentDate(istToday, frequency);
             log('[Demo Service] Immediate SIP. Next execution scheduled for:', nextExecutionDate);
           }
         } else {
           // No start date provided (defaults to immediate): Execute now, schedule next
-          nextExecutionDate = calculateNextDate(istToday, frequency);
+          nextExecutionDate = calculateNextPaymentDate(istToday, frequency);
           log('[Demo Service] Immediate SIP (No Date). Next execution scheduled for:', nextExecutionDate);
         }
 
@@ -277,9 +262,11 @@ export const demoService = {
 
       const holding = await holdingModel.findByScheme(userId, schemeCode);
       if (!holding) {
-        const err = new Error('No holdings found for this scheme. Please invest via Lump Sum or SIP first.');
-        err.code = 'HOLDING_NOT_FOUND';
-        throw err;
+        throw new AppError(
+          'No holdings found for this scheme. Please invest via Lump Sum or SIP first.',
+          400,
+          'HOLDING_NOT_FOUND'
+        );
       }
 
       const requiredUnits = amount / latestNav;

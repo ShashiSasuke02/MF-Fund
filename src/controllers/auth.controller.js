@@ -11,6 +11,7 @@ import logger from '../services/logger.service.js';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const JWT_EXPIRES_IN = '7d';
 const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+import AppError from '../utils/errors/AppError.js';
 
 export const authController = {
   /**
@@ -21,15 +22,12 @@ export const authController = {
       const { fullName, emailId, password } = req.body;
 
       // Validate required fields
+      // Validate required fields
       if (!fullName || !emailId || !password) {
-        return res.status(400).json({
-          success: false,
-          message: 'All fields are required',
-          errors: {
-            fullName: !fullName ? 'Full name is required' : undefined,
-            emailId: !emailId ? 'Email is required' : undefined,
-            password: !password ? 'Password is required' : undefined
-          }
+        throw new AppError('All fields are required', 400, 'VAL_ERROR', {
+          fullName: !fullName ? 'Full name is required' : undefined,
+          emailId: !emailId ? 'Email is required' : undefined,
+          password: !password ? 'Password is required' : undefined
         });
       }
 
@@ -38,20 +36,18 @@ export const authController = {
       const emailDomain = emailId.split('@')[1]?.toLowerCase();
 
       if (!trustedDomains.includes(emailDomain)) {
-        return res.status(400).json({
-          success: false,
-          message: "Shield Active 🛡️ Spam-free experience guaranteed. We're only accepting signups from well-known email domains to help keep our platform spam-free",
-          errors: { emailId: 'Email domain not allowed' }
-        });
+        throw new AppError(
+          "Shield Active 🛡️ Spam-free experience guaranteed. Trymutualfunds only accepting signups from well-known email domains to help keep our platform spam-free",
+          400,
+          'VAL_DOMAIN_ERROR',
+          { emailId: 'Email domain not allowed' }
+        );
       }
 
       // Check if email already registered
+      // Check if email already registered
       if (await userModel.emailExists(emailId)) {
-        return res.status(409).json({
-          success: false,
-          message: 'Email already registered',
-          errors: { emailId: 'Email already registered' }
-        });
+        throw new AppError('Email already registered', 409, 'AUTH_EMAIL_EXISTS', { emailId: 'Email already registered' });
       }
 
       // Generate OTP
@@ -113,7 +109,7 @@ export const authController = {
       const { emailId, otp } = req.body;
 
       if (!emailId || !otp) {
-        return res.status(400).json({ success: false, message: 'Email and OTP are required' });
+        throw new AppError('Email and OTP are required', 400, 'VAL_ERROR');
       }
 
       // Find pending registration
@@ -124,18 +120,18 @@ export const authController = {
       );
 
       if (!pendingUser) {
-        return res.status(400).json({ success: false, message: 'Registration session expired or invalid. Please register again.' });
+        throw new AppError('Registration session expired or invalid. Please register again.', 400, 'AUTH_SESSION_EXPIRED');
       }
 
       // Check Expiry
       if (Date.now() > pendingUser.expires_at) {
-        return res.status(400).json({ success: false, message: 'OTP expired. Please register again.' });
+        throw new AppError('OTP expired. Please register again.', 400, 'AUTH_OTP_EXPIRED');
       }
 
       // Check Attempts
       if (pendingUser.otp_attempts >= 3) {
         await run('DELETE FROM pending_registrations WHERE email_id = ?', [emailId]);
-        return res.status(400).json({ success: false, message: 'Too many failed attempts. Registration cancelled.' });
+        throw new AppError('Too many failed attempts. Registration cancelled.', 400, 'AUTH_TOO_MANY_ATTEMPTS');
       }
 
       // Verify OTP
@@ -143,7 +139,7 @@ export const authController = {
       if (inputOtpHash !== pendingUser.otp_hash) {
         // Increment attempts
         await run('UPDATE pending_registrations SET otp_attempts = otp_attempts + 1 WHERE id = ?', [pendingUser.id]);
-        return res.status(400).json({ success: false, message: 'Invalid OTP' });
+        throw new AppError('Invalid OTP', 400, 'AUTH_INVALID_OTP');
       }
 
       // --- Create User (Move from Pending to Users) ---
@@ -195,13 +191,13 @@ export const authController = {
   async resendOTP(req, res, next) {
     try {
       const { emailId } = req.body;
-      if (!emailId) return res.status(400).json({ success: false, message: 'Email required' });
+      if (!emailId) throw new AppError('Email required', 400, 'VAL_ERROR');
 
       const { queryOne } = await import('../db/database.js');
       const pendingUser = await queryOne('SELECT * FROM pending_registrations WHERE email_id = ?', [emailId]);
 
       if (!pendingUser) {
-        return res.status(404).json({ success: false, message: 'No pending registration found' });
+        throw new AppError('No pending registration found', 404, 'AUTH_NO_PENDING_REG');
       }
 
       // Generate new OTP
@@ -234,32 +230,22 @@ export const authController = {
 
       // Validate required fields
       if (!emailId || !password) {
-        return res.status(400).json({
-          success: false,
-          message: 'Email and password are required',
-          errors: {
-            emailId: !emailId ? 'Email is required' : undefined,
-            password: !password ? 'Password is required' : undefined
-          }
+        throw new AppError('Email and password are required', 400, 'VAL_ERROR', {
+          emailId: !emailId ? 'Email is required' : undefined,
+          password: !password ? 'Password is required' : undefined
         });
       }
 
       // Find user by email
       const user = await userModel.findByEmail(emailId);
       if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid email or password'
-        });
+        throw new AppError('Invalid email or password', 401, 'AUTH_INVALID_CREDENTIALS');
       }
 
       // Verify password
       const passwordMatch = await bcrypt.compare(password, user.password_hash);
       if (!passwordMatch) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid email or password'
-        });
+        throw new AppError('Invalid email or password', 401, 'AUTH_INVALID_CREDENTIALS');
       }
 
       // Get demo account (create if doesn't exist)
@@ -336,10 +322,7 @@ export const authController = {
 
       const user = await userModel.findById(userId);
       if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
+        throw new AppError('User not found', 404, 'AUTH_USER_NOT_FOUND');
       }
 
       // Get demo account (create if doesn't exist)

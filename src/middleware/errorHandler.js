@@ -1,4 +1,5 @@
 import logger from '../services/logger.service.js';
+import AppError from '../utils/errors/AppError.js';
 
 /**
  * Centralized error handling middleware
@@ -7,11 +8,32 @@ import logger from '../services/logger.service.js';
 export function errorHandler(err, req, res, next) {
   const { requestId } = req;
 
-  // Log error for debugging (using centralized logger)
-  // We log all errors that reach here as 'error' level if they are 500s or unexpected
-  // Validation errors or 4xx might be 'warn' or 'info' depending on preference
+  // 1. Handle AppError (Known operational errors)
+  if (err instanceof AppError) {
+    if (err.isOperational) {
+      logger.warn(`Operational Error: ${err.message}`, {
+        requestId,
+        errorCode: err.errorCode,
+        statusCode: err.statusCode,
+        details: err.details
+      });
+    } else {
+      logger.error(`System Error: ${err.message}`, {
+        requestId,
+        stack: err.stack
+      });
+    }
 
-  // Handle axios errors (from MFapi calls)
+    return res.status(err.statusCode).json({
+      success: false,
+      status: err.status,
+      message: err.message,
+      code: err.errorCode,
+      details: err.details
+    });
+  }
+
+  // 2. Handle Axios Errors (External API failures)
   if (err.isAxiosError) {
     const status = err.response?.status || 503;
     const message = getAxiosErrorMessage(err);
@@ -20,16 +42,19 @@ export function errorHandler(err, req, res, next) {
       requestId,
       method: req.method,
       url: req.url,
-      status
+      status,
+      originalError: err.message
     });
 
     return res.status(status).json({
       success: false,
-      error: message
+      status: 'error',
+      message: message,
+      code: 'EXT_API_ERROR'
     });
   }
 
-  // Handle validation errors (Zod)
+  // 3. Handle Validation Errors (Zod/Joi generic handling if not wrapped in AppError)
   if (err.name === 'ZodError') {
     logger.debug(`Validation Error: ${req.url}`, {
       requestId,
@@ -38,33 +63,49 @@ export function errorHandler(err, req, res, next) {
 
     return res.status(400).json({
       success: false,
-      error: 'Validation error',
+      status: 'fail',
+      message: 'Validation error',
+      code: 'VAL_ERROR',
       details: err.errors
     });
   }
 
-  // Handle SQLite errors
-  if (err.code && err.code.startsWith('SQLITE')) {
+  // 4. Handle Database Errors (SQLite/MySQL specific logic)
+  if (err.code && (err.code.startsWith('SQLITE') || err.code === 'ER_DUP_ENTRY')) {
     logger.error(`Database Error: ${err.message}`, {
       requestId,
       code: err.code,
       stack: err.stack
     });
 
+    // Handle unique constraint violations gracefully
+    if (err.code === 'SQLITE_CONSTRAINT' || err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({
+        success: false,
+        status: 'fail',
+        message: 'Duplicate entry found',
+        code: 'DB_DUPLICATE'
+      });
+    }
+
     return res.status(500).json({
       success: false,
-      error: 'Database error occurred'
+      status: 'error',
+      message: 'Database operation failed',
+      code: 'DB_ERROR'
     });
   }
 
-  // Default error response
-  const statusCode = err.statusCode || err.status || 500;
+  // 5. Default / Unknown Errors
+  const statusCode = err.statusCode || 500;
   const message = process.env.NODE_ENV === 'production'
     ? 'An unexpected error occurred'
     : err.message || 'Internal server error';
 
-  if (statusCode >= 500) {
-    logger.error(`Server Error: ${err.message}`, {
+  const logLevel = statusCode >= 500 ? 'error' : 'warn';
+
+  if (logLevel === 'error') {
+    logger.error(`Unexpected Server Error: ${err.message}`, {
       requestId,
       stack: err.stack,
       url: req.url,
@@ -79,7 +120,9 @@ export function errorHandler(err, req, res, next) {
 
   res.status(statusCode).json({
     success: false,
-    error: message
+    status: 'error',
+    message: message,
+    code: 'INTERNAL_SERVER_ERROR'
   });
 }
 
@@ -105,11 +148,8 @@ function getAxiosErrorMessage(err) {
 /**
  * 404 handler for undefined routes
  */
-export function notFoundHandler(req, res) {
-  res.status(404).json({
-    success: false,
-    error: `Route ${req.method} ${req.path} not found`
-  });
+export function notFoundHandler(req, res, next) {
+  next(new AppError(`Route ${req.method} ${req.path} not found`, 404, 'ROUTE_NOT_FOUND'));
 }
 
 export default errorHandler;
