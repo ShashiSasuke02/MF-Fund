@@ -5,7 +5,7 @@ import logger from './logger.service.js';
 
 // Configuration from environment
 const BASE_URL = process.env.MFAPI_BASE_URL || 'https://api.mfapi.in';
-const TIMEOUT_MS = parseInt(process.env.MFAPI_TIMEOUT_MS, 10) || 15000;
+const TIMEOUT_MS = parseInt(process.env.MFAPI_TIMEOUT_MS, 10) || 60000;
 const CACHE_TTL_LATEST_NAV = parseInt(process.env.CACHE_TTL_LATEST_NAV_MS, 10) || 3600000;
 const CACHE_TTL_SCHEME_DETAILS = parseInt(process.env.CACHE_TTL_SCHEME_DETAILS_MS, 10) || 1800000;
 const CACHE_TTL_NAV_HISTORY = parseInt(process.env.CACHE_TTL_NAV_HISTORY_MS, 10) || 21600000;

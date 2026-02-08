@@ -406,7 +406,7 @@ export const demoService = {
 
             return {
               ...holding,
-              scheme_category: schemeCategory,
+              scheme_category: schemeCategory || 'Other',
               total_units: totalUnits,
               invested_amount: investedAmount,
               invested_nav: investedNav,

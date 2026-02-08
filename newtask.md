@@ -1,5 +1,11 @@
 # MF-Investments Source of Truth (newtask.md)
 
+> [!CAUTION]
+> **STRICT IMPLEMENTATION RULE (User Defined)**
+> 1. **NO IMPLEMENTATION WITHOUT PERMISSION:** The AI must NEVER implement code, change configuration, or deploy changes without explicit, written order/permission from the user.
+> 2. **DOUBLE VERIFICATION:** Before implementing ANYTHING, the AI must "double sure verify" the user's approval.
+> 3. **PLAN FIRST:** Always present a plan and wait for "Proceed" or "Approved" before writing code.
+
 ## Current Project State
 - **Core Strategy:** Full-stack paper-trading platform for Indian Mutual Funds.
 - **Backend:** Node.js/Express, MySQL, Node Cron.
@@ -48,8 +54,29 @@
 - **AI Manager Visibility (Feb 2026):** Fixed bug where AI widget was visible even when disabled. Added `ai_enabled` system setting check to frontend.
 - **Ledger Model Fix (Feb 2026):** Resolved `TypeError` in `LedgerModel` by correcting database wrapper usage (`pool.run` vs `pool.execute`).
 
-## 📝 Next Session Implementation Plan: Ledger Book
-1. **DB Setup**: Create `ledger_entries` table in `schema.sql`.
-2. **Backend**: Implement `ledger.model.js` and Service wrappers in `scheduler.service.js` and `demo.service.js`.
-3. **API**: Expose `/api/ledger` endpoint.
-4. **Frontend**: Replace placeholder in `Portfolio.jsx` (Investment Report tab) with a professional `LedgerTable`.
+## 📝 Implementation Strategy: Debugging & Analysis (Current)
+- **Problem Analysis**: [ISSUE_REPORT.md](file:///c:/Users/shashidhar/Desktop/MF-Investments/ISSUE_REPORT.md)
+- **Implementation Plan**: [implementation_plan.md](file:///C:/Users/shashidhar/.gemini/antigravity/brain/31484b97-1319-4be5-a1df-a75e62a321d7/implementation_plan.md)
+
+## ✅ Completed: Zoho Email Transition
+- **Goal**: Switched SMTP from Brevo to Zoho Mail Lite.
+- **Implementation**: Updated `EmailService` to handle SSL/TLS and prepared `.env` placeholders.
+- **Goal**: Restrict all executions to Mon-Fri. Saturday/Sunday orders stay PENDING.
+- **Logic**: Next installments calculated from Executed Day.
+- **Plan**: [PLAN-weekday-transactions.md](file:///c:/Users/shashidhar/Desktop/MF-Investments/docs/PLAN-weekday-transactions.md)
+
+### 1. Ledger Book Fix
+- **Fix**: Update `src/controllers/ledger.controller.js` to use `req.user.userId`.
+
+### 2. MFAPI Sync Fix
+- **Fix**: Increase `TIMEOUT_MS` to 60,000 in `src/services/mfapi.service.js`.
+
+### 3. Portfolio Filter Robustness
+- **Fix**: Default `scheme_category` to `'Other'` in `src/services/demo.service.js`.
+
+## Architecture Compliance Check
+- **ARCHITECTURE.md read fully**: YES
+- **Existing functionality affected**: NO (Debug fixes only)
+- **Change confined to approved extension points**: YES
+- **Any existing code modified**: YES (Fixes only)
+- **Risk of behavioral regression**: LOW

@@ -214,12 +214,21 @@ This is the core of the application. Logic is strictly separated from Controller
     -   Log to `execution_logs`.
     -   Update transaction `last_execution_date` & `next_execution_date`.
 
+### 6.3 Peer Fund Fallback Logic (Feb 2026)
+1.  **Purpose:** Enrich "Regular Plan" funds with data (AUM, Risk, Manager) from their "Direct Plan" counterparts when external enrichment is unavailable.
+2.  **Trigger:** Occurs during `GET /api/funds/:id` if local metadata is missing/stale and "Captain Nemo" API returns no data.
+3.  **Algorithm:**
+    -   **Base Name Extraction:** Splits the target scheme name at the first hyphen (` - `) and trims.
+    -   **Exact Search:** Queries the database for a fund where `scheme_name` is **exactly** equal to the Base Name.
+    -   **Data Merge:** Copies `aum`, `fund_manager`, `risk_level`, and `expense_ratio` from the peer to the target fund.
+4.  **Constraint:** The peer must have valid data (`aum > 0`) to be used as a source.
+
 ---
 
 ## 7. Cross-Cutting Concerns
 
 -   **Security:** Hashed passwords (`bcrypt`), JWT Auth, Helmet headers.
--   **Performance:** 
+-   **Performance:**
     -   `mysql2` connection pooling for database operations.
     -   **Redis caching** (primary) with MySQL `api_cache` table (fallback).
     -   TTL-based expiration - Redis auto-expires, MySQL cleaned via periodic job.
@@ -257,6 +266,26 @@ This is the core of the application. Logic is strictly separated from Controller
 ### Testing Expectations
 -   **Backend:** Write unit tests for Services (especially Scheduler math).
 -   **Frontend:** Verify Mobile View for tables (overflow issues are common).
+
+### 15.12 Zoho Mail Lite Integration (Feb 2026)
+- **Transition:** Migrated from Brevo to Zoho Mail Lite as the primary SMTP provider.
+- **Service Enhancement:** Updated `EmailService` to support dynamic SSL/TLS selection.
+    - **Port 465:** Uses `secure: true` (SSL).
+    - **Other Ports:** Uses `secure: false` (TLS/STARTTLS).
+- **Security:** Integrated app-specific password support via `.env`.
+
+### 15.13 Weekday-Only Transaction Logic (Strategic shift - Planned)
+- **Objective:** Restrict all financial executions (Lump Sum, SIP, SWP) to market working days.
+- **Logic:**
+    - Weekend orders are held as `PENDING`.
+    - Monday scheduler executes deferred weekend transactions.
+    - **Cycle Shift:** Future installment dates are calculated from the *Execute Day* (Monday) rather than the original due date (Weekend).
+- **Implementation Status:** Plan approved, implementation pending.
+
+### 15.14 Cumulative Maintenance Fixes (Feb 2026)
+- **Ledger Book:** Fixed property naming mismatch (`req.user.id` → `req.user.userId`) to restore history visibility.
+- **Sync Reliability:** Increased MFAPI timeout from 15s to **60s** to handle large global fund datasets without aborting.
+- **Data Robustness:** Implemented fallback scheme category (`'Other'`) in `demo.service.js` to ensure holdings are always visible in filtered Portfolio views.
 
 ---
 
@@ -993,3 +1022,5 @@ Automated the **AMFI NAV Sync** to run independently of the Full Fund Sync, ensu
 -   `Dockerfile` (Added `TZ=Asia/Kolkata`)
 
 ---
+
+

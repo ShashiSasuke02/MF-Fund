@@ -27,7 +27,7 @@ describe('LedgerController', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         req = {
-            user: { id: 1 },
+            user: { userId: 1 },
             query: {}
         };
         res = {

@@ -358,19 +358,17 @@ export const fundModel = {
    * @returns {Promise<Object|null>} Fund object with enrichment data
    */
   async findPeerFundWithData(baseName, excludeSchemeCode) {
-    // Search for any other fund starting with the base name (likely the Growth variant)
-    // that has populated AUM/Enrichment data
+    // Search for another fund that matches the Base Name EXACTLY
     const query = `
       SELECT * FROM funds 
-      WHERE scheme_name LIKE ? 
+      WHERE scheme_name = ? 
       AND scheme_code != ?
       AND aum IS NOT NULL 
       AND aum > 0
       LIMIT 1
     `;
 
-    // Append % wildcard for LIKE match
-    return db.queryOne(query, [`${baseName}%`, excludeSchemeCode]);
+    return db.queryOne(query, [baseName, excludeSchemeCode]);
   },
 
   /**

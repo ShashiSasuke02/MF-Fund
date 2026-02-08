@@ -16,10 +16,11 @@ class EmailService {
             return;
         }
 
+        const port = parseInt(process.env.SMTP_PORT || '587');
         this.transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
-            port: parseInt(process.env.SMTP_PORT || '587'),
-            secure: false, // true for 465, false for other ports
+            host: process.env.SMTP_HOST || 'smtppro.zoho.in',
+            port: port,
+            secure: port === 465, // true for 465 (SSL), false for other ports (TLS)
             auth: {
                 user: process.env.SMTP_USER,
                 pass: process.env.SMTP_PASS,

@@ -65,19 +65,22 @@ export const fundController = {
 
       // --- Fallback Strategy: Peer Lookup ---
       // If essential data (AUM) is still missing after enrichment attempt,
-      // try to borrow metadata from a "Peer Fund" (e.g., Growth plan)
+      // try to borrow metadata from a "Peer Fund" (specifically "Direct Plan - Growth")
       if (!details.meta.aum) {
         try {
-          // Extract Base Name: "ICICI Prudential Bond Fund - Annual IDCW" -> "ICICI Prudential Bond Fund"
-          // Split by " - " is a simple heuristic that works for most Indian MFs
-          const baseName = details.meta.scheme_name.split(' - ')[0];
+          // Extract Base Name: "ICICI Prudential Bharat Consumption Fund - Growth Option" -> "ICICI Prudential Bharat Consumption Fund"
+          // Strict logic: Take everything before the FIRST " - "
+          const baseName = details.meta.scheme_name.split(' - ')[0].trim();
 
-          if (baseName && baseName.length > 10) { // Avoid short/ambiguous names
+          if (baseName && baseName.length > 5) { // Avoid very short/ambiguous names
+            // Find a peer that matches the Base Name EXACTLY
             const peerFund = await fundModel.findPeerFundWithData(baseName, code);
 
             if (peerFund) {
-              logger.info(`Using peer fund data for ${code}`, {
-                peer: peerFund.scheme_name,
+              logger.info(`Using peer fund data via Exact Match fallback`, {
+                targetScheme: code,
+                targetName: details.meta.scheme_name,
+                matchName: baseName,
                 requestId: req.requestId
               });
 
@@ -91,6 +94,11 @@ export const fundController = {
 
               // Mark source as peer for visibility (optional, currently not displayed in UI)
               details.meta.data_source_type = 'PEER_FALLBACK';
+            } else {
+              logger.debug(`No suitable Direct Plan peer found for fallback`, {
+                baseName,
+                schemeCode: code
+              });
             }
           }
         } catch (fallbackErr) {
