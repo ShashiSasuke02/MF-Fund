@@ -233,8 +233,8 @@ export const demoApi = {
   /**
    * Get active systematic plans (SIP, STP, SWP)
    */
-  getSystematicPlans: () => api.get('/demo/systematic-plans'),
-  cancelTransaction: (id) => api.post(`/demo/transactions/${id}/cancel`),
+  getSystematicPlans: () => fetchApi('/demo/systematic-plans'),
+  cancelTransaction: (id) => fetchApi(`/demo/transactions/${id}/cancel`, { method: 'POST' }),
 };
 
 /**

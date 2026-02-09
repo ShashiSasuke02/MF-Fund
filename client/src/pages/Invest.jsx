@@ -19,7 +19,6 @@ export default function Invest() {
     amount: '',
     frequency: 'MONTHLY',
     startDate: '',
-    endDate: '',
     endDate: ''
   });
   const [loading, setLoading] = useState(false);
