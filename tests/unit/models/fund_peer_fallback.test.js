@@ -31,8 +31,8 @@ describe('Fund Model - findPeerFundWithData', () => {
 
         // Verify query structure
         expect(queryOneSpy).toHaveBeenCalledWith(
-            expect.stringContaining('WHERE scheme_name = ?'),
-            expect.arrayContaining([baseName, excludeCode])
+            expect.stringContaining('WHERE scheme_name LIKE ?'),
+            expect.arrayContaining([`${baseName}%`, excludeCode])
         );
 
         expect(result).toEqual(mockPeer);

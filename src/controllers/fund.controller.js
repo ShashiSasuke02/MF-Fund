@@ -37,15 +37,19 @@ export const fundController = {
         });
       }
 
-      // --- Enrichment Logic (Captain Nemo Integration) ---
-      // Check if we need to fetch external data (missing or stale > 7 days)
-      const isStale = !details.meta.detail_info_synced_at ||
-        (Date.now() - details.meta.detail_info_synced_at > 7 * 24 * 60 * 60 * 1000);
+      // --- Enrichment Logic (Captain Nemo Integration - Gap Fill Strategy) ---
+      // Effective: Fetch ONLY if critical data is missing (ignore age)
+      const isMissingData = !details.meta.aum ||
+        !details.meta.expense_ratio ||
+        !details.meta.risk_level ||
+        !details.meta.returns_1y;
 
       const hasISIN = !!details.meta.isin_growth;
 
-      if (isStale && hasISIN) {
+      if (isMissingData && hasISIN) {
         try {
+          logger.info(`[Enrichment] Missing data for ${code} (${details.meta.scheme_name}). Fetching from API...`, { requestId: req.requestId });
+
           // Fetch from Enrichment Service
           const enrichedData = await fundEnrichmentService.fetchFundDetails(details.meta.isin_growth, req.requestId);
 
@@ -56,10 +60,13 @@ export const fundController = {
             // Merge into current response to avoid a re-fetch
             details.meta = { ...details.meta, ...enrichedData };
 
-            logger.info(`Served enriched data for ${code}`, { requestId: req.requestId });
+            logger.info(`[Enrichment] Successfully enriched ${code}`, { requestId: req.requestId });
+          } else {
+            logger.warn(`[Enrichment] API returned no data for ${code}`, { requestId: req.requestId });
           }
         } catch (err) {
-          // Failure should not block the main response
+          // Graceful Failure: Log and continue serving local data
+          logger.error(`[Enrichment] Resilience: API failed for ${code}, serving local data`, { error: err.message, requestId: req.requestId });
         }
       }
 

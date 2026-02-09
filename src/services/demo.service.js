@@ -151,16 +151,16 @@ export const demoService = {
             // Future SIP Zero-Allocation: Do not allocate units/NAV yet
             initialUnits = null;
             initialNav = null;
-            log('[Demo Service] Future SIP detected. Setting units/NAV to null until execution.');
+            log(`[Demo Service] Future SIP detected. Start=${startDate} > Today=${toISTDateString(today)}. Status=PENDING`);
           } else {
             // Immediate SIP (today or past date): Execute now, schedule next
             nextExecutionDate = calculateNextPaymentDate(istToday, frequency);
-            log('[Demo Service] Immediate SIP. Next execution scheduled for:', nextExecutionDate);
+            log(`[Demo Service] Immediate SIP. Today=${istToday}. Executing NOW. Next scheduled for: ${nextExecutionDate}`);
           }
         } else {
           // No start date provided (defaults to immediate): Execute now, schedule next
           nextExecutionDate = calculateNextPaymentDate(istToday, frequency);
-          log('[Demo Service] Immediate SIP (No Date). Next execution scheduled for:', nextExecutionDate);
+          log(`[Demo Service] Immediate SIP (No Date). Today=${istToday}. Executing NOW. Next scheduled for: ${nextExecutionDate}`);
         }
 
         // CRITICAL FIX: If executing immediately, mark as done for today to prevent double execution
@@ -466,6 +466,35 @@ export const demoService = {
     const transactions = await transactionModel.findByUserId(userId, limit, offset);
     log('[Demo Service] Retrieved', transactions.length, 'transactions for userId:', userId);
     return transactions;
+  },
+
+  /**
+   * Cancel a transaction (Stop check)
+   */
+  async cancelTransaction(userId, transactionId) {
+    const transaction = await transactionModel.findById(transactionId);
+
+    if (!transaction) {
+      throw new Error('Transaction not found');
+    }
+
+    if (transaction.user_id !== userId) {
+      throw new Error('Unauthorized');
+    }
+
+    if (transaction.status !== 'PENDING' && transaction.status !== 'SUCCESS') {
+      throw new Error('Transaction is already completed or cancelled');
+    }
+
+    // Update status to COMPLETED (Natural Stop)
+    await transactionModel.updateExecutionStatus(transactionId, {
+      status: 'COMPLETED',
+      nextExecutionDate: null, // Ensure it never runs again
+      failureReason: 'Stopped by user'
+    });
+
+    log(`[Demo Service] Transaction ${transactionId} stopped by user ${userId}`);
+    return { success: true };
   },
 
   /**

@@ -22,6 +22,8 @@ export const transactionModel = {
     lastExecutionDate = null,
     executionCount = 0
   }) {
+    console.log(`[Transaction Model] Creating transaction: Type=${transactionType}, Start=${startDate}, End=${endDate}, Next=${nextExecutionDate}, Freq=${frequency}`);
+
     const result = await run(
       `INSERT INTO transactions 
        (user_id, scheme_code, scheme_name, transaction_type, amount, units, nav, 

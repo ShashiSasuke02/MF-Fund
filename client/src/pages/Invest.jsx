@@ -5,6 +5,7 @@ import { demoApi, fundApi } from '../api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { DisplayAd, RectangleAd } from '../components/AdSense';
 import useErrorFocus from '../hooks/useErrorFocus';
+import { calculateSchedulePreview } from '../utils/scheduler.utils';
 
 export default function Invest() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function Invest() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [schedulePreview, setSchedulePreview] = useState([]);
 
   // Scroll to error when it changes
   useErrorFocus({ error });
@@ -33,6 +35,20 @@ export default function Invest() {
       loadFundDetails();
     }
   }, [schemeCode]);
+
+  // Calculate schedule preview
+  useEffect(() => {
+    if (transactionType !== 'LUMP_SUM' && formData.startDate && formData.frequency) {
+      const dates = calculateSchedulePreview(
+        formData.startDate,
+        formData.endDate,
+        formData.frequency
+      );
+      setSchedulePreview(dates);
+    } else {
+      setSchedulePreview([]);
+    }
+  }, [transactionType, formData.startDate, formData.endDate, formData.frequency]);
 
   // Handle navigation after successful transaction
   useEffect(() => {
@@ -514,6 +530,59 @@ export default function Invest() {
               )}
             </button>
           </div>
+
+          {/* Schedule Preview Card */}
+          {schedulePreview.length > 0 && transactionType !== 'LUMP_SUM' && (
+            <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl border border-indigo-200 p-6 shadow-inner mt-6 animate-fade-in-up">
+              <h3 className="text-lg font-bold text-indigo-900 flex items-center mb-4">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Schedule Summary
+              </h3>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-white/60 rounded-lg p-3 border border-indigo-100">
+                  <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">Total Installments</span>
+                  <p className="text-2xl font-bold text-gray-900">{schedulePreview.length}</p>
+                </div>
+                <div className="bg-white/60 rounded-lg p-3 border border-indigo-100">
+                  <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">Total Amount</span>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {formatCurrency((parseFloat(formData.amount || 0) * schedulePreview.length))}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-sm text-indigo-800">
+                <div className="flex justify-between items-center py-2 border-b border-indigo-200/50">
+                  <span className="font-medium">First Payment:</span>
+                  <span className="font-bold">
+                    {schedulePreview[0].toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                </div>
+                {schedulePreview.length > 1 && (
+                  <div className="flex justify-between items-center py-2 border-b border-indigo-200/50">
+                    <span className="font-medium">Last Payment:</span>
+                    <span className="font-bold">
+                      {schedulePreview[schedulePreview.length - 1].toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {!formData.endDate && (
+                <p className="mt-3 text-xs text-indigo-600 italic">
+                  * Showing first 500 installments. Plan will run indefinitely until stopped.
+                </p>
+              )}
+              {formData.endDate && (
+                <p className="mt-3 text-xs text-indigo-600 italic">
+                  * Plan strictly stops after {new Date(formData.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Info Card - Removed per user request */}
 

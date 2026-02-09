@@ -105,6 +105,26 @@ export default function Portfolio() {
     });
   };
 
+  const handleCancelPlan = async (planId) => {
+    if (!window.confirm('Are you sure you want to stop this plan? Future installments will be cancelled.')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await demoApi.cancelTransaction(planId);
+      if (response && response.success) {
+        await loadPortfolioData();
+      } else {
+        setError(response?.message || 'Failed to cancel plan');
+        setLoading(false);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to cancel plan');
+      setLoading(false);
+    }
+  };
+
   // Filter functions for different tabs
   const getLumpsumTransactions = () => {
     return transactions.filter(t => t.transaction_type === 'LUMP_SUM');
@@ -751,12 +771,14 @@ export default function Portfolio() {
                         Scheme Code: {plan.scheme_code}
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex flex-col items-end gap-2">
                       <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg ${plan.status === 'SUCCESS'
                         ? 'bg-green-100 text-green-800'
                         : plan.status === 'PENDING'
                           ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-red-100 text-red-800'
+                          : plan.status === 'COMPLETED'
+                            ? 'bg-gray-100 text-gray-800'
+                            : 'bg-red-100 text-red-800'
                         }`}>
                         {plan.status === 'SUCCESS' && (
                           <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -765,6 +787,20 @@ export default function Portfolio() {
                         )}
                         {plan.status}
                       </span>
+
+                      {/* Stop Button for Active Plans */}
+                      {(plan.status === 'PENDING' || plan.status === 'SUCCESS') && (
+                        <button
+                          onClick={() => handleCancelPlan(plan.id)}
+                          className="text-xs font-medium text-red-600 hover:text-red-800 hover:bg-red-50 px-2 py-1 rounded transition-colors flex items-center"
+                          title="Stop future installments"
+                        >
+                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          Stop Plan
+                        </button>
+                      )}
                     </div>
                   </div>
 

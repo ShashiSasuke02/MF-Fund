@@ -1082,3 +1082,61 @@ Automated the **AMFI NAV Sync** to run independently of the Full Fund Sync, ensu
 ---
 
 
+
+---
+
+## 8. Date Handling Standards (CRITICAL)
+
+To prevent timezone-related bugs (e.g., SIPs running twice or skipping months), strict adherence to **IST (Indian Standard Time)** is mandatory.
+
+### 8.1 Principles
+1.  **Source of Truth:** All "current time" checks must be against IST, not UTC.
+2.  **Date Format:** All dates stored in `TEXT` columns in SQLite must use `YYYY-MM-DD` strict format.
+3.  **Comparisons:** Always compare date strings lexicographically (e.g., `'2024-02-01' > '2024-01-31'`). Do not use `new Date() > new Date()` for logic where time component is irrelevant.
+
+### 8.2 Utilities
+Use `src/utils/date.utils.js`:
+-   `getISTDate()`: Returns today's date in 'YYYY-MM-DD' (ASI/Kolkata).
+-   `toISTDateString(dateObj)`: Converts a JS Date to IST 'YYYY-MM-DD'.
+-   `calculateNextPaymentDate(currentDate, freq)`: Handles month-end rollovers (e.g., Jan 31 -> Feb 28).
+
+---
+
+## 9. Logging Standards
+
+Comprehensive logging is required for all financial transactions and scheduler operations.
+
+### 9.1 Transaction Logging
+*   **Creation:** Log exact `startDate`, `endDate`, and `nextExecutionDate` before DB insertion.
+*   **Execution:** Log `balanceBefore`, `balanceAfter`, `units`, and `nav` for every executed transaction.
+
+### 9.2 Scheduler Logging
+*   **Discovery:** Log the `targetDate` and the count of transactions found.
+*   **Details:** For each due transaction, log its `ID`, `Type`, and `NextExecutionDate` to verify why it was picked.
+*   **Skipping:** Explicitly log reasons for skipping (e.g., "Already locked", "End date reached").
+
+---
+
+## 10. External Integrations & Data Enrichment
+
+### 10.1 Captain Nemo (On-Demand Gap-Fill)
+*   **Purpose:** To fetch missing fundamental data (AUM, Risk, Expense Ratio, Returns) that is not available in the primary NAV source.
+*   **Trigger:** User Action (`GET /api/funds/:id`).
+*   **Logic (Gap-Fill):**
+    1.  Check if local DB has critical fields (`AUM`, `Risk`, `Returns`).
+    2.  If **Missing**, call Captain Nemo API (`fundEnrichmentService`).
+    3.  Persist result to DB (permanent cache).
+    4.  Serve data to user.
+*   **Resilience:** If the API fails, the system logs the error and serves the local data (even if incomplete) rather than crashing.
+
+### 10.2 Peer Fund Enrichment (Internal Propagation)
+*   **Purpose:** To fill data gaps for funds by copying data from their "Enriched" siblings (Twin Funds).
+*   **Trigger:** Daily Cron Job at **3:00 AM IST**.
+*   **Logic (Nightly Copy):**
+    1.  **Source:** Find funds that have *any* valid enrichment data.
+    2.  **Match (Smart Truncation):** Identify Twin Funds by splitting name *only* at Plan keywords (` - Direct`, ` - Regular`), preserving names with natural hyphens.
+    3.  **Target:** Identified peers that are missing *any* data.
+    4.  **Copy (Partial Fill):** Use `COALESCE` to fill only the missing fields in the Target fund. **Existing data is never overwritten.**
+*   **Benefit:** Reduces external API calls and ensures consistent data across different plans (Direct/Regular) of the same fund.
+
+---

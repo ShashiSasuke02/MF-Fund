@@ -38,6 +38,13 @@ export const schedulerService = {
     // Fetch due transactions
     const dueTransactions = await transactionModel.findDueTransactions(targetDate);
 
+    if (dueTransactions.length > 0) {
+      logger.info(`[Scheduler] Due Transactions Analysis for ${targetDate}:`);
+      dueTransactions.forEach(t => {
+        logger.info(`  - ID: ${t.id}, Type: ${t.transaction_type}, NextExec: ${t.next_execution_date}, Status: ${t.status}`);
+      });
+    }
+
     if (dueTransactions.length === 0) {
       logger.info('[Scheduler] No due transactions found');
       return {
@@ -166,9 +173,9 @@ export const schedulerService = {
         if (shouldStop.shouldStop) {
           logger.info(`[Scheduler] Transaction ${transaction.id} reached stop condition:`, shouldStop.reason);
 
-          // Cancel the transaction
+          // Complete the transaction (Natural End or Limit Reached)
           await transactionModel.updateExecutionStatus(transaction.id, {
-            status: 'CANCELLED',
+            status: 'COMPLETED',
             nextExecutionDate: null,
             failureReason: shouldStop.reason
           });

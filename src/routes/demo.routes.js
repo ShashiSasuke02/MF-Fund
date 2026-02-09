@@ -13,6 +13,7 @@ router.use(authenticateToken);
 // Transaction routes
 router.post('/transactions', validate(createTransactionSchema), demoController.createTransaction);
 router.get('/transactions', demoController.getTransactions);
+router.post('/transactions/:id/cancel', demoController.cancelTransaction);
 
 // Systematic plans routes
 router.get('/systematic-plans', demoController.getSystematicPlans);

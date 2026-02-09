@@ -142,7 +142,16 @@ export const initSchedulerJobs = () => {
         return await amfiSyncService.runSync();
     });
 
-    // 4. Register Incremental Fund Sync (Manual Only - Admin Dashboard)
+    // 4. Register Peer Fund Enrichment (Daily at 3:00 AM IST)
+    // Propagates metadata from enriched funds to their peers
+    const peerEnrichmentSchedule = '0 3 * * *';
+    cronRegistry.register('Peer Fund Enrichment', peerEnrichmentSchedule, async () => {
+        // Dynamic import to avoid circular dependencies if any
+        const { peerEnrichmentService } = await import('../services/peerEnrichment.service.js');
+        return await peerEnrichmentService.runDailyEnrichment();
+    });
+
+    // 5. Register Incremental Fund Sync (Manual Only - Admin Dashboard)
     // NOTE: This job is DISABLED by default. Legacy API-based sync, use AMFI Sync instead.
     cronRegistry.register('Incremental Fund Sync', 'MANUAL_ONLY', async () => {
         return await mfapiIngestionService.runIncrementalSync();

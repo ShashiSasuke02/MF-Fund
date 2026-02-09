@@ -157,5 +157,30 @@ export const demoController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  /**
+   * Cancel a transaction
+   */
+  async cancelTransaction(req, res, next) {
+    try {
+      const userId = req.user.userId;
+      const transactionId = req.params.id;
+
+      await demoService.cancelTransaction(userId, transactionId);
+
+      res.json({
+        success: true,
+        message: 'Plan stopped successfully'
+      });
+    } catch (error) {
+      if (error.message === 'Transaction not found') {
+        return res.status(404).json({ success: false, message: error.message });
+      }
+      if (error.message === 'Unauthorized') {
+        return res.status(403).json({ success: false, message: error.message });
+      }
+      next(error);
+    }
   }
 };

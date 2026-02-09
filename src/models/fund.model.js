@@ -351,24 +351,68 @@ export const fundModel = {
   },
 
   /**
-   * Find a peer fund (same base name) that has enrichment data
-   * Used as fallback for funds with missing external data (e.g., IDCW plans)
-   * @param {string} baseName - Base name of the fund (e.g., "ICICI Prudential Bluechip Fund")
-   * @param {number} excludeSchemeCode - Scheme code to exclude from search
-   * @returns {Promise<Object|null>} Fund object with enrichment data
+   * Find funds that have ANY useful data (AUM, Manager, Returns, etc.)
+   * Used as sources for peer enrichment.
    */
-  async findPeerFundWithData(baseName, excludeSchemeCode) {
-    // Search for another fund that matches the Base Name EXACTLY
+  async findEnrichedFunds() {
+    // We look for funds that have at least ONE important field populated
     const query = `
       SELECT * FROM funds 
-      WHERE scheme_name = ? 
-      AND scheme_code != ?
-      AND aum IS NOT NULL 
-      AND aum > 0
-      LIMIT 1
+      WHERE is_active = true 
+      AND (
+        aum IS NOT NULL OR 
+        expense_ratio IS NOT NULL OR 
+        risk_level IS NOT NULL OR 
+        fund_manager IS NOT NULL OR 
+        returns_1y IS NOT NULL OR 
+        fund_start_date IS NOT NULL
+      )
     `;
+    const rows = await db.query(query);
+    return rows;
+  },
 
-    return db.queryOne(query, [baseName, excludeSchemeCode]);
+  /**
+   * Find peer funds with matching base name that are missing ANY data.
+   * @param {string} baseName - The base name to match (e.g. "HDFC Top 100")
+   * @param {number} excludeCode - The source scheme code to exclude
+   */
+  async findPeerFundsMissingData(baseName, excludeCode) {
+    // We want funds where at least one field is NULL so we can fill it
+    const query = `
+      SELECT * FROM funds 
+      WHERE scheme_name LIKE ? 
+      AND scheme_code != ?
+      AND is_active = true
+      AND (
+        aum IS NULL OR 
+        expense_ratio IS NULL OR 
+        risk_level IS NULL OR 
+        fund_manager IS NULL OR 
+        returns_1y IS NULL OR 
+        fund_start_date IS NULL
+      )
+    `;
+    const rows = await db.query(query, [`${baseName}%`, excludeCode]);
+    return rows;
+  },
+
+  /**
+   * Find a peer fund with matching base name that HAS data.
+   * Used as a fallback and for exact name matching.
+   * @param {string} baseName - Exact base name to match
+   * @param {number} excludeCode - Current fund to exclude
+   */
+  async findPeerFundWithData(baseName, excludeCode) {
+    return await db.queryOne(
+      `SELECT * FROM funds 
+       WHERE scheme_name LIKE ? 
+       AND scheme_code != ?
+       AND aum IS NOT NULL 
+       AND is_active = true
+       LIMIT 1`,
+      [`${baseName}%`, excludeCode]
+    );
   },
 
   /**

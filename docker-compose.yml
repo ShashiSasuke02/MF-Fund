@@ -34,16 +34,16 @@ services:
       - mf-network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-mf_root_secret_2024}"]
-      interval: 15s
-      timeout: 10s
+      interval: 5s
+      timeout: 5s
       retries: 10
-      start_period: 60s
+      start_period: 30s
     deploy:
       resources:
         limits:
-          memory: 1024M
+          memory: 2048M
         reservations:
-          memory: 512M
+          memory: 1024M
 
   # ---------------------------------------------------------------------------
   # Redis Cache (High-speed in-memory caching)
@@ -52,7 +52,7 @@ services:
     image: redis:7-alpine
     container_name: mf-investments-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
     networks:
@@ -66,9 +66,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 512M
         reservations:
-          memory: 64M
+          memory: 256M
 
   # ---------------------------------------------------------------------------
   # Backend API + Frontend (Node.js)
@@ -151,9 +151,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1024M
+          memory: 2048M
         reservations:
-          memory: 512M
+          memory: 1024M
 
   # ---------------------------------------------------------------------------
   # Sync Job (Manual Only - Run with: docker compose run --rm sync-job)
