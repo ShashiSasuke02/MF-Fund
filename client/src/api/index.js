@@ -188,6 +188,33 @@ export const authApi = {
     }),
 
   /**
+   * Forgot Password - Request OTP
+   */
+  forgotPassword: (emailId) =>
+    fetchApi('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ emailId })
+    }),
+
+  /**
+   * Verify Reset OTP
+   */
+  verifyResetOtp: (data) =>
+    fetchApi('/auth/verify-reset-otp', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
+   * Reset Password
+   */
+  resetPassword: (data) =>
+    fetchApi('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  /**
    * Logout (clear local token)
    */
   logout: () => {

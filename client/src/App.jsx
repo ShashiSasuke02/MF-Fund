@@ -8,6 +8,7 @@ import FundList from './pages/FundList';
 import FundDetails from './pages/FundDetails';
 import Register from './pages/Register';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
 import Portfolio from './pages/Portfolio';
 import Invest from './pages/Invest';
 import Calculator from './pages/Calculator';
@@ -88,6 +89,11 @@ function App() {
             <Route path="/login" element={
               <PublicOnlyRoute>
                 <Login />
+              </PublicOnlyRoute>
+            } />
+            <Route path="/forgot-password" element={
+              <PublicOnlyRoute>
+                <ForgotPassword />
               </PublicOnlyRoute>
             } />
 

@@ -113,5 +113,18 @@ export const userModel = {
       [normalized]
     );
     return result ? result.count > 0 : false;
+  },
+
+  /**
+   * Update password for a user
+   */
+  async updatePassword(userId, passwordHash) {
+    if (!userId || !passwordHash) return false;
+
+    const result = await run(
+      'UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?',
+      [passwordHash, Date.now(), userId]
+    );
+    return result.changes > 0;
   }
 };

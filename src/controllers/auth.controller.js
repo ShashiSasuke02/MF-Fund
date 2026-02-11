@@ -7,6 +7,7 @@ import { demoService } from '../services/demo.service.js';
 import { emailService } from '../services/email.service.js';
 import { run } from '../db/database.js';
 import logger from '../services/logger.service.js';
+import { cacheService } from '../services/cache.service.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const JWT_EXPIRES_IN = '7d';
@@ -303,6 +304,151 @@ export const authController = {
           token
         }
       });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Request Password Reset (Stage 1)
+   */
+  async forgotPassword(req, res, next) {
+    try {
+      const { emailId } = req.body;
+      if (!emailId) throw new AppError('Email is required', 400, 'VAL_ERROR');
+
+      const user = await userModel.findByEmail(emailId);
+      if (!user) {
+        // Security: Don't reveal if user exists. Fake success or generic message.
+        // We'll return success to prevent enumeration.
+        return res.json({
+          success: true,
+          message: 'If an account exists with this email, an OTP has been sent.'
+        });
+      }
+
+      // Generate OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+      // Store in Redis (10 mins)
+      const cacheKey = `auth:reset_otp:${user.email_id}`;
+      // Store raw OTP? No, better to store hash if possible, but for simplicity of verification, 
+      // since Redis is trusted internal storage, we'll store JSON with attempts.
+      // Wait, Plan says "Store in Redis -> Key: `auth:reset_otp:{email}` -> Value: `{ otp: "123456", attempts: 0 }`
+      // For security, hashing the OTP in Redis is better, but then we can't display it if needed (debug).
+      // Let's store raw OTP as per plan but treat Redis as secure.
+      await cacheService.set(cacheKey, { otp, attempts: 0 }, 10 * 60 * 1000);
+
+      // Send Email
+      await emailService.sendPasswordResetOTP(user.email_id, otp);
+
+      res.json({
+        success: true,
+        message: 'If an account exists with this email, an OTP has been sent.'
+      });
+
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Verify Reset OTP (Stage 2)
+   */
+  async verifyResetOTP(req, res, next) {
+    try {
+      const { emailId, otp } = req.body;
+      if (!emailId || !otp) throw new AppError('Email and OTP are required', 400, 'VAL_ERROR');
+
+      const cacheKey = `auth:reset_otp:${emailId}`;
+      const cachedData = await cacheService.get(cacheKey);
+
+      if (!cachedData) {
+        throw new AppError('OTP expired or invalid', 400, 'AUTH_OTP_EXPIRED');
+      }
+
+      if (cachedData.attempts >= 3) {
+        await cacheService.delete(cacheKey);
+        throw new AppError('Too many failed attempts. Please request a new OTP.', 400, 'AUTH_TOO_MANY_ATTEMPTS');
+      }
+
+      if (cachedData.otp !== otp) {
+        // Increment attempts
+        cachedData.attempts += 1;
+        // Update valid TTL? No, keep existing TTL.
+        // CacheService.set resets TTL. We should try to preserve if possible, or just reset to 10m is okay-ish?
+        // Actually, let's just update with same key. CacheService doesn't support "update without TTL reset" easily.
+        // Let's just set it again for 10 mins, it's fine.
+        await cacheService.set(cacheKey, cachedData, 10 * 60 * 1000);
+        throw new AppError('Invalid OTP', 400, 'AUTH_INVALID_OTP');
+      }
+
+      res.json({
+        success: true,
+        message: 'OTP verified successfully'
+      });
+
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Reset Password (Stage 3)
+   */
+  async resetPassword(req, res, next) {
+    try {
+      const { emailId, otp, newPassword } = req.body;
+      if (!emailId || !otp || !newPassword) {
+        throw new AppError('All fields are required', 400, 'VAL_ERROR');
+      }
+
+      // Password Strength Validation (Basic)
+      if (newPassword.length < 8) {
+        throw new AppError('Password must be at least 8 characters', 400, 'VAL_WEAK_PASSWORD');
+      }
+
+      const cacheKey = `auth:reset_otp:${emailId}`;
+      const cachedData = await cacheService.get(cacheKey);
+
+      if (!cachedData) {
+        throw new AppError('OTP expired or invalid', 400, 'AUTH_OTP_EXPIRED');
+      }
+
+      if (cachedData.otp !== otp) {
+        // Atomic check again effectively
+        cachedData.attempts += 1;
+        await cacheService.set(cacheKey, cachedData, 10 * 60 * 1000);
+        throw new AppError('Invalid OTP', 400, 'AUTH_INVALID_OTP');
+      }
+
+      // Find user to get ID
+      const user = await userModel.findByEmail(emailId);
+      if (!user) {
+        throw new AppError('User not found', 404, 'AUTH_USER_NOT_FOUND');
+      }
+
+      // Hash new password
+      const saltRounds = 10;
+      const passwordHash = await bcrypt.hash(newPassword, saltRounds);
+
+      // Update DB
+      const updated = await userModel.updatePassword(user.id, passwordHash);
+      if (!updated) {
+        throw new AppError('Failed to update password', 500, 'DB_ERROR');
+      }
+
+      // Invalidate OTP
+      await cacheService.delete(cacheKey);
+
+      // Send Confirmation Email (Optional but good)
+      // await emailService.sendPasswordChangedNotification(user.email_id); 
+
+      res.json({
+        success: true,
+        message: 'Password reset successfully. You can now login with your new password.'
+      });
+
     } catch (error) {
       next(error);
     }

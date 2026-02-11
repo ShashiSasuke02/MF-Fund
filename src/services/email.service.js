@@ -77,6 +77,47 @@ class EmailService {
     }
 
     /**
+     * Send Password Reset OTP
+     * @param {string} toEmail 
+     * @param {string} otp 
+     */
+    async sendPasswordResetOTP(toEmail, otp) {
+        if (!this.initialized) this.init();
+
+        if (!this.transporter) {
+            logger.info(`[EmailService] MOCK SEND: Reset OTP for ${toEmail} is ${otp}`);
+            return true;
+        }
+
+        try {
+            const info = await this.transporter.sendMail({
+                from: `"TryMutualFunds Security" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+                to: toEmail,
+                subject: 'Reset your password - TryMutualFunds',
+                text: `Your password reset code is: ${otp}\n\nThis code expires in 10 minutes.`,
+                html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+            <h2 style="color: #EF4444;">Password Reset Request</h2>
+            <p>We received a request to reset your password for TryMutualFunds.</p>
+            <p>Your verification code is:</p>
+            <div style="background-color: #FEF2F2; color: #B91C1C; padding: 15px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 5px; text-align: center; margin: 20px 0; border: 1px solid #FECACA;">
+              ${otp}
+            </div>
+            <p>This code expires in 10 minutes.</p>
+            <p style="font-size: 12px; color: #6B7280; margin-top: 30px;">If you didn't request a password reset, you can safely ignore this email. Your password will not change.</p>
+          </div>
+        `
+            });
+
+            logger.info(`[EmailService] Reset OTP sent to ${toEmail}. MessageId: ${info.messageId}`);
+            return true;
+        } catch (error) {
+            logger.error(`[EmailService] Failed to send Reset OTP to ${toEmail}:`, error.message);
+            return false;
+        }
+    }
+
+    /**
      * Send Cron Job Report Email
      * @param {Object} reportData - Report data
      */

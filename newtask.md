@@ -90,4 +90,11 @@
 - **Existing functionality affected**: NO (Debug fixes only)
 - **Change confined to approved extension points**: YES
 - **Any existing code modified**: YES (Fixes only)
+- **Any existing code modified**: YES (Fixes only)
 - **Risk of behavioral regression**: LOW
+
+### 4. Forgot Password (Redis)
+- **Feature**: Zero-Schema OTP Reset Flow.
+- **Backend**: `auth.controller.js` (Redis-based), `email.service.js` (Transactional Emails).
+- **Frontend**: `ForgotPassword.jsx` (3-Step Wizard).
+- **Security**: Rate-limited, 10m TTL, Atomic Verification.

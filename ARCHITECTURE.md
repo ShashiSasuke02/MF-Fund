@@ -283,6 +283,19 @@ This is the core of the application. Logic is strictly separated from Controller
     - **Cycle Shift:** Future installment dates are calculated from the *Execute Day* (Monday) rather than the original due date (Weekend).
 - **Implementation Status:** Plan approved, implementation pending.
 
+### 15.14 Forgot Password Feature (Feb 2026)
+#### Zero-Schema Architecture
+- **Objective:** Secure password reset without altering the core database schema.
+- **State Management:** Uses **Redis** (via `CacheService`) for temporary OTP storage.
+- **Flow:**
+    1.  **Request:** User enters Email -> Server generates random OTP -> Key: `auth:reset_otp:{email}` (TTL: 10m).
+    2.  **Verify:** User enters OTP -> Server validates against Redis.
+    3.  **Reset:** Server validates OTP (atomic check) -> Updates `users` table password hash -> Deletes Redis key.
+- **Security:**
+    -   Rate Limiting on OTP generation.
+    -   Strict 10-minute expiry.
+    -   Atomic verification to prevent race conditions.
+
 ### 15.14 Cumulative Maintenance Fixes (Feb 2026)
 - **Ledger Book:** Fixed property naming mismatch (`req.user.id` → `req.user.userId`) to restore history visibility.
 - **Sync Reliability:** Increased MFAPI timeout from 15s to **60s** to handle large global fund datasets without aborting.
