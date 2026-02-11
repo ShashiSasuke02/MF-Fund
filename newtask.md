@@ -33,6 +33,10 @@
 - **VPS Deployment (Pending):** [PLAN-vps-deploy.md](file:///c:/Users/shashidhar/Desktop/MF-Investments/docs/PLAN-vps-deploy.md)
     - Deploy to VPS with Nginx Proxy Manager.
     - Configure SSL and domain routing for `www.trymutualfunds.com`.
+- **Standardize Peer Fund Logic:** [implementation_plan.md](file:///c:/Users/shashidhar/.gemini/antigravity/brain/e6b04d63-b606-4111-aa07-8452e33af837/implementation_plan.md)
+    - Centralize `extractBaseName` logic in `fund.utils.js`.
+    - Update `peerEnrichment.service.js` and `fund.controller.js`.
+    - Add unit tests.
 
 ## ✅ Completed Implementation Details
 - **Project Cleanup:** Moved "unwanted" loose files (plans, debug scripts, logs) to `Extras/` folder.
@@ -53,9 +57,12 @@
 
 - **Infrastructure Hardening (Feb 2026):** Implemented custom MySQL Dockerfile and build optimizations.
 - **SEO Phase 2:** Full integration of dynamic meta and rich snippets.
-- **Strict Ledger Plan:** Approved architecture policy and implementation plan created. Integration targeted for Portfolio "Report" tab.
-- **AI Manager Visibility (Feb 2026):** Fixed bug where AI widget was visible even when disabled. Added `ai_enabled` system setting check to frontend.
-- **Ledger Model Fix (Feb 2026):** Resolved `TypeError` in `LedgerModel` by correcting database wrapper usage (`pool.run` vs `pool.execute`).
+- **Frontend API Fix:** Replaced undefined `api` calls with standard `fetchApi` in `client/src/api/index.js`, fixing Portfolio page failures.
+- **Ledger System Overhaul (Feb 2026):**
+    - **Display Fix:** `LedgerTable.jsx` now shows unique `Ref: #{entry.id}` instead of duplicate Plan IDs.
+    - **Data Integrity:** Implemented `demoAccountModel.createDefault()` to ensure new accounts start with an "Opening Balance" ledger entry (`auth.controller.js` + `user.model.js`).
+    - **Architecture:** Updated `ARCHITECTURE.md` to define Ledger as the single source of truth.
+
 
 ## 📝 Implementation Strategy: Debugging & Analysis (Current)
 - **Problem Analysis**: [ISSUE_REPORT.md](file:///c:/Users/shashidhar/Desktop/MF-Investments/ISSUE_REPORT.md)
@@ -83,4 +90,11 @@
 - **Existing functionality affected**: NO (Debug fixes only)
 - **Change confined to approved extension points**: YES
 - **Any existing code modified**: YES (Fixes only)
+- **Any existing code modified**: YES (Fixes only)
 - **Risk of behavioral regression**: LOW
+
+### 4. Forgot Password (Redis)
+- **Feature**: Zero-Schema OTP Reset Flow.
+- **Backend**: `auth.controller.js` (Redis-based), `email.service.js` (Transactional Emails).
+- **Frontend**: `ForgotPassword.jsx` (3-Step Wizard).
+- **Security**: Rate-limited, 10m TTL, Atomic Verification.

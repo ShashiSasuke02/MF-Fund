@@ -36,8 +36,10 @@ export default function Invest() {
   }, [schemeCode]);
 
   // Calculate schedule preview
+  // Calculate schedule preview
   useEffect(() => {
-    if (transactionType !== 'LUMP_SUM' && formData.startDate && formData.frequency) {
+    // Requirement: Only show summary if End Date is selected
+    if (transactionType !== 'LUMP_SUM' && formData.startDate && formData.endDate && formData.frequency) {
       const dates = calculateSchedulePreview(
         formData.startDate,
         formData.endDate,
@@ -159,13 +161,23 @@ export default function Invest() {
     setError('');
 
     try {
+      let finalEndDate = formData.endDate;
+
+      // Default to 1 Year if SIP/SWP and no End Date provided
+      if (transactionType !== 'LUMP_SUM' && !finalEndDate && formData.startDate) {
+        const start = new Date(formData.startDate);
+        const oneYearLater = new Date(start);
+        oneYearLater.setFullYear(start.getFullYear() + 1);
+        finalEndDate = oneYearLater.toISOString().split('T')[0];
+      }
+
       const transactionData = {
         schemeCode: parseInt(schemeCode),
         transactionType,
         amount: parseFloat(formData.amount),
         frequency: transactionType === 'LUMP_SUM' ? undefined : formData.frequency,
         startDate: transactionType === 'LUMP_SUM' ? undefined : formData.startDate,
-        endDate: transactionType === 'LUMP_SUM' ? undefined : formData.endDate || undefined
+        endDate: transactionType === 'LUMP_SUM' ? undefined : finalEndDate || undefined
       };
 
       const response = await demoApi.createTransaction(transactionData);

@@ -218,9 +218,10 @@ This is the core of the application. Logic is strictly separated from Controller
 1.  **Purpose:** Enrich "Regular Plan" funds with data (AUM, Risk, Manager) from their "Direct Plan" counterparts when external enrichment is unavailable.
 2.  **Trigger:** Occurs during `GET /api/funds/:id` if local metadata is missing/stale and "Captain Nemo" API returns no data.
 3.  **Algorithm:**
-    -   **Base Name Extraction:** Splits the target scheme name at the first hyphen (` - `) and trims.
+    -   **Base Name Extraction:** Uses `src/utils/fund.utils.js` (Smart Truncation) to safely strip suffixes like `- Direct Plan`, `- Growth`, etc.
     -   **Exact Search:** Queries the database for a fund where `scheme_name` is **exactly** equal to the Base Name.
     -   **Data Merge:** Copies `aum`, `fund_manager`, `risk_level`, and `expense_ratio` from the peer to the target fund.
+    -   **Reporting:** `Peer Fund Enrichment` job now tracks and lists enriched funds in the daily email report.
 4.  **Constraint:** The peer must have valid data (`aum > 0`) to be used as a source.
 
 ---
@@ -281,6 +282,19 @@ This is the core of the application. Logic is strictly separated from Controller
     - Monday scheduler executes deferred weekend transactions.
     - **Cycle Shift:** Future installment dates are calculated from the *Execute Day* (Monday) rather than the original due date (Weekend).
 - **Implementation Status:** Plan approved, implementation pending.
+
+### 15.14 Forgot Password Feature (Feb 2026)
+#### Zero-Schema Architecture
+- **Objective:** Secure password reset without altering the core database schema.
+- **State Management:** Uses **Redis** (via `CacheService`) for temporary OTP storage.
+- **Flow:**
+    1.  **Request:** User enters Email -> Server generates random OTP -> Key: `auth:reset_otp:{email}` (TTL: 10m).
+    2.  **Verify:** User enters OTP -> Server validates against Redis.
+    3.  **Reset:** Server validates OTP (atomic check) -> Updates `users` table password hash -> Deletes Redis key.
+- **Security:**
+    -   Rate Limiting on OTP generation.
+    -   Strict 10-minute expiry.
+    -   Atomic verification to prevent race conditions.
 
 ### 15.14 Cumulative Maintenance Fixes (Feb 2026)
 - **Ledger Book:** Fixed property naming mismatch (`req.user.id` → `req.user.userId`) to restore history visibility.
@@ -796,6 +810,21 @@ Increased idle session timeout from **2 minutes** to **4 minutes** for improved 
 ---
 
 ### 15.7 Sync Job Chaining (Feb 2026)
+-   **Change:** `AMFI NAV Sync` is now automatically triggered upon completion (success or failure) of `Full Fund Sync`.
+
+### 15.8 Schedule Summary Enhancements
+- **UI Behavior:** The "Schedule Summary" section on the Invest page is now conditionally rendered. It remains hidden until the user selects an `End Date`.
+- **Default Duration:** For SIP and SWP transactions, if the user does not provide an `End Date` (and the transaction type is not Lump Sum), the system automatically defaults the `End Date` to **1 Year** from the `Start Date` upon submission. This prevents accidental indefinite plans while keeping the UI clean.
+
+### 15.9 Ledger System (Feb 2026)
+- **Immutable Records:** The `ledger_entries` table serves as the single source of truth for all financial movements.
+- **Entry ID vs Transaction ID:**
+    - `transaction_id` refers to the **Source Plan** (e.g., SIP #2).
+    - `id` (Ledger Entry ID) is the unique reference for the specific movement (e.g., Installment #5 of SIP #2).
+    - **UI Display:** Validated that the UI must display the **Ledger Entry ID** (`Ref: #501`) to ensure uniqueness, while the `transaction_id` is kept for backend linkage.
+- **Opening Balance:** A dedicated ledger entry ("Opening Balance") is created automatically when a new Demo Account is initialized, ensuring the ledger sum always matches the account balance.
+-   **Benefit:** Ensures NAVs are as fresh as possible without manual intervention or guessing cron timings.
+
 
 #### Change
 After **Full Fund Sync** completes successfully, the system now automatically triggers **Incremental Fund Sync** to ensure NAV data is immediately up-to-date.

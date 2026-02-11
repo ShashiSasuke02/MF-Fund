@@ -1,4 +1,6 @@
 import { fundModel } from '../models/fund.model.js';
+import { extractBaseName } from '../utils/fund.utils.js';
+import { extractBaseName } from '../utils/fund.utils.js';
 import { cronNotificationService } from './cronNotification.service.js';
 import logger from './logger.service.js';
 import db from '../db/database.js';
@@ -39,10 +41,14 @@ export const peerEnrichmentService = {
 
                     for (const target of targets) {
                         // 4. Copy Data
-                        await this.copyFundData(source, target);
-                        stats.targetsUpdated++;
-                        // Detailed log as requested
-                        logger.debug(`[Peer Enrichment] Updated Peer: ${target.scheme_name} (from Source: ${source.scheme_name})`);
+                        const updated = await this.copyFundData(source, target);
+                        if (updated) {
+                            stats.targetsUpdated++;
+                            totalEnriched++;
+                            enrichedFundNames.push(target.scheme_name);
+                            // Detailed log as requested
+                            logger.debug(`[Peer Enrichment] Updated Peer: ${target.scheme_name} (from Source: ${source.scheme_name})`);
+                        }
                     }
                 } catch (err) {
                     stats.errors++;
@@ -59,12 +65,12 @@ export const peerEnrichmentService = {
             await cronNotificationService.onJobComplete(
                 'Peer Fund Enrichment',
                 'SUCCESS',
-                stats,
+                { totalEnriched, enrichedFundNames },
                 null, // No failure error
                 duration
             );
 
-            return stats;
+            return { success: true, totalEnriched, enrichedFundNames };
 
         } catch (error) {
             logger.error('[Peer Enrichment] Critical job failure:', error);
@@ -73,7 +79,7 @@ export const peerEnrichmentService = {
             await cronNotificationService.onJobComplete(
                 'Peer Fund Enrichment',
                 'FAILED',
-                stats,
+                { totalEnriched, enrichedFundNames },
                 error.message,
                 Date.now() - startTime
             );
@@ -83,23 +89,6 @@ export const peerEnrichmentService = {
     },
 
     /**
-     * Extract the "Base Name" of a fund using Smart Truncation.
-     * "ICICI Prudential Bluechip Fund - Direct Plan - Growth" -> "ICICI Prudential Bluechip Fund"
-     */
-    extractBaseName(schemeName) {
-        if (!schemeName) return null;
-
-        // Smart Truncation: Split ONLY by these specific plan markers
-        // This protects names like "Aditya Birla Sun Life - Tax Relief 96" from being cut at the first "-"
-        const markers = [' - Direct', ' - Regular', ' - Growth', ' - Dividend', ' - IDCW'];
-
-        let base = schemeName;
-        for (const marker of markers) {
-            if (base.includes(marker)) {
-                base = base.split(marker)[0];
-                break; // Stop after first match to ensure we get the longest possible base name
-            }
-        }
         return base.trim();
     },
 

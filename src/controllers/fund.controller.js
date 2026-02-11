@@ -1,6 +1,8 @@
+
 import { localFundService } from '../services/localFund.service.js';
 import { fundModel } from '../models/fund.model.js';
-import fundEnrichmentService from '../services/fundEnrichment.service.js';
+import { fundEnrichmentService } from '../services/fundEnrichment.service.js';
+import { extractBaseName } from '../utils/fund.utils.js';
 import logger from '../services/logger.service.js';
 
 /**
@@ -48,7 +50,7 @@ export const fundController = {
 
       if (isMissingData && hasISIN) {
         try {
-          logger.info(`[Enrichment] Missing data for ${code} (${details.meta.scheme_name}). Fetching from API...`, { requestId: req.requestId });
+          logger.info(`[Enrichment] Missing data for ${code}(${details.meta.scheme_name}).Fetching from API...`, { requestId: req.requestId });
 
           // Fetch from Enrichment Service
           const enrichedData = await fundEnrichmentService.fetchFundDetails(details.meta.isin_growth, req.requestId);
@@ -60,7 +62,7 @@ export const fundController = {
             // Merge into current response to avoid a re-fetch
             details.meta = { ...details.meta, ...enrichedData };
 
-            logger.info(`[Enrichment] Successfully enriched ${code}`, { requestId: req.requestId });
+            logger.info(`[Enrichment] Successfully enriched ${code} `, { requestId: req.requestId });
           } else {
             logger.warn(`[Enrichment] API returned no data for ${code}`, { requestId: req.requestId });
           }
@@ -76,10 +78,11 @@ export const fundController = {
       if (!details.meta.aum) {
         try {
           // Extract Base Name: "ICICI Prudential Bharat Consumption Fund - Growth Option" -> "ICICI Prudential Bharat Consumption Fund"
-          // Strict logic: Take everything before the FIRST " - "
-          const baseName = details.meta.scheme_name.split(' - ')[0].trim();
+          // Strict logic: Use shared utility (Fixes "Aditya Birla Sun Life - Tax Relief 96" issue)
+          const baseName = extractBaseName(details.meta.scheme_name);
 
-          if (baseName && baseName.length > 5) { // Avoid very short/ambiguous names
+          if (baseName) {
+            console.log(`[FundController] Attempting Peer Fund Fallback for Base Name: "${baseName}"`);
             // Find a peer that matches the Base Name EXACTLY
             const peerFund = await fundModel.findPeerFundWithData(baseName, code);
 

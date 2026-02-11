@@ -77,6 +77,47 @@ class EmailService {
     }
 
     /**
+     * Send Password Reset OTP
+     * @param {string} toEmail 
+     * @param {string} otp 
+     */
+    async sendPasswordResetOTP(toEmail, otp) {
+        if (!this.initialized) this.init();
+
+        if (!this.transporter) {
+            logger.info(`[EmailService] MOCK SEND: Reset OTP for ${toEmail} is ${otp}`);
+            return true;
+        }
+
+        try {
+            const info = await this.transporter.sendMail({
+                from: `"TryMutualFunds Security" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+                to: toEmail,
+                subject: 'Reset your password - TryMutualFunds',
+                text: `Your password reset code is: ${otp}\n\nThis code expires in 10 minutes.`,
+                html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+            <h2 style="color: #EF4444;">Password Reset Request</h2>
+            <p>We received a request to reset your password for TryMutualFunds.</p>
+            <p>Your verification code is:</p>
+            <div style="background-color: #FEF2F2; color: #B91C1C; padding: 15px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 5px; text-align: center; margin: 20px 0; border: 1px solid #FECACA;">
+              ${otp}
+            </div>
+            <p>This code expires in 10 minutes.</p>
+            <p style="font-size: 12px; color: #6B7280; margin-top: 30px;">If you didn't request a password reset, you can safely ignore this email. Your password will not change.</p>
+          </div>
+        `
+            });
+
+            logger.info(`[EmailService] Reset OTP sent to ${toEmail}. MessageId: ${info.messageId}`);
+            return true;
+        } catch (error) {
+            logger.error(`[EmailService] Failed to send Reset OTP to ${toEmail}:`, error.message);
+            return false;
+        }
+    }
+
+    /**
      * Send Cron Job Report Email
      * @param {Object} reportData - Report data
      */
@@ -108,8 +149,10 @@ class EmailService {
             totalParsed,
             matchedFunds,
             skippedNoMatch,
+            errorDetails,
             // Meta
-            reportType
+            reportType,
+            updatedFunds = [] // New parameter for list of funds
         } = reportData;
 
         // Money Formatter
@@ -159,6 +202,9 @@ class EmailService {
         } else if (reportType === 'AMFI_SYNC') {
             headerTitle = 'AMFI NAV Sync Report';
             subTitle = 'Official AMFI Text File Sync';
+        } else if (reportType === 'PEER_ENRICHMENT') {
+            headerTitle = 'Peer Fund Enrichment Report';
+            subTitle = 'Data Enrichment from Direct Plans';
         }
 
         // --- COMPONENTS (Inline CSS Helpers) ---
@@ -200,6 +246,12 @@ class EmailService {
                 ${StatCard('Matched Funds', matchedFunds, '#3B82F6', 'In Database')}
                 ${StatCard('NAV Updated', navUpdated, colors.success, 'Records Added')}
              `;
+        } else if (reportType === 'PEER_ENRICHMENT') {
+            // Extract Enriched Count
+            const enrichedCount = updatedFunds.length || 0;
+            statsRow = `
+                ${StatCard('Funds Enriched', enrichedCount, colors.success, 'Updated from Peers')}
+             `;
         }
 
         // --- BUILD JOBS TABLE ---
@@ -229,6 +281,28 @@ class EmailService {
                 </tr>
             `;
         }).join('');
+
+
+
+        // --- BUILD FUNDS LIST (If Applicable) ---
+        let fundsListHtml = '';
+        if (updatedFunds && updatedFunds.length > 0) {
+            const listItems = updatedFunds.map(fund =>
+                `<li style="padding: 8px 0; border-bottom: 1px dashed ${colors.border}; color: ${colors.textSecondary}; font-size: 13px;">${fund}</li>`
+            ).join('');
+
+            fundsListHtml = `
+            <!-- FUNDS LIST -->
+            <tr>
+                <td style="padding: 0 30px 40px;">
+                    <h3 style="margin: 0 0 16px; color: ${colors.textPrimary}; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Enriched Funds</h3>
+                    <ul style="margin: 0; padding: 0; list-style-type: none;">
+                        ${listItems}
+                    </ul>
+                </td>
+            </tr>
+            `;
+        }
 
         // --- ASSEMBLE HTML ---
         const html = `
@@ -290,6 +364,8 @@ class EmailService {
                             </table>
                         </td>
                     </tr>
+
+                    ${fundsListHtml}
 
                     <!-- FOOTER -->
                     <tr>
