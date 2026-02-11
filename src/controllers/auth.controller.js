@@ -252,13 +252,8 @@ export const authController = {
       let demoAccount = await demoAccountModel.findByUserId(user.id);
 
       if (!demoAccount) {
-        // Create demo account for existing user
-        const { run } = await import('../db/database.js');
-        await run(
-          `INSERT INTO demo_accounts (user_id, balance) VALUES (?, ?)`,
-          [user.id, 10000000.00]
-        );
-        demoAccount = await demoAccountModel.findByUserId(user.id);
+        // Create demo account for existing user logic (refactored to model)
+        demoAccount = await demoAccountModel.createDefault(user.id);
       }
 
       // Generate JWT token
@@ -329,13 +324,8 @@ export const authController = {
       let demoAccount = await demoAccountModel.findByUserId(userId);
 
       if (!demoAccount) {
-        // Create demo account for existing user
-        const { run } = await import('../db/database.js');
-        await run(
-          `INSERT INTO demo_accounts (user_id, balance) VALUES (?, ?)`,
-          [userId, 10000000.00]
-        );
-        demoAccount = await demoAccountModel.findByUserId(userId);
+        // Create demo account for existing user logic (refactored to model)
+        demoAccount = await demoAccountModel.createDefault(user.id);
       }
 
       res.json({

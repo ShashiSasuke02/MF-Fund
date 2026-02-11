@@ -42,13 +42,15 @@ export const userModel = {
 
       console.log('[User Model] Created user with ID:', userIdNum);
 
-      // Create demo account with ₹1,00,00,000 (1 crore) starting balance
-      const demoResult = await run(
-        `INSERT INTO demo_accounts (user_id, balance) VALUES (?, ?)`,
-        [userIdNum, 10000000.00]
-      );
-
-      console.log('[User Model] Created demo account for user:', userIdNum, 'result:', demoResult);
+      try {
+        // Create demo account with Initial Balance + Ledger Entry
+        const { demoAccountModel } = await import('./demoAccount.model.js');
+        await demoAccountModel.createDefault(userIdNum);
+        console.log('[User Model] Created demo account for user:', userIdNum);
+      } catch (demoError) {
+        console.error('[User Model] Failed to create demo account:', demoError);
+        // We log but don't fail user creation, though this is critical
+      }
 
       // Return with consistent camelCase property names
       return {

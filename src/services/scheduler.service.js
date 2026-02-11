@@ -174,11 +174,15 @@ export const schedulerService = {
           logger.info(`[Scheduler] Transaction ${transaction.id} reached stop condition:`, shouldStop.reason);
 
           // Complete the transaction (Natural End or Limit Reached)
+          // Complete the transaction (Natural End or Limit Reached)
+          // FIX: 'COMPLETED' is not a valid ENUM. Using 'CANCELLED' to indicate it's no longer active.
           await transactionModel.updateExecutionStatus(transaction.id, {
-            status: 'COMPLETED',
+            status: 'CANCELLED',
             nextExecutionDate: null,
             failureReason: shouldStop.reason
           });
+
+          logger.info(`[Scheduler] Transaction ${transaction.id} stopped. Reason: ${shouldStop.reason}. Status updated to CANCELLED.`);
 
           logData.status = 'SKIPPED';
           logData.failureReason = shouldStop.reason;

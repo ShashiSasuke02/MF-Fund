@@ -57,11 +57,11 @@
 
 - **Infrastructure Hardening (Feb 2026):** Implemented custom MySQL Dockerfile and build optimizations.
 - **SEO Phase 2:** Full integration of dynamic meta and rich snippets.
-- **Strict Ledger Plan:** Approved architecture policy and implementation plan created. Integration targeted for Portfolio "Report" tab.
-- **AI Manager Visibility (Feb 2026):** Fixed bug where AI widget was visible even when disabled. Added `ai_enabled` system setting check to frontend.
-- **Ledger Model Fix (Feb 2026):** Resolved `TypeError` in `LedgerModel` by correcting database wrapper usage (`pool.run` vs `pool.execute`).
-- **Invest State Fix:** Removed duplicate `endDate` key in `client/src/pages/Invest.jsx` to resolve Vite build warning.
 - **Frontend API Fix:** Replaced undefined `api` calls with standard `fetchApi` in `client/src/api/index.js`, fixing Portfolio page failures.
+- **Ledger System Overhaul (Feb 2026):**
+    - **Display Fix:** `LedgerTable.jsx` now shows unique `Ref: #{entry.id}` instead of duplicate Plan IDs.
+    - **Data Integrity:** Implemented `demoAccountModel.createDefault()` to ensure new accounts start with an "Opening Balance" ledger entry (`auth.controller.js` + `user.model.js`).
+    - **Architecture:** Updated `ARCHITECTURE.md` to define Ledger as the single source of truth.
 
 
 ## 📝 Implementation Strategy: Debugging & Analysis (Current)

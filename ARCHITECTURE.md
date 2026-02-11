@@ -797,6 +797,21 @@ Increased idle session timeout from **2 minutes** to **4 minutes** for improved 
 ---
 
 ### 15.7 Sync Job Chaining (Feb 2026)
+-   **Change:** `AMFI NAV Sync` is now automatically triggered upon completion (success or failure) of `Full Fund Sync`.
+
+### 15.8 Schedule Summary Enhancements
+- **UI Behavior:** The "Schedule Summary" section on the Invest page is now conditionally rendered. It remains hidden until the user selects an `End Date`.
+- **Default Duration:** For SIP and SWP transactions, if the user does not provide an `End Date` (and the transaction type is not Lump Sum), the system automatically defaults the `End Date` to **1 Year** from the `Start Date` upon submission. This prevents accidental indefinite plans while keeping the UI clean.
+
+### 15.9 Ledger System (Feb 2026)
+- **Immutable Records:** The `ledger_entries` table serves as the single source of truth for all financial movements.
+- **Entry ID vs Transaction ID:**
+    - `transaction_id` refers to the **Source Plan** (e.g., SIP #2).
+    - `id` (Ledger Entry ID) is the unique reference for the specific movement (e.g., Installment #5 of SIP #2).
+    - **UI Display:** Validated that the UI must display the **Ledger Entry ID** (`Ref: #501`) to ensure uniqueness, while the `transaction_id` is kept for backend linkage.
+- **Opening Balance:** A dedicated ledger entry ("Opening Balance") is created automatically when a new Demo Account is initialized, ensuring the ledger sum always matches the account balance.
+-   **Benefit:** Ensures NAVs are as fresh as possible without manual intervention or guessing cron timings.
+
 
 #### Change
 After **Full Fund Sync** completes successfully, the system now automatically triggers **Incremental Fund Sync** to ensure NAV data is immediately up-to-date.

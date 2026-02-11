@@ -109,7 +109,9 @@ export default function LedgerTable() {
                                         <td className="px-6 py-4 text-sm text-gray-700">
                                             <div className="max-w-xs truncate">{entry.description}</div>
                                             {entry.transaction_id && (
-                                                <span className="text-xs text-gray-400">Ref: #{entry.transaction_id}</span>
+                                                <div className="text-xs text-gray-500" title={`Transaction ID: #${entry.transaction_id || 'N/A'}`}>
+                                                    Ref: #{entry.id}
+                                                </div>
                                             )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -140,7 +142,7 @@ export default function LedgerTable() {
                                         <p className="text-xs text-gray-500 font-medium">{formatDate(entry.created_at)}</p>
                                         <h4 className="text-sm font-semibold text-gray-900 mt-1">{entry.description}</h4>
                                         {entry.transaction_id && (
-                                            <p className="text-xs text-gray-400 mt-0.5">Ref: #{entry.transaction_id}</p>
+                                            <p className="text-xs text-gray-400 mt-0.5">Ref: #{entry.id}</p>
                                         )}
                                     </div>
                                     <span className={`px-2 py-1 text-[10px] font-bold rounded-lg ${entry.type === 'CREDIT' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'

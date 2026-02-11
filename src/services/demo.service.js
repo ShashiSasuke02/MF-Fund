@@ -487,13 +487,15 @@ export const demoService = {
     }
 
     // Update status to COMPLETED (Natural Stop)
+    // Update status to CANCELLED (Natural Stop or User Action)
+    // FIX: 'COMPLETED' is not a valid ENUM value. Using 'CANCELLED' with a reason.
     await transactionModel.updateExecutionStatus(transactionId, {
-      status: 'COMPLETED',
+      status: 'CANCELLED',
       nextExecutionDate: null, // Ensure it never runs again
       failureReason: 'Stopped by user'
     });
 
-    log(`[Demo Service] Transaction ${transactionId} stopped by user ${userId}`);
+    log(`[Demo Service] Transaction ${transactionId} cancelled by user ${userId}. Status set to CANCELLED.`);
     return { success: true };
   },
 
