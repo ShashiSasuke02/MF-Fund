@@ -1,7 +1,7 @@
 
 import { localFundService } from '../services/localFund.service.js';
 import { fundModel } from '../models/fund.model.js';
-import { fundEnrichmentService } from '../services/fundEnrichment.service.js';
+import fundEnrichmentService from '../services/fundEnrichment.service.js';
 import { extractBaseName } from '../utils/fund.utils.js';
 import logger from '../services/logger.service.js';
 
