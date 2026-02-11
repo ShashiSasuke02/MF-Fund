@@ -33,6 +33,10 @@
 - **VPS Deployment (Pending):** [PLAN-vps-deploy.md](file:///c:/Users/shashidhar/Desktop/MF-Investments/docs/PLAN-vps-deploy.md)
     - Deploy to VPS with Nginx Proxy Manager.
     - Configure SSL and domain routing for `www.trymutualfunds.com`.
+- **Standardize Peer Fund Logic:** [implementation_plan.md](file:///c:/Users/shashidhar/.gemini/antigravity/brain/e6b04d63-b606-4111-aa07-8452e33af837/implementation_plan.md)
+    - Centralize `extractBaseName` logic in `fund.utils.js`.
+    - Update `peerEnrichment.service.js` and `fund.controller.js`.
+    - Add unit tests.
 
 ## ✅ Completed Implementation Details
 - **Project Cleanup:** Moved "unwanted" loose files (plans, debug scripts, logs) to `Extras/` folder.
@@ -56,6 +60,9 @@
 - **Strict Ledger Plan:** Approved architecture policy and implementation plan created. Integration targeted for Portfolio "Report" tab.
 - **AI Manager Visibility (Feb 2026):** Fixed bug where AI widget was visible even when disabled. Added `ai_enabled` system setting check to frontend.
 - **Ledger Model Fix (Feb 2026):** Resolved `TypeError` in `LedgerModel` by correcting database wrapper usage (`pool.run` vs `pool.execute`).
+- **Invest State Fix:** Removed duplicate `endDate` key in `client/src/pages/Invest.jsx` to resolve Vite build warning.
+- **Frontend API Fix:** Replaced undefined `api` calls with standard `fetchApi` in `client/src/api/index.js`, fixing Portfolio page failures.
+
 
 ## 📝 Implementation Strategy: Debugging & Analysis (Current)
 - **Problem Analysis**: [ISSUE_REPORT.md](file:///c:/Users/shashidhar/Desktop/MF-Investments/ISSUE_REPORT.md)

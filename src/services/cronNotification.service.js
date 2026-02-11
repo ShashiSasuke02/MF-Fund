@@ -12,7 +12,8 @@ const TRACKED_JOBS = [
     'Daily Transaction Scheduler',
     'Full Fund Sync',
     'AMFI NAV Sync',
-    'Incremental Fund Sync'
+    'Incremental Fund Sync',
+    'Peer Fund Enrichment' // Added for tracking
 ];
 
 // Store today's job results
@@ -172,6 +173,13 @@ export const cronNotificationService = {
                 stats.navUpdated = amfiData.navUpdated || 0;
                 stats.skippedNoMatch = amfiData.skippedNoMatch || 0;
                 stats.errors = amfiData.errors || 0;
+            }
+            else if (reportType === 'PEER_ENRICHMENT') {
+                const jobResult = jobResults.find(j => j.jobName === 'Peer Fund Enrichment');
+                const resultData = jobResult?.result || {};
+
+                // Pass the list of names to the email template
+                stats.updatedFunds = resultData.enrichedFundNames || [];
             }
 
             const sent = await emailService.sendCronJobReport({

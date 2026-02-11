@@ -218,9 +218,10 @@ This is the core of the application. Logic is strictly separated from Controller
 1.  **Purpose:** Enrich "Regular Plan" funds with data (AUM, Risk, Manager) from their "Direct Plan" counterparts when external enrichment is unavailable.
 2.  **Trigger:** Occurs during `GET /api/funds/:id` if local metadata is missing/stale and "Captain Nemo" API returns no data.
 3.  **Algorithm:**
-    -   **Base Name Extraction:** Splits the target scheme name at the first hyphen (` - `) and trims.
+    -   **Base Name Extraction:** Uses `src/utils/fund.utils.js` (Smart Truncation) to safely strip suffixes like `- Direct Plan`, `- Growth`, etc.
     -   **Exact Search:** Queries the database for a fund where `scheme_name` is **exactly** equal to the Base Name.
     -   **Data Merge:** Copies `aum`, `fund_manager`, `risk_level`, and `expense_ratio` from the peer to the target fund.
+    -   **Reporting:** `Peer Fund Enrichment` job now tracks and lists enriched funds in the daily email report.
 4.  **Constraint:** The peer must have valid data (`aum > 0`) to be used as a source.
 
 ---
