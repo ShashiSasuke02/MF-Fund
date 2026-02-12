@@ -1169,3 +1169,43 @@ Comprehensive logging is required for all financial transactions and scheduler o
 *   **Benefit:** Reduces external API calls and ensures consistent data across different plans (Direct/Regular) of the same fund.
 
 ---
+
+### 16.4 VPS Production Hardening (Feb 2026)
+
+#### Overview
+Added production hardening layer for VPS deployment. All changes are **backward compatible** — existing TrueNAS setup is unaffected.
+
+#### New Files
+| File | Purpose |
+|------|---------|
+| `docker-compose.vps.yml` | VPS-specific Docker Compose with Redis password, no exposed backend port, backup volume |
+| `docker/nginx-vps.conf` | Rate-limited Nginx config (API: 20r/s, Auth: 5r/s, Admin: 2r/s) |
+| `scripts/backup-db.sh` | Daily backup of 6 core tables (excludes `fund_nav_history`), 7-day retention |
+| `scripts/send-backup-email.js` | Emails backup `.tar.gz` to admin via existing SMTP |
+| `scripts/restore-db.sh` | Restores backup with confirmation prompt |
+| `src/controllers/backup.controller.js` | Admin API for listing/downloading backups |
+| `.env.example` | Comprehensive env var documentation (40+ variables) |
+
+#### Modified Files
+| File | Change |
+|------|--------|
+| `src/services/cache.service.js` | Added `REDIS_PASSWORD` support (backward compatible) |
+| `src/routes/admin.routes.js` | Added 3 backup routes: `GET /api/admin/backups`, download, download-all |
+| `src/jobs/scheduler.job.js` | Added Uptime Kuma heartbeat pings on job success |
+| `client/src/components/admin/LogViewer.jsx` | Added "Database Backups" tab |
+
+#### Backup Strategy
+- **Tables:** `users`, `demo_accounts`, `holdings`, `transactions`, `ledger_entries`, `funds`
+- **Excluded:** `fund_nav_history` (re-syncable from AMFI, reduces backup from ~50MB to ~300KB)
+- **Schedule:** Daily at 2 AM IST via host crontab
+- **Delivery:** Emailed to admin + downloadable from Admin Dashboard
+- **Retention:** 7 daily backups
+
+#### Monitoring (Uptime Kuma — Self-Hosted)
+- Self-hosted via `louislam/uptime-kuma:1` Docker image in `docker-compose.vps.yml`
+- Dashboard accessible at `http://vps-ip:3001` (configurable via `KUMA_PORT`)
+- **Push monitors** pinged from cron jobs: SIP Scheduler, Full Fund Sync, AMFI NAV Sync, Backup
+- Env vars: `KUMA_PUSH_SIP_URL`, `KUMA_PUSH_FUND_SYNC_URL`, `KUMA_PUSH_AMFI_SYNC_URL`, `KUMA_PUSH_BACKUP_URL`
+- Supports alerts via Email, Telegram, Discord, Slack (configured in Kuma dashboard)
+
+---

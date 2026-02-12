@@ -9,6 +9,30 @@ import { amfiSyncService } from '../services/amfiSync.service.js';
 import { cronNotificationService } from '../services/cronNotification.service.js';
 import logger from '../services/logger.service.js';
 
+/**
+ * Uptime Kuma Push Monitor
+ * Maps job names to env var URLs and sends a non-blocking GET request.
+ * Fire-and-forget — never blocks or fails the parent job.
+ */
+const KUMA_PUSH_MAP = {
+    'Daily Transaction Scheduler': 'KUMA_PUSH_SIP_URL',
+    'Full Fund Sync': 'KUMA_PUSH_FUND_SYNC_URL',
+    'AMFI NAV Sync': 'KUMA_PUSH_AMFI_SYNC_URL',
+};
+
+const pingUptimeKuma = async (jobName) => {
+    const envVar = KUMA_PUSH_MAP[jobName];
+    if (!envVar) return;
+    const url = process.env[envVar];
+    if (!url) return;
+    try {
+        await fetch(url, { signal: AbortSignal.timeout(10000) });
+        logger.info(`[Cron] 📡 Uptime Kuma pinged for: ${jobName}`);
+    } catch (err) {
+        logger.warn(`[Cron] ⚠️ Uptime Kuma ping failed for ${jobName}: ${err.message}`);
+    }
+};
+
 
 /**
  * executeJobWrapper
@@ -50,6 +74,9 @@ const executeJobWrapper = async (jobName, handler, triggeredBy = 'SCHEDULE') => 
 
         // Notify for daily report
         await cronNotificationService.onJobComplete(jobName, 'SUCCESS', result, null, duration);
+
+        // Ping Uptime Kuma heartbeat (non-blocking)
+        pingUptimeKuma(jobName).catch(() => { });
 
         return { success: true, result };
 

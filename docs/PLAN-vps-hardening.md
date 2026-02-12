@@ -34,7 +34,7 @@ Internet (HTTPS:443)
 └─────────────┘   └─────────────┘
 
 External Monitoring:
-  └── Healthchecks.io → pings /api/health every 5 min
+  └── UptimeRobot → pings /api/health every 5 min
   └── Alerts via Email/Telegram if DOWN
 ```
 
@@ -60,13 +60,22 @@ A **cron-based backup script** that runs inside Docker, dumps key tables to CSV,
      - `holdings` (portfolio positions)
      - `transactions` (trade history)
      - `ledger_entries` (financial ledger)
-     - `fund_nav_history` (NAV data — large, weekly only)
+     - `ledger_entries` (financial ledger)
      - `funds` (fund master list)
+     - **EXCLUDED:** `fund_nav_history` (Can be re-synced from AMFI)
   4. Creates timestamped folder: `backups/YYYY-MM-DD/`
   5. Compresses to `.tar.gz`
-  6. Retains last **7 daily** + **4 weekly** backups (auto-cleanup)
+  6. Retains last **7 daily backups** (auto-cleanup)
+  7. **Email Delivery:** Sends the `.tar.gz` file to `Shashidhar02april@gmail.com`.
+  8. **[NEW] Admin Download:** Admins can browse and download backups from the dashboard.
 
-#### 1.2 [NEW] `scripts/restore-db.sh`
+#### 1.2 [NEW] `scripts/send-backup-email.js`
+- A small Node.js script (since we already have Node in the backend container)
+- Usage: `node scripts/send-backup-email.js ./backups/daily/2026-02-12.tar.gz`
+
+#### 1.3 [NEW] Admin API & UI
+- **Backend:** `GET /api/admin/backups` (list) and `GET /api/admin/backups/:filename` (download)
+- **Frontend:** New tab "Backups" in Admin Dashboard to list and download files.
 - Restore script that imports CSV files back into MySQL
 - Usage: `./scripts/restore-db.sh ./backups/2026-02-12/`
 
@@ -74,21 +83,15 @@ A **cron-based backup script** that runs inside Docker, dumps key tables to CSV,
 ```bash
 # Daily at 2:00 AM IST (after all sync jobs complete)
 0 2 * * * /opt/mf-fund/scripts/backup-db.sh >> /opt/mf-fund/logs/backup.log 2>&1
-
-# Weekly full dump (includes fund_nav_history) on Sunday 3 AM
-0 3 * * 0 /opt/mf-fund/scripts/backup-db.sh --full >> /opt/mf-fund/logs/backup.log 2>&1
 ```
 
 #### 1.4 Directory Structure
 ```
 backups/
-├── daily/
-│   ├── 2026-02-12.tar.gz    (users, holdings, transactions, ledger)
-│   ├── 2026-02-11.tar.gz
-│   └── ... (7 days retained)
-└── weekly/
-    ├── 2026-02-09-full.tar.gz  (ALL tables including NAV history)
-    └── ... (4 weeks retained)
+└── daily/
+    ├── 2026-02-12.tar.gz    (users, holdings, transactions, ledger)
+    ├── 2026-02-11.tar.gz
+    └── ... (7 days retained)
 ```
 
 #### 1.5 Backup Verification
@@ -97,13 +100,13 @@ backups/
 
 ---
 
-## Pillar 2: Monitoring (Healthchecks.io)
+## Pillar 2: Monitoring (UptimeRobot)
 
 ### Problem
 No way to know if the app goes down. If Docker restarts at 3 AM and MySQL fails to start, nobody knows until a user complains.
 
 ### Solution
-Use **Healthchecks.io** (free tier: 20 checks) for uptime monitoring + cron job verification.
+Use **UptimeRobot** (free tier: 50 monitors) for uptime monitoring + cron job verification.
 
 ### Implementation
 
@@ -118,26 +121,26 @@ Use **Healthchecks.io** (free tier: 20 checks) for uptime monitoring + cron job 
 | SIP Scheduler | Cron ping after SIP execution | Daily 6 AM | 30 min |
 
 #### 2.2 [MODIFY] `scripts/backup-db.sh`
-- At the end of a successful backup, ping the Healthchecks.io URL:
+- At the end of a successful backup, ping the UptimeRobot heartbeat URL:
   ```bash
-  curl -fsS --retry 3 https://hc-ping.com/<BACKUP_CHECK_UUID> > /dev/null
+  curl -fsS --retry 3 https://heartbeat.uptimerobot.com/<BACKUP_MONITOR_KEY> > /dev/null
   ```
 
 #### 2.3 [MODIFY] `src/jobs/scheduler.job.js`
-- After each cron job completes, ping the corresponding Healthchecks.io UUID via HTTP
-- Add `HEALTHCHECK_FUND_SYNC_URL`, `HEALTHCHECK_AMFI_SYNC_URL`, `HEALTHCHECK_SIP_URL` env vars
+- After each cron job completes, ping the corresponding UptimeRobot heartbeat URL via HTTP
+- Add `KUMA_PUSH_FUND_SYNC_URL`, `KUMA_PUSH_AMFI_SYNC_URL`, `KUMA_PUSH_SIP_URL` env vars
 - Implementation: Simple `fetch()` call at end of each job's `onComplete` callback
 
-#### 2.4 [NEW] Host-level Cron (App Heartbeat)
-```bash
-# Every 5 minutes — ping app health + report to Healthchecks.io
-*/5 * * * * curl -fsS http://localhost:4000/api/health && curl -fsS https://hc-ping.com/<APP_CHECK_UUID>
-```
+#### 2.4 UptimeRobot HTTP Monitor (App Heartbeat)
+- Create an **HTTP(s) Monitor** in UptimeRobot dashboard pointing to `https://www.trymutualfunds.com/api/health`
+- Interval: **5 minutes** (free tier default)
+- UptimeRobot pings your app externally — **no host-level cron needed**
 
-#### 2.5 Alert Configuration (Healthchecks.io Dashboard)
-- **Email alerts** → Your email
+#### 2.5 Alert Configuration (UptimeRobot Dashboard)
+- **Email alerts** → `Shashidhar02april@gmail.com`
+- **Telegram/Slack** → Connect via UptimeRobot integrations
 - **Grace period**: 10 min for app, 60 min for cron jobs
-- Free tier supports Email + Webhooks
+- Free tier supports Email + Webhooks + Mobile Push
 
 ---
 
@@ -262,7 +265,7 @@ Create a fully documented `.env.example` with every variable, its purpose, and d
 | **Cron Reports** | `ENABLE_CRON_REPORTS`, `CRON_REPORT_EMAIL`, `ENABLE_*_REPORT` | Optional |
 | **AI/Ollama** | `OLLAMA_ENDPOINT`, `OLLAMA_MODEL_NAME` | Optional |
 | **Ports** | `APP_PORT`, `WEB_PORT` | Optional (defaults exist) |
-| **Monitoring** | `HEALTHCHECK_*_URL` | Optional |
+| **Monitoring** | `KUMA_PUSH_*_URL` | Optional |
 
 #### 5.2 [NEW] `client/.env.example`
 Document frontend-specific variables:
@@ -285,12 +288,12 @@ A separate compose file specifically for VPS deployment. Key differences from Tr
 | Backup Volume | ❌ None | ✅ `./backups:/backups` |
 | Backend Port | Exposed `4000` | Internal only (NPM proxies) |
 | SSL | ❌ None | ✅ Let's Encrypt via NPM |
-| Healthcheck URLs | ❌ None | ✅ Environment variables |
+| UptimeRobot URLs | ❌ None | ✅ Environment variables |
 
 ### Services in `docker-compose.vps.yml`:
 1. **mysql** — Same image, same healthcheck, same volumes
 2. **redis** — Same + `requirepass`
-3. **backend** — Same + `REDIS_PASSWORD` + healthcheck URLs + NO exposed port
+3. **backend** — Same + `REDIS_PASSWORD` + UptimeRobot URLs + NO exposed port
 4. **nginx-proxy-manager** — NPM for SSL + rate limiting
 5. **sync-job / seed-admin-job** — Same (manual profiles)
 
@@ -303,8 +306,9 @@ graph TD
     A[".env.example"] --> B["docker-compose.vps.yml"]
     A --> C["nginx-vps.conf"]
     B --> D["Redis Password in cache.service.js"]
-    B --> E["backup-db.sh + restore-db.sh"]
-    E --> F["Healthchecks.io Integration"]
+    D --> E["backup-db.sh + email.js"]
+    E --> F["Admin Backup API"]
+    F --> G["UptimeRobot Integration"]
     F --> G["scheduler.job.js pings"]
     G --> H["Verification & Testing"]
 ```
@@ -315,8 +319,9 @@ graph TD
 | 2 | Create `docker-compose.vps.yml` | 1 new file | Medium |
 | 3 | Create `docker/nginx-vps.conf` | 1 new file | Low |
 | 4 | Update `cache.service.js` (Redis password) | 1 modified file | Low |
-| 5 | Create `scripts/backup-db.sh` + `scripts/restore-db.sh` | 2 new files | Medium |
-| 6 | Integrate Healthchecks.io in `scheduler.job.js` | 1 modified file | Low |
+| 5 | Create `scripts/backup-db.sh` + `email.js` | 2 new files | Medium |
+| 6 | Add Admin Backup API + UI | 2 modified files | Medium |
+| 7 | Integrate UptimeRobot heartbeats in `scheduler.job.js` | 1 modified file | Low |
 | 7 | Verify full flow on VPS | Manual testing | Medium |
 
 **Total: 7 new files + 2 modified files**
@@ -331,9 +336,10 @@ graph TD
 - [ ] `cache.service.js` works with AND without `REDIS_PASSWORD` (backward compat)
 - [ ] Nginx rate limits return 429 on rapid auth requests
 - [ ] `backup-db.sh` creates CSV exports in `backups/daily/`
-- [ ] `restore-db.sh` can rebuild from backup
-- [ ] Healthchecks.io receives pings after backup + sync jobs
-- [ ] Healthchecks.io alerts when app is down (test by stopping container)
+- [ ] Email arrives with valid `.tar.gz` attachment
+- [ ] Admin Dashboard lists backups and starts download
+- [ ] UptimeRobot receives heartbeat pings after backup + sync jobs
+- [ ] UptimeRobot alerts when app is down (test by stopping container)
 - [ ] Domain `www.trymutualfunds.com` loads via HTTPS
 - [ ] API calls work through NPM proxy
 - [ ] TrueNAS `docker-compose.yml` still works unchanged
