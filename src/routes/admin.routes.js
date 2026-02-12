@@ -2,6 +2,7 @@ import express from 'express';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware.js';
 import { adminController } from '../controllers/admin.controller.js';
 import { getLogFiles, downloadLogFile, downloadAllLogs } from '../controllers/log.controller.js';
+import { getBackupFiles, downloadBackupFile, downloadAllBackups } from '../controllers/backup.controller.js';
 import { settingsService } from '../services/settings.service.js';
 import { ollamaService } from '../services/ollama.service.js';
 
@@ -27,6 +28,11 @@ router.get('/activity-logs', authenticateToken, requireAdmin, adminController.ge
 router.get('/logs', authenticateToken, requireAdmin, getLogFiles);
 router.get('/logs/download-all', authenticateToken, requireAdmin, downloadAllLogs);
 router.get('/logs/download/:filename', authenticateToken, requireAdmin, downloadLogFile);
+
+// [NEW] Database Backups
+router.get('/backups', authenticateToken, requireAdmin, getBackupFiles);
+router.get('/backups/download-all', authenticateToken, requireAdmin, downloadAllBackups);
+router.get('/backups/download/:filename', authenticateToken, requireAdmin, downloadBackupFile);
 
 // Sync chart data
 router.get('/sync-chart-data', authenticateToken, requireAdmin, adminController.getSyncChartData);
