@@ -257,7 +257,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     networks:
       - mf-network
-    command: ["node", "scripts/seedAdmin.js"]
+    command: ["node", "scripts/seed-admin.js"]
 
 # =============================================================================
 # Networks
