@@ -107,7 +107,8 @@ fi
 # ─── Email Backup ──────────────────────────────────────────────────────────
 if [ -f "scripts/send-backup-email.js" ]; then
     log "📧 Sending backup via email..."
-    node scripts/send-backup-email.js "${ARCHIVE_FILE}" || log "⚠️ Email send failed (non-fatal)"
+    CONTAINER_ARCHIVE_PATH="/app/backups/daily/$(basename "${ARCHIVE_FILE}")"
+    docker compose -f "${COMPOSE_FILE}" exec -T backend node scripts/send-backup-email.js "${CONTAINER_ARCHIVE_PATH}" || log "⚠️ Email send failed (non-fatal)"
 fi
 
 # ─── Ping Uptime Kuma ──────────────────────────────────────────────────────
