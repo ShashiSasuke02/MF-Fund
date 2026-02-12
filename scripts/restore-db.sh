@@ -18,7 +18,9 @@ TIMESTAMP=$(date +%Y-%m-%d_%H:%M:%S)
 
 # Load environment variables from .env
 if [ -f .env ]; then
-    export $(grep -v '^#' .env | xargs)
+    set -a
+    source .env
+    set +a
 fi
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────

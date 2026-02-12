@@ -26,7 +26,9 @@ COMPOSE_FILE="docker-compose.vps.yml"
 
 # Load environment variables from .env
 if [ -f .env ]; then
-    export $(grep -v '^#' .env | xargs)
+    set -a
+    source .env
+    set +a
 fi
 
 # Tables to back up (excludes fund_nav_history — can be re-synced from AMFI)
