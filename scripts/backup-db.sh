@@ -24,6 +24,11 @@ BACKUP_FILE="${BACKUP_DIR}/${DATE}.sql"
 ARCHIVE_FILE="${BACKUP_DIR}/${DATE}.tar.gz"
 COMPOSE_FILE="docker-compose.vps.yml"
 
+# Load environment variables from .env
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
 # Tables to back up (excludes fund_nav_history — can be re-synced from AMFI)
 TABLES="users demo_accounts holdings transactions ledger_entries funds"
 

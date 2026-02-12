@@ -16,6 +16,11 @@ ARCHIVE_FILE="$1"
 COMPOSE_FILE="docker-compose.vps.yml"
 TIMESTAMP=$(date +%Y-%m-%d_%H:%M:%S)
 
+# Load environment variables from .env
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 log() {
     echo "[${TIMESTAMP}] $1"
