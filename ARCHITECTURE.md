@@ -199,6 +199,7 @@ This is the core of the application. Logic is strictly separated from Controller
 5.  **Match:** Filters to only active funds in database (~5,000 funds).
 6.  **Upsert:** Bulk updates `fund_nav_history` with latest NAVs.
 7.  **Performance:** ~1.6 MB download, ~1 second parse, ~500ms DB update.
+8.  **Reporting:** Both Stage 1 (Full Sync) and Stage 2 (AMFI Sync) data are combined into a single **"Nightly System Report"** email to reduce inbox clutter.
 
 **Manual Jobs (Admin Dashboard Only):**
 -   **AMFI NAV Sync:** Fast text-based NAV update (recommended).
@@ -223,6 +224,16 @@ This is the core of the application. Logic is strictly separated from Controller
     -   **Data Merge:** Copies `aum`, `fund_manager`, `risk_level`, and `expense_ratio` from the peer to the target fund.
     -   **Reporting:** `Peer Fund Enrichment` job now tracks and lists enriched funds in the daily email report.
 4.  **Constraint:** The peer must have valid data (`aum > 0`) to be used as a source.
+
+### 6.4 Database Backup Automation (Feb 2026)
+1.  **Purpose:** Automated daily backup of critical data to local disk and email dispatch to admin.
+2.  **Trigger:** Cron (`0 2 * * *`) -> `backupService.runDailyBackup()`.
+3.  **Process:**
+    -   **Dump:** Executes `mysqldump` for `users`, `holdings`, `transactions`, `ledger_entries`, `funds` (Skips `fund_nav_history` to save space).
+    -   **Compress:** Gzips the SQL dump into `backups/daily/backup_YYYY-MM-DD.tar.gz`.
+    -   **Email:** Sends the `.tar.gz` file as an attachment to `BACKUP_EMAIL`.
+    -   **Cleanup:** Retains local backups for 7 days, deletes older files.
+4.  **Monitoring:** Pings Uptime Kuma (`KUMA_PUSH_BACKUP_URL`) on success/failure.
 
 ---
 

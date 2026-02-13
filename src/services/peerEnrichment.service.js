@@ -1,6 +1,5 @@
 import { fundModel } from '../models/fund.model.js';
 import { extractBaseName } from '../utils/fund.utils.js';
-import { extractBaseName } from '../utils/fund.utils.js';
 import { cronNotificationService } from './cronNotification.service.js';
 import logger from './logger.service.js';
 import db from '../db/database.js';
@@ -13,6 +12,8 @@ export const peerEnrichmentService = {
     async runDailyEnrichment() {
         logger.info('[Peer Enrichment] Starting daily enrichment job...');
         const startTime = Date.now();
+        let totalEnriched = 0;
+        const enrichedFundNames = [];
         const stats = {
             sourceFundsFound: 0,
             targetsUpdated: 0,
@@ -89,7 +90,12 @@ export const peerEnrichmentService = {
     },
 
     /**
-        return base.trim();
+     * Extract base name from scheme (delegates to utility)
+     * @param {string} schemeName
+     * @returns {string|null}
+     */
+    extractBaseName(schemeName) {
+        return extractBaseName(schemeName);
     },
 
     /**
@@ -115,7 +121,7 @@ export const peerEnrichmentService = {
       WHERE scheme_code = ?
     `;
 
-        await db.run(query, [
+        const result = await db.run(query, [
             source.aum,
             source.risk_level,
             source.fund_manager,
@@ -129,5 +135,7 @@ export const peerEnrichmentService = {
             source.fund_start_date,
             target.scheme_code
         ]);
+
+        return result && result.changes > 0;
     }
 };

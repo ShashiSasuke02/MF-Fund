@@ -118,6 +118,54 @@ class EmailService {
     }
 
     /**
+     * Send Backup Email with Attachment
+     * @param {string} archivePath - Path to .tar.gz file
+     * @param {string} recipient - Recipient email
+     */
+    async sendBackupEmail(archivePath, recipient) {
+        if (!this.initialized) this.init();
+
+        const fileName = archivePath.split('/').pop();
+
+        if (!this.transporter) {
+            logger.info(`[EmailService] MOCK: Would send backup ${fileName} to ${recipient}`);
+            return true;
+        }
+
+        try {
+            const info = await this.transporter.sendMail({
+                from: `"MF Backup Bot" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+                to: recipient,
+                subject: `🗄️ Database Backup: ${new Date().toISOString().split('T')[0]}`,
+                text: `Attached is the daily database backup for MF-Investments.\n\nFile: ${fileName}`,
+                html: `
+                    <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                        <h2 style="color: #4F46E5;">Daily Database Backup</h2>
+                        <p>Your automated backup is ready.</p>
+                        <ul style="background-color: #F3F4F6; padding: 15px; border-radius: 8px;">
+                            <li><strong>Date:</strong> ${new Date().toISOString().split('T')[0]}</li>
+                            <li><strong>File:</strong> ${fileName}</li>
+                        </ul>
+                        <p style="font-size: 12px; color: #6B7280;">Keep this file safe.</p>
+                    </div>
+                `,
+                attachments: [
+                    {
+                        filename: fileName,
+                        path: archivePath
+                    }
+                ]
+            });
+
+            logger.info(`[EmailService] Backup sent to ${recipient}. MessageId: ${info.messageId}`);
+            return true;
+        } catch (error) {
+            logger.error(`[EmailService] Failed to send backup email:`, error.message);
+            throw error;
+        }
+    }
+
+    /**
      * Send Cron Job Report Email
      * @param {Object} reportData - Report data
      */
@@ -199,6 +247,9 @@ class EmailService {
         } else if (reportType === 'SYNC') {
             headerTitle = 'Full Fund Sync Report';
             subTitle = 'Market Data Ingestion';
+        } else if (reportType === 'NIGHTLY_SYNC') {
+            headerTitle = 'Nightly Data Sync Report';
+            subTitle = 'Full Sync + AMFI NAV Update';
         } else if (reportType === 'AMFI_SYNC') {
             headerTitle = 'AMFI NAV Sync Report';
             subTitle = 'Official AMFI Text File Sync';
@@ -239,6 +290,13 @@ class EmailService {
                 ${StatCard('Total Found', fundsFetched, colors.textPrimary)}
                 ${StatCard('Funds Upserted', fundsInserted, '#3B82F6')} // Blue
                 ${StatCard('NAV Records', navUpdated, colors.success)}
+             `;
+        } else if (reportType === 'NIGHTLY_SYNC') {
+            // Combined Stats: 1. Full Sync (Upserted), 2. AMFI (Synced), 3. Total NAVs
+            statsRow = `
+                ${StatCard('Funds Upserted', fundsInserted, colors.textPrimary, 'From MFAPI')}
+                ${StatCard('AMFI Matched', matchedFunds, '#3B82F6', 'From Text File')}
+                ${StatCard('Total NAVs', navUpdated, colors.success, 'Combined Updates')}
              `;
         } else if (reportType === 'AMFI_SYNC') {
             statsRow = `

@@ -18,6 +18,7 @@ const KUMA_PUSH_MAP = {
     'Daily Transaction Scheduler': 'KUMA_PUSH_SIP_URL',
     'Full Fund Sync': 'KUMA_PUSH_FUND_SYNC_URL',
     'AMFI NAV Sync': 'KUMA_PUSH_AMFI_SYNC_URL',
+    'Daily Database Backup': 'KUMA_PUSH_BACKUP_URL',
 };
 
 const pingUptimeKuma = async (jobName) => {
@@ -144,20 +145,11 @@ export const initSchedulerJobs = () => {
             amfiSyncResult = { success: false, error: error.message };
         }
 
-        // Notify for AMFI Sync (separate email)
-        const amfiDuration = Date.now() - amfiStartTime;
-        const amfiStatus = amfiSyncResult?.success ? 'SUCCESS' : 'FAILED';
-        await cronNotificationService.onJobComplete(
-            'AMFI NAV Sync',
-            amfiStatus,
-            amfiSyncResult,
-            amfiSyncResult?.error || null,
-            amfiDuration
-        );
-
+        // Return combined result for single email report (NIGHTLY_SYNC)
         return {
             fullSync: fullSyncResult,
-            amfiSync: amfiSyncResult
+            amfiSync: amfiSyncResult,
+            amfiDuration: Date.now() - amfiStartTime
         };
     });
 
@@ -182,6 +174,12 @@ export const initSchedulerJobs = () => {
     // NOTE: This job is DISABLED by default. Legacy API-based sync, use AMFI Sync instead.
     cronRegistry.register('Incremental Fund Sync', 'MANUAL_ONLY', async () => {
         return await mfapiIngestionService.runIncrementalSync();
+    });
+
+    // 6. Register Daily Database Backup (2:00 AM IST)
+    cronRegistry.register('Daily Database Backup', '0 2 * * *', async () => {
+        const { backupService } = await import('../services/backup.service.js');
+        return await backupService.runDailyBackup();
     });
 
     // 4. Schedule all registered jobs

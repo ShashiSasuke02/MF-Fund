@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
-// Define mock functions first (hoisted variable pattern not needed for unstable_mockModule if defined before import)
+// Define mock functions first
 const mockRun = jest.fn();
 const mockQueryOne = jest.fn();
 const mockQuery = jest.fn();
@@ -57,14 +57,12 @@ describe('User Model', () => {
     };
 
     it('should create user with valid data', async () => {
-      run.mockResolvedValueOnce({
-        lastInsertRowid: 1,
-        changes: 1
-      });
-      run.mockResolvedValueOnce({
-        lastInsertRowid: 1,
-        changes: 1
-      });
+      // 1. User Insert
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
+      // 2. Account Insert
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
+      // 3. Ledger Insert
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
 
       const result = await userModel.create(validUserData);
 
@@ -75,18 +73,16 @@ describe('User Model', () => {
         fullName: 'John Doe',
         emailId: 'john@example.com'
       });
-      expect(run).toHaveBeenCalledTimes(2); // User insert + demo account insert
+      expect(run).toHaveBeenCalledTimes(3);
     });
 
     it('should create demo account with ₹1,00,00,000 balance', async () => {
-      run.mockResolvedValueOnce({
-        lastInsertRowid: 5,
-        changes: 1
-      });
-      run.mockResolvedValueOnce({
-        lastInsertRowid: 5,
-        changes: 1
-      });
+      // 1. User Insert (Returns ID 5)
+      run.mockResolvedValueOnce({ lastInsertRowid: 5, insertId: 5, changes: 1 });
+      // 2. Account Insert
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
+      // 3. Ledger Insert
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
 
       await userModel.create(validUserData);
 
@@ -98,14 +94,14 @@ describe('User Model', () => {
     });
 
     it('should reject user creation with userId = 0', async () => {
-      run.mockResolvedValueOnce({
-        lastInsertRowid: 0,
-        changes: 0
-      });
+      // User Insert fails to return valid ID
+      run.mockResolvedValueOnce({ lastInsertRowid: 0, insertId: 0, changes: 0 });
 
       await expect(userModel.create(validUserData)).rejects.toThrow(
         'Invalid user ID'
       );
+      // specific assertion to ensure it stopped there
+      expect(run).toHaveBeenCalledTimes(1);
     });
 
     it('should handle database errors gracefully', async () => {
@@ -117,14 +113,9 @@ describe('User Model', () => {
     });
 
     it('should trim whitespace from user data', async () => {
-      run.mockResolvedValueOnce({
-        lastInsertRowid: 1,
-        changes: 1
-      });
-      run.mockResolvedValueOnce({
-        lastInsertRowid: 1,
-        changes: 1
-      });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
 
       const dataWithSpaces = {
         ...validUserData,
@@ -281,8 +272,9 @@ describe('User Model', () => {
 
   describe('Data Validation Edge Cases', () => {
     it('should handle empty strings', async () => {
-      run.mockResolvedValueOnce({ lastInsertRowid: 1, changes: 1 });
-      run.mockResolvedValueOnce({ lastInsertRowid: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
 
       const invalidData = {
         fullName: '',
@@ -293,13 +285,13 @@ describe('User Model', () => {
 
       await userModel.create(invalidData);
 
-      // Should still create but with empty strings (validation should happen at controller level)
       expect(run).toHaveBeenCalled();
     });
 
     it('should handle special characters in names', async () => {
-      run.mockResolvedValueOnce({ lastInsertRowid: 1, changes: 1 });
-      run.mockResolvedValueOnce({ lastInsertRowid: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
 
       const specialCharsData = {
         fullName: "O'Brien-Smith",
@@ -310,15 +302,17 @@ describe('User Model', () => {
 
       await userModel.create(specialCharsData);
 
-      expect(run).toHaveBeenCalledWith(
+      expect(run).toHaveBeenNthCalledWith(
+        1,
         expect.any(String),
         expect.arrayContaining(["O'Brien-Smith"])
       );
     });
 
     it('should handle very long inputs', async () => {
-      run.mockResolvedValueOnce({ lastInsertRowid: 1, changes: 1 });
-      run.mockResolvedValueOnce({ lastInsertRowid: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
+      run.mockResolvedValueOnce({ lastInsertRowid: 1, insertId: 1, changes: 1 });
 
       const longData = {
         fullName: 'A'.repeat(255),

@@ -150,19 +150,42 @@ export const cronNotificationService = {
                 stats.totalInvested = (schedulerResult && schedulerResult.result) ? (schedulerResult.result.totalInvested || 0) : 0;
                 stats.totalWithdrawn = (schedulerResult && schedulerResult.result) ? (schedulerResult.result.totalWithdrawn || 0) : 0;
             }
-            else if (reportType === 'SYNC') {
+            else if (reportType === 'NIGHTLY_SYNC') {
                 const syncResult = jobResults.find(j => j.jobName === 'Full Fund Sync');
-                // FIX: The job now returns { fullSync: {...}, amfiSync: {...} }
-                // We need to extract stats from the nested fullSync object
-                const fullSyncData = (syncResult?.result?.fullSync) || syncResult?.result || {};
+                const fullSyncData = syncResult?.result?.fullSync || {};
                 const amfiSyncData = syncResult?.result?.amfiSync || {};
+
+                // Full Sync stats
+                stats.fundsFetched = fullSyncData.totalFetched || 0;
+                stats.fundsInserted = fullSyncData.inserted || 0;
+                stats.skippedInactive = fullSyncData.skippedInactive || 0;
+                stats.markedInactive = fullSyncData.markedInactive || 0;
+                stats.fullSyncErrors = fullSyncData.errors || 0;
+
+                // AMFI Sync stats
+                stats.totalParsed = amfiSyncData.totalParsed || 0;
+                stats.matchedFunds = amfiSyncData.matchedFunds || 0;
+                stats.navUpdated = (fullSyncData.navInserted || 0) + (amfiSyncData.navUpdated || 0); // Combined NAV count
+                stats.skippedNoMatch = amfiSyncData.skippedNoMatch || 0;
+                stats.amfiErrors = amfiSyncData.errors || 0;
+
+                // Combined errors
+                stats.errors = stats.fullSyncErrors + stats.amfiErrors;
+
+                // Duration for AMFI part
+                stats.amfiDuration = syncResult?.result?.amfiDuration || 0;
+            }
+            else if (reportType === 'SYNC') {
+                // Fallback for legacy calls if any
+                const syncResult = jobResults.find(j => j.jobName === 'Full Fund Sync');
+                const fullSyncData = syncResult?.result?.fullSync || syncResult?.result || {};
 
                 stats.fundsFetched = fullSyncData.totalFetched || 0;
                 stats.fundsInserted = fullSyncData.inserted || 0;
-                stats.navUpdated = (fullSyncData.navInserted || 0) + (amfiSyncData.navUpdated || 0);
+                stats.navUpdated = fullSyncData.navInserted || 0;
                 stats.skippedInactive = fullSyncData.skippedInactive || 0;
                 stats.markedInactive = fullSyncData.markedInactive || 0;
-                stats.errors = (fullSyncData.errors || 0) + (amfiSyncData.errors || 0);
+                stats.errors = fullSyncData.errors || 0;
             }
             else if (reportType === 'AMFI_SYNC') {
                 const amfiResult = jobResults.find(j => j.jobName === 'AMFI NAV Sync');
