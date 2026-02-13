@@ -21,7 +21,7 @@ services:
       dockerfile: mysql.Dockerfile
     container_name: mf-investments-db
     restart: unless-stopped
-    command: --max-allowed-packet=67108864
+    command: --max-allowed-packet=67108864 --innodb-use-native-aio=0
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-mf_root_secret_2024}
       MYSQL_DATABASE: ${DB_NAME:-mf_selection_app}
@@ -52,7 +52,7 @@ services:
     image: redis:7-alpine
     container_name: mf-investments-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD}
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass "${REDIS_PASSWORD}"
     volumes:
       - redis_data:/data
     networks:

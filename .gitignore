@@ -21,6 +21,10 @@ logs/
 *.log
 npm-debug.log*
 
+# Backups
+backups/
+!backups/.gitkeep
+
 # IDE
 .vscode/
 .idea/
