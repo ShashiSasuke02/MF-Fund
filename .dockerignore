@@ -1,5 +1,7 @@
 # Build artifacts
 node_modules/
+backups/
+client/node_modules/
 client/node_modules/
 client/dist/
 dist/
