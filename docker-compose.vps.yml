@@ -36,7 +36,7 @@ services:
     networks:
       - mf-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-rootpassword}"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -257,7 +257,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     networks:
       - mf-network
-    command: ["node", "scripts/seedAdmin.js"]
+    command: ["node", "scripts/seed-admin.js"]
 
 # =============================================================================
 # Networks

@@ -24,6 +24,13 @@ BACKUP_FILE="${BACKUP_DIR}/${DATE}.sql"
 ARCHIVE_FILE="${BACKUP_DIR}/${DATE}.tar.gz"
 COMPOSE_FILE="docker-compose.vps.yml"
 
+# Load environment variables from .env
+if [ -f .env ]; then
+    set -a
+    source .env
+    set +a
+fi
+
 # Tables to back up (excludes fund_nav_history — can be re-synced from AMFI)
 TABLES="users demo_accounts holdings transactions ledger_entries funds"
 
@@ -100,7 +107,8 @@ fi
 # ─── Email Backup ──────────────────────────────────────────────────────────
 if [ -f "scripts/send-backup-email.js" ]; then
     log "📧 Sending backup via email..."
-    node scripts/send-backup-email.js "${ARCHIVE_FILE}" || log "⚠️ Email send failed (non-fatal)"
+    CONTAINER_ARCHIVE_PATH="/app/backups/daily/$(basename "${ARCHIVE_FILE}")"
+    docker compose -f "${COMPOSE_FILE}" exec -T backend node scripts/send-backup-email.js "${CONTAINER_ARCHIVE_PATH}" || log "⚠️ Email send failed (non-fatal)"
 fi
 
 # ─── Ping Uptime Kuma ──────────────────────────────────────────────────────

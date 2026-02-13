@@ -117,7 +117,7 @@ export default function Login() {
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-900">Track Your Portfolio</h4>
-                      <p className="text-sm text-gray-600">Monitor your demo investments in real-time</p>
+                      <p className="text-sm text-gray-600">Monitor your investments in real-time</p>
                     </div>
                   </div>
 
@@ -163,7 +163,7 @@ export default function Login() {
                   Sign In
                 </h2>
                 <p className="text-gray-600">
-                  Access your demo portfolio
+                  Access your portfolio
                 </p>
               </div>
 

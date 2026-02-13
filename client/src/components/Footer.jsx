@@ -28,10 +28,10 @@ export default function Footer() {
                 <h3 className="text-sm font-bold text-amber-400 mb-2">Investment Disclaimer</h3>
                 <div className="text-sm text-gray-300 space-y-2">
                   <p>
-                    TryMutualFunds.com is an educational and practice-only platform and does not provide any investment advice. Before making any real-world investment decisions, users are strongly advised to consult a SEBI-registered financial advisor or company.
+                    Trymutualfunds.com is an educational and practice-only platform and does not provide any investment advice. Before making any real-world investment decisions, users are strongly advised to consult a SEBI-registered financial advisor or company.
                   </p>
                   <p>
-                    All information and simulations available on this platform are intended solely for learning purposes. TryMutualFunds.com shall not be held responsible for any financial decisions, losses, or outcomes arising from the use of this platform or its simulated data.
+                    All information and simulations available on this platform are intended solely for learning purposes. Trymutualfunds.com shall not be held responsible for any financial decisions, losses, or outcomes arising from the use of this platform or its simulated data.
                   </p>
                 </div>
               </div>
