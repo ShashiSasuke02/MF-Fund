@@ -40,6 +40,9 @@ RUN npm ci --only=production && npm cache clean --force
 # -----------------------------------------------------------------------------
 FROM node:18-alpine AS runtime
 
+# Install mysql-client for mysqldump (backup automation)
+RUN apk add --no-cache mysql-client
+
 # Security: Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S mfapp -u 1001 -G nodejs
@@ -55,8 +58,8 @@ COPY --chown=mfapp:nodejs src/ ./src/
 COPY --chown=mfapp:nodejs scripts/ ./scripts/
 
 # Create logs directory with correct permissions
-# Create logs directory and ensure ownership of /app (non-recursive to avoid slow node_modules scan)
-RUN mkdir -p logs && chown -R mfapp:nodejs logs && chown mfapp:nodejs /app
+# Create logs and backups directories with correct permissions
+RUN mkdir -p logs backups/daily && chown -R mfapp:nodejs logs backups && chown mfapp:nodejs /app
 
 # Copy built frontend to serve as static files
 COPY --from=frontend-builder --chown=mfapp:nodejs /app/client/dist ./client/dist
