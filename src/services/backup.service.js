@@ -37,7 +37,7 @@ export const backupService = {
             const dbName = process.env.DB_NAME || 'mf_selection';
 
             // Using mariadb-dump (Alpine's mysql-client provides MariaDB tools)
-            const dumpCmd = `mariadb-dump -h ${dbHost} -u ${dbUser} -p'${dbPass}' --single-transaction --quick --lock-tables=false --routines --triggers ${dbName} ${tables} > "${sqlFile}"`;
+            const dumpCmd = `mariadb-dump -h ${dbHost} -u ${dbUser} -p'${dbPass}' --skip-ssl --single-transaction --quick --lock-tables=false --routines --triggers ${dbName} ${tables} > "${sqlFile}"`;
 
             logger.info(`[Backup] Dumping tables: ${tables}`);
             execSync(dumpCmd, { stdio: 'inherit' });
