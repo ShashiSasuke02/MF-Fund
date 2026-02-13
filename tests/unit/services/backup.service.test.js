@@ -56,9 +56,9 @@ describe('Backup Service', () => {
     test('should run daily backup successfully', async () => {
         const result = await backupService.runDailyBackup();
 
-        // 1. Verify mysqldump call
+        // 1. Verify mariadb-dump call (Alpine's mysql-client provides MariaDB tools)
         expect(execSync).toHaveBeenCalledWith(
-            expect.stringContaining('mysqldump'),
+            expect.stringContaining('mariadb-dump'),
             expect.objectContaining({ stdio: 'inherit' })
         );
 

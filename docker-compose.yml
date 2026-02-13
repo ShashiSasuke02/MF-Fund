@@ -52,13 +52,13 @@ services:
     image: redis:7-alpine
     container_name: mf-investments-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
     networks:
       - mf-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -99,7 +99,7 @@ services:
       DB_NAME: ${DB_NAME:-mf_selection_app}
       
       # Security
-      JWT_SECRET: mf_investments_jwt_secret_k9x7Wp3Lm2nQ8vRtYhBcFdGjKs4AeZuX
+      JWT_SECRET: ${JWT_SECRET:-mf_investments_jwt_secret_k9x7Wp3Lm2nQ8vRtYhBcFdGjKs4AeZuX}
       
       # MFAPI Configuration
       MFAPI_BASE_URL: https://api.mfapi.in
@@ -109,7 +109,7 @@ services:
       ENABLE_SCHEDULER_CRON: ${ENABLE_SCHEDULER_CRON:-true}
       ENABLE_FULL_SYNC: ${ENABLE_FULL_SYNC:-true}
       ENABLE_INCREMENTAL_SYNC: "false"
-      ENABLE_AMFI_SYNC_REPORT: "true"
+      ENABLE_AMFI_SYNC_REPORT: "${ENABLE_AMFI_SYNC_REPORT:-true}"
       ENABLE_AMFI_SYNC_SCHEDULE: "${ENABLE_AMFI_SYNC_SCHEDULE:-true}"
       ENABLE_MFAPI_FALLBACK: "true"
       
@@ -134,10 +134,15 @@ services:
       # Redis Cache
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_ENABLED: ${REDIS_ENABLED:-true}
+
+      # Backup
+      BACKUP_EMAIL: ${BACKUP_EMAIL:-Shashidhar02april@gmail.com}
 
     volumes:
       - ./logs:/app/logs  # Bind mount for direct host access
+      - ./backups:/app/backups
     ports:
       - "${APP_PORT:-4000}:4000"
     networks:
@@ -187,6 +192,12 @@ services:
       MFAPI_TIMEOUT_MS: 15000
       ENABLE_FULL_SYNC: "true"
       
+      # Redis Cache
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_ENABLED: ${REDIS_ENABLED:-true}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
     networks:
       - mf-network
     deploy:
@@ -216,6 +227,7 @@ services:
       DB_USER: ${DB_USER:-mf_user}
       DB_PASSWORD: ${DB_PASSWORD:-mf_password_2024}
       DB_NAME: ${DB_NAME:-mf_selection_app}
+      JWT_SECRET: ${JWT_SECRET:-mf_investments_jwt_secret_k9x7Wp3Lm2nQ8vRtYhBcFdGjKs4AeZuX}
     networks:
       - mf-network
     deploy:
