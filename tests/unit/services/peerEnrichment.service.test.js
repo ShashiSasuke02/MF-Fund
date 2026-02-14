@@ -63,18 +63,9 @@ describe('Peer Enrichment Service', () => {
         expect(fundModel.findPeerFundsMissingData).toHaveBeenCalledWith('HDFC Top 100 Fund', '123');
         expect(db.run).toHaveBeenCalled(); // Copy data
 
-        expect(cronNotificationService.onJobComplete).toHaveBeenCalledWith(
-            'Peer Fund Enrichment',
-            'SUCCESS',
-            expect.objectContaining({
-                totalEnriched: 1,
-                enrichedFundNames: ['HDFC Top 100 Fund - Regular']
-            }),
-            null,
-            expect.any(Number)
-        );
-
+        // Notification is handled by executeJobWrapper, not the service itself
         expect(result.totalEnriched).toBe(1);
+        expect(result.enrichedFundNames).toEqual(['HDFC Top 100 Fund - Regular']);
     });
 
     test('should handle empty source funds', async () => {
@@ -82,12 +73,8 @@ describe('Peer Enrichment Service', () => {
 
         const result = await peerEnrichmentService.runDailyEnrichment();
 
-        expect(cronNotificationService.onJobComplete).toHaveBeenCalledWith(
-            'Peer Fund Enrichment',
-            'SUCCESS',
-            expect.objectContaining({ totalEnriched: 0 }),
-            null,
-            expect.any(Number)
-        );
+        // Notification is handled by executeJobWrapper, not the service itself
+        expect(result.totalEnriched).toBe(0);
+        expect(result.enrichedFundNames).toEqual([]);
     });
 });

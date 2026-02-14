@@ -125,6 +125,7 @@ services:
       CRON_REPORT_EMAIL: ${CRON_REPORT_EMAIL}
       ENABLE_TRANSACTION_SCHEDULER_REPORT: ${ENABLE_TRANSACTION_SCHEDULER_REPORT:-true}
       ENABLE_FULL_SYNC_REPORT: ${ENABLE_FULL_SYNC_REPORT:-true}
+      ENABLE_PEER_ENRICHMENT_REPORT: ${ENABLE_PEER_ENRICHMENT_REPORT:-true}
       
       # AI Mutual Fund Manager (Ollama)
       # Note: AI_SYSTEM_PROMPT is hardcoded in ollama.service.js for security

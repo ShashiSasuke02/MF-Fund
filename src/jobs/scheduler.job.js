@@ -215,11 +215,8 @@ export const initSchedulerJobs = () => {
             // For simplicity, we assume server time or simple cron.
             // To match previous behavior exactly, we might need to hardcode options for now or update registry.
 
-            let options = {};
-            // Apply IST timezone for all scheduled jobs
-            if (job.name.includes('Fund Sync') || job.name === 'Daily Transaction Scheduler') {
-                options = { timezone: 'Asia/Kolkata' };
-            }
+            // Apply IST timezone for ALL scheduled jobs
+            const options = { timezone: 'Asia/Kolkata' };
 
             cron.schedule(job.schedule, () => {
                 executeJobWrapper(job.name, job.handler, 'SCHEDULE');

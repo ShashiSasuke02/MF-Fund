@@ -103,6 +103,7 @@ This is the core of the application. Logic is strictly separated from Controller
 -   **`holdings`**: Aggregate snapshot of user's portfolio.
 -   **`amc_master`**: Whitelist configuration.
 -   **`system_settings`**: Key-value store for global app configuration (AI config, Feature flags).
+-   **`ledger_entries`**: Immutable audit trail for all financial movements (SIP/SWP/Lump Sum). `CREDIT`/`DEBIT` typed entries with `balance_after` snapshots.
 
 ### 3.6 Authentication & Authorization
 -   **Strategy:** JWT (JSON Web Tokens).
@@ -1220,3 +1221,28 @@ Added production hardening layer for VPS deployment. All changes are **backward 
 - Supports alerts via Email, Telegram, Discord, Slack (configured in Kuma dashboard)
 
 ---
+
+### 16.5 Pre-Deployment Audit Fixes (Feb 2026)
+
+#### Cron Notification Bug Fixes (3)
+1.  **AMFI Stats Missing from Nightly Email:** `cronNotification.service.js` used `reportType: 'SYNC'` which only read Full Sync stats. Changed to `'NIGHTLY_SYNC'` which reads both `fullSync` + `amfiSync` data.
+2.  **Peer Enrichment Email Never Sent:** `onJobComplete` had no handler for `'Peer Fund Enrichment'`. Added handler + `ENABLE_PEER_ENRICHMENT_REPORT` env var. Also removed duplicate `onJobComplete` calls from `peerEnrichment.service.js`.
+3.  **`extractBaseName` Crash:** Import name collision in `peerEnrichment.service.js`. Fixed by aliasing import to `extractBaseNameUtil`.
+
+#### Deep Audit Bug Fixes (4)
+1.  **`ledger_entries` Missing from `schema.sql` (CRITICAL):** Table existed only in a migration file that was never executed. Added `CREATE TABLE IF NOT EXISTS ledger_entries (...)` to `schema.sql`. Without this, backup jobs crash and ledger API returns 500 on fresh deploys.
+2.  **`backup.service.js` Duplicate Notifications:** Same pattern as Peer Enrichment — both `executeJobWrapper` and the service internally called `onJobComplete`. Removed internal calls + unused import.
+3.  **Cron Timezone Inconsistency:** IST timezone was only applied to `Fund Sync` and `Transaction Scheduler` jobs. `Peer Fund Enrichment` and `Daily Database Backup` ran in system time. Fixed to apply `Asia/Kolkata` to ALL jobs.
+4.  **`JSON.parse` Crash in Report Generation:** `cronNotification.service.js` parsed `lastRun.message` without try-catch. Since `scheduler.job.js` stores `"Completed successfully"` (not valid JSON), this crashed report generation. Added safe parsing with null fallback.
+
+#### Files Modified
+| File | Changes |
+|------|---------|
+| `src/db/schema.sql` | Added `ledger_entries` table DDL |
+| `src/services/backup.service.js` | Removed duplicate `onJobComplete` calls + unused import |
+| `src/jobs/scheduler.job.js` | Applied `timezone: 'Asia/Kolkata'` to all jobs |
+| `src/services/cronNotification.service.js` | `'SYNC'` → `'NIGHTLY_SYNC'`, added Peer Enrichment handler, safe `JSON.parse` |
+| `src/services/peerEnrichment.service.js` | Renamed import alias, removed duplicate notifications |
+| `.env` / `.env.example` | Added `ENABLE_PEER_ENRICHMENT_REPORT` |
+| `docker-compose.yml` / `docker-compose.vps.yml` | Added env var passthrough |
+
