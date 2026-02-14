@@ -1,6 +1,6 @@
 import { fundModel } from '../models/fund.model.js';
-import { extractBaseName } from '../utils/fund.utils.js';
-import { cronNotificationService } from './cronNotification.service.js';
+import { extractBaseName as extractBaseNameUtil } from '../utils/fund.utils.js';
+
 import logger from './logger.service.js';
 import db from '../db/database.js';
 
@@ -59,31 +59,10 @@ export const peerEnrichmentService = {
 
             logger.info(`[Peer Enrichment] Job complete. Updated ${stats.targetsUpdated} funds using ${stats.sourceFundsFound} sources.`);
 
-            // Calculate duration
-            const duration = Date.now() - startTime;
-
-            // Send Email Notification
-            await cronNotificationService.onJobComplete(
-                'Peer Fund Enrichment',
-                'SUCCESS',
-                { totalEnriched, enrichedFundNames },
-                null, // No failure error
-                duration
-            );
-
             return { success: true, totalEnriched, enrichedFundNames };
 
         } catch (error) {
             logger.error('[Peer Enrichment] Critical job failure:', error);
-
-            // Send Email Notification (Failure)
-            await cronNotificationService.onJobComplete(
-                'Peer Fund Enrichment',
-                'FAILED',
-                { totalEnriched, enrichedFundNames },
-                error.message,
-                Date.now() - startTime
-            );
 
             throw error;
         }
@@ -95,7 +74,7 @@ export const peerEnrichmentService = {
      * @returns {string|null}
      */
     extractBaseName(schemeName) {
-        return extractBaseName(schemeName);
+        return extractBaseNameUtil(schemeName);
     },
 
     /**

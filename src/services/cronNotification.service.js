@@ -77,7 +77,7 @@ export const cronNotificationService = {
                     results.push({
                         jobName: lastRun.job_name,
                         status: lastRun.status,
-                        result: lastRun.message ? JSON.parse(lastRun.message) : null,
+                        result: (() => { try { return lastRun.message ? JSON.parse(lastRun.message) : null; } catch { return null; } })(),
                         errorDetails: lastRun.error_details,
                         durationMs: lastRun.duration_ms,
                         completedAt: new Date(lastRun.end_time).toISOString()
@@ -247,8 +247,8 @@ export const cronNotificationService = {
         if (jobName === 'Full Fund Sync') {
             if (process.env.ENABLE_FULL_SYNC_REPORT !== 'true') return;
 
-            console.log(`[CronNotification] ${jobName} complete - sending Full Fund Sync Report...`);
-            await this.sendDailyReport({ jobFilter: 'Full Fund Sync', reportType: 'SYNC' });
+            console.log(`[CronNotification] ${jobName} complete - sending Nightly Sync Report...`);
+            await this.sendDailyReport({ jobFilter: 'Full Fund Sync', reportType: 'NIGHTLY_SYNC' });
         }
 
         // 3. AMFI NAV Sync (runs after Full Fund Sync or manually)
@@ -257,6 +257,14 @@ export const cronNotificationService = {
 
             console.log(`[CronNotification] ${jobName} complete - sending AMFI NAV Sync Report...`);
             await this.sendDailyReport({ jobFilter: 'AMFI NAV Sync', reportType: 'AMFI_SYNC' });
+        }
+
+        // 4. Peer Fund Enrichment (3:00 AM job)
+        if (jobName === 'Peer Fund Enrichment') {
+            if (process.env.ENABLE_PEER_ENRICHMENT_REPORT !== 'true') return;
+
+            console.log(`[CronNotification] ${jobName} complete - sending Peer Enrichment Report...`);
+            await this.sendDailyReport({ jobFilter: 'Peer Fund Enrichment', reportType: 'PEER_ENRICHMENT' });
         }
     }
 };

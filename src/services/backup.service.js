@@ -2,7 +2,7 @@ import { execSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import { emailService } from './email.service.js';
-import { cronNotificationService } from './cronNotification.service.js';
+
 import logger from './logger.service.js';
 
 export const backupService = {
@@ -77,31 +77,13 @@ export const backupService = {
 
             const duration = Date.now() - startTime;
 
-            // Notify Cron Service
-            await cronNotificationService.onJobComplete(
-                'Daily Database Backup',
-                'SUCCESS',
-                { archiveSize, emailSent, recipient },
-                null,
-                duration
-            );
-
             return { success: true, archiveSize, emailSent };
 
         } catch (error) {
-            const duration = Date.now() - startTime;
             logger.error('[Backup] Job failed:', error);
 
             // Cleanup temp files if exist
             if (fs.existsSync(sqlFile)) fs.unlinkSync(sqlFile);
-
-            await cronNotificationService.onJobComplete(
-                'Daily Database Backup',
-                'FAILED',
-                null,
-                error.message,
-                duration
-            );
 
             throw error;
         }
